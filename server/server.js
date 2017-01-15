@@ -99,9 +99,9 @@ app.put("/data/step/:_id", function(req, res) {
   });
 });
 
-app.delete("/data/step/:_id", function(req, res) {
+app.delete("/data/step/:id", function(req, res) {
   console.log('Delete step: ' + req.params._id);
-  db.collection(STEPS_COLLECTION).deleteOne({ _id : req.params._id }, function(err, result) {
+  db.collection(STEPS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
     if (err) {
       handleError(res, err.message, "Failed to delete step");
     } else {
