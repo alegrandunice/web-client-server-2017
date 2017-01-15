@@ -74,67 +74,7 @@
                     </div>
                 </div>  
                 
-                <div class="container">                    
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <div class="row" >                                    
-                                <div class="col-xs-4" >
-                                    <a href="./edit-step.html?idstep=1" style="text-decoration: none; ">
-                                        <h3  class="panel-title">#1</h3>
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <h3 class="panel-title" style=" font-style: italic;">Move</h3>
-                                </div>
-                                <div class="col-xs-4" style="text-align: right;">
-                                    <button class="btn btn-danger" onclick="deleteStep(event, 1, 1)" style="margin-left: 0px;">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-xs-8">
-                                    <a href="./edit-step.html?idstep=1" style="text-decoration: none; ">
-                                        Step name
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <span class="badge">0 point</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="container">                    
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <div class="row" >                                    
-                                <div class="col-xs-4" >
-                                    <a href="./edit-step.html?idstep=2" style="text-decoration: none; ">
-                                        <h3  class="panel-title">#2</h3>
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <h3 class="panel-title" style=" font-style: italic;">Action</h3>
-                                </div>
-                                <div class="col-xs-4" style="text-align: right;">
-                                    <button class="btn btn-danger" onclick="deleteStep(event, 1, 2)" style="margin-left: 0px;">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="row">
-                                <div class="col-xs-8">
-                                    <a href="./edit-step.html?idstep=2" style="text-decoration: none; ">
-                                        Step name
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <span class="badge">20 point</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="stepsList">
                 </div>
                 
             </div>
@@ -148,6 +88,7 @@
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
         
     <script type="text/javascript">
     
@@ -161,11 +102,60 @@
         // Change hash for page-reload
         $('.nav-tabs a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash;
-        })
+        });
+        
+        getRequest('../data/steps').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
+            
+            jsonReceived.forEach((j) => {
+                htmlAppendStep(j._id, 1, j.move, j.name, j.total_points);
+            });
+                        
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
     }
     
     function formOnSubmit() {
         
+    }
+    
+    function htmlAppendStep(idStep, orderNumber, move, name, points) {
+        var stepsList = document.getElementById("stepsList");
+              
+        stepsList.innerHTML += ''
+                + '<div class="container">'                 
+                + '    <div class="panel panel-warning">'
+                + '        <div class="panel-heading">'
+                + '            <div class="row" >'                              
+                + '                <div class="col-xs-4" >'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
+                + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
+                + '                    </a>'
+                + '                </div>'
+                + '                <div class="col-xs-4">'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">' + ((move == true) ? 'Move' : 'Action') + ' </h3>'
+                + '                </div>'
+                + '                <div class="col-xs-4" style="text-align: right;">'
+                + '                    <button class="btn btn-danger" onclick="deleteStep(event, 1, \'' + idStep + '\');" style="margin-left: 0px;">Delete</button>'
+                + '                </div>'
+                + '            </div>'
+                + '        </div>'
+                + '        <div class="panel-body">'
+                + '            <div class="row">'
+                + '                <div class="col-xs-8">'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
+                + '                        ' + name
+                + '                    </a>'
+                + '                </div>'
+                + '                <div class="col-xs-4">'
+                + '                    <span class="badge">' + points.toString() + ' point' + ((points > 1) ? 's' : '') + '</span>'
+                + '                </div>'
+                + '            </div>'
+                + '        </div>'
+                + '    </div>'
+                + '</div>';
     }
     
     function stopGame(event, idGame) {
@@ -173,11 +163,32 @@
     }
     
     function createNewStep(event, idGame) {
+        var jsonToSend = {
+            "name": "(new step)",
+            "explanation": "...",
+            "move" : true,
+            "total_points" : 1
+        }
     
+        postRequest('../data/steps', jsonToSend).then(function(response) {
+            console.log("Post Success!", response);
+            var jsonReceived = JSON.parse(response);
+            htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
+        }, function(error) {
+            console.error("Post Failed!", error);
+        });
     }
     
     function deleteStep(event, idGame, idStep) {
-
+        var result = confirm("Delete this step?");
+        if (result) {
+            deleteRequest('../data/step/' + idStep).then(function(response) {
+                console.log("Delete Success!", response);
+                location.reload();
+            }, function(error) {
+                console.error("Delete Failed!", error);
+            });
+        }
     }
     </script>
 </body>
