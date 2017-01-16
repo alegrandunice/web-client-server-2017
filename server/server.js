@@ -3,11 +3,15 @@ var path = require("path");
 var bodyParser = require("body-parser");
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
-var url = 'mongodb://localhost:27017/buffa';
+var url = 'mongodb://localhost:27017/game';
 
-var STEPS_COLLECTION = "Step";
+var STEPS_COLLECTION = "steps";
+var GAMES_COLLECTION = "games";
 
 var app = express();
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 var dirApp = __dirname + "/public";
 console.log('express directory: ' + dirApp);
 app.use(express.static(dirApp));
@@ -104,6 +108,67 @@ app.delete("/data/step/:id", function(req, res) {
   db.collection(STEPS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
     if (err) {
       handleError(res, err.message, "Failed to delete step");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+app.get("/data/games", function(req, res) {
+  db.collection(GAMES_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get contacts.");
+    } else {
+      res.status(200).json(docs);
+    }
+  });
+});
+
+/*  "/game/add"
+ *    POST: add a new game
+ */
+app.post("data/game/add", function(req, res) {
+  var newGame = req.body;
+
+  newGame.createDate = new Date();
+
+  if (!(newGame.name && newGame.nbPlayers)) {
+    handleError(res, "Invalid user input", "Must provide a name and the number of players.", 400);
+  }
+  else{
+    db.collection(GAMES_COLLECTION).insertOne(newGame, function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to create new game.");
+      } else {
+        res.status(201).json(doc.ops[0]);
+      }
+    });
+  }
+});
+
+/*  "/games/:id"
+ *    GET: find game by id
+ *    POST: update game by id
+ */
+
+app.get("data/games/:id", function(req, res) {
+  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to get game");
+    } else {
+      res.status(200).json(doc);
+    }
+  });
+});
+
+app.post("/games/:id", function(req, res) {
+  var updateDoc = req.body;
+
+  // TODO: get game by id , add trace or chat and update it
+
+  db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to update game");
     } else {
       res.status(204).end();
     }
