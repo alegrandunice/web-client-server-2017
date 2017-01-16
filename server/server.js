@@ -127,7 +127,7 @@ app.get("/data/games", function(req, res) {
 /*  "/game/add"
  *    POST: add a new game
  */
-app.post("data/game/add", function(req, res) {
+app.post("data/games", function(req, res) {
   var newGame = req.body;
 
   newGame.createDate = new Date();
@@ -161,7 +161,7 @@ app.get("data/games/:id", function(req, res) {
   });
 });
 
-app.post("/games/:id", function(req, res) {
+app.post("data/games/:id", function(req, res) {
   var updateDoc = req.body;
 
   // TODO: get game by id , add trace or chat and update it
@@ -169,6 +169,17 @@ app.post("/games/:id", function(req, res) {
   db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to update game");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+app.delete("/data/game/:id", function(req, res) {
+  console.log('Delete game: ' + req.params._id);
+  db.collection(GAMES_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to delete game");
     } else {
       res.status(204).end();
     }
