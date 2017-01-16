@@ -17,7 +17,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
+<body  onload="onLoad()">
     <div class="container" style="margin-top:10px; ">
         <div class="row" >                                    
             <div class="col-xs-8" >
@@ -32,82 +32,101 @@
         <h3>Select a game</h3>
         <input type="checkbox"> View finished games<br>
     </div>
-    <div class="container">                    
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="row" >                                    
-                    <div class="col-xs-4" >
-                        <a href="./edit-game.html?idgame=1" style="text-decoration: none; ">
-                            <h3  class="panel-title">Game #1</h3>
-                        </a>
-                    </div>
-                    <div class="col-xs-4">
-                        <h3 class="panel-title" style=" font-style: italic;">In progress</h3>
-                    </div>
-                    <div class="col-xs-4" style="text-align: right;">
-                        <button class="btn btn-danger" onclick="deleteGame(event, 1)" style="margin-left: 0px;">Delete</button>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-xs-8">
-                        <a href="./edit-game.html?idgame=1" style="text-decoration: none; ">
-                            Game type
-                        </a>
-                    </div>
-                    <div class="col-xs-4">
-                        <span class="badge">20 steps</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="container">                    
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="row" >                                    
-                    <div class="col-xs-4" >
-                        <a href="./edit-game.html?idgame=2" style="text-decoration: none; ">
-                            <h3  class="panel-title">Game #2</h3>
-                        </a>
-                    </div>
-                    <div class="col-xs-4">
-                        <h3 class="panel-title" style=" font-style: italic;">Waiting</h3>
-                    </div>
-                    <div class="col-xs-4" style="text-align: right;">
-                        <button class="btn btn-danger" onclick="deleteGame(event, 2)" style="margin-left: 0px;">Delete</button>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-xs-8">
-                        <a href="./edit-game.html?idgame=2" style="text-decoration: none; ">
-                            Game type
-                        </a>
-                    </div>
-                    <div class="col-xs-4">
-                        <span class="badge">10 steps</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    
+    <div id="gamesList">
     </div>                    
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
             
     <script type="text/javascript">
+    
+    function onLoad() {
+        
+        
+        getRequest('../data/games').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
+            
+            jsonReceived.forEach((j) => {
+                htmlAppendStep(j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
+            });
+                        
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+    }
+    
     function createNewGame(event)
     {
         
     }
     
+    function htmlAppendStep(idGame, name, status, steps) {
+        var gamesList = document.getElementById("gamesList");
+              
+        gamesList.innerHTML += ''
+                    + '<div class="container">'                    
+                    + '    <div class="panel panel-info">'
+                    + '        <div class="panel-heading">'
+                    + '            <div class="row" >'                                    
+                    + '                <div class="col-xs-4" >'
+                    + '                    <a href="./edit-game.html?idgame=' + idGame + '" style="text-decoration: none; ">'
+                    + '                        <h3  class="panel-title">' + name + '</h3>'
+                    + '                    </a>'
+                    + '                </div>'
+                    + '                <div class="col-xs-4">'
+                    + '                    <h3 class="panel-title" style=" font-style: italic;">' + status + '</h3>'
+                    + '                </div>'
+                    + '                <div class="col-xs-4" style="text-align: right;">'
+                    + '                    <button class="btn btn-danger" onclick="deleteGame(event, \'' + idGame + '\');" style="margin-left: 0px;">Delete</button>'
+                    + '                </div>'
+                    + '            </div>'
+                    + '        </div>'
+                    + '        <div class="panel-body">'
+                    + '            <div class="row">'
+                    + '                <div class="col-xs-8">'
+                    + '                    <a href="./edit-game.html?idgame=' + idGame + '" style="text-decoration: none; ">'
+                    + '                        Game type'
+                    + '                    </a>'
+                    + '                </div>'
+                    + '                <div class="col-xs-4">'
+                    + '                    <span class="badge">' + steps.toString() + ' step' + ((steps > 1) ? 's' : '') + '</span>'
+                    + '                </div>'
+                    + '            </div>'
+                    + '        </div>'
+                    + '    </div>'
+                    + '</div>';
+    }
+    
+    function createNewGame(event) {
+        var jsonToSend = {
+            "name": "(new game)",
+            "status": "WAITING"
+        }
+    
+        postRequest('../data/games', jsonToSend).then(function(response) {
+            console.log("Post Success!", response);
+            var jsonReceived = JSON.parse(response);
+            htmlAppendStep(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
+        }, function(error) {
+            console.error("Post Failed!", error);
+        });
+    }
+    
     function deleteGame(event, idGame) {
-
+        var result = confirm("Delete this game?");
+        if (result) {
+            deleteRequest('../data/game/' + idGame).then(function(response) {
+                console.log("Delete Success!", response);
+                location.reload();
+            }, function(error) {
+                console.error("Delete Failed!", error);
+            });
+        }
     }
     </script>
 </body>

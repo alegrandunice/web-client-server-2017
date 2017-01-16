@@ -115,6 +115,7 @@ app.delete("/data/step/:id", function(req, res) {
 });
 
 app.get("/data/games", function(req, res) {
+  console.log('Select games');
   db.collection(GAMES_COLLECTION).find({}).toArray(function(err, docs) {
     if (err) {
       handleError(res, err.message, "Failed to get contacts.");
@@ -127,15 +128,16 @@ app.get("/data/games", function(req, res) {
 /*  "/game/add"
  *    POST: add a new game
  */
-app.post("data/games", function(req, res) {
+app.post("/data/games", function(req, res) {
+  console.log('add games');
   var newGame = req.body;
 
   newGame.createDate = new Date();
 
-  if (!(newGame.name && newGame.nbPlayers)) {
-    handleError(res, "Invalid user input", "Must provide a name and the number of players.", 400);
-  }
-  else{
+  //if (!(newGame.name && newGame.nbPlayers)) {
+  //  handleError(res, "Invalid user input", "Must provide a name and the number of players.", 400);
+  //}
+  //else{
     db.collection(GAMES_COLLECTION).insertOne(newGame, function(err, doc) {
       if (err) {
         handleError(res, err.message, "Failed to create new game.");
@@ -143,7 +145,7 @@ app.post("data/games", function(req, res) {
         res.status(201).json(doc.ops[0]);
       }
     });
-  }
+  //}
 });
 
 /*  "/games/:id"
@@ -151,7 +153,7 @@ app.post("data/games", function(req, res) {
  *    POST: update game by id
  */
 
-app.get("data/games/:id", function(req, res) {
+app.get("/data/games/:id", function(req, res) {
   db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to get game");
@@ -161,7 +163,7 @@ app.get("data/games/:id", function(req, res) {
   });
 });
 
-app.post("data/games/:id", function(req, res) {
+app.post("/data/games/:id", function(req, res) {
   var updateDoc = req.body;
 
   // TODO: get game by id , add trace or chat and update it
