@@ -45,27 +45,21 @@
     <script type="text/javascript">
     
     function onLoad() {
-        
-        
+                
         getRequest('../data/games').then(function(response) {
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
             
             jsonReceived.forEach((j) => {
-                htmlAppendStep(j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
+                htmlAppendGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
             });
                         
         }, function(error) {
             console.error("Get Failed!", error);
         });
-    }
+    }   
     
-    function createNewGame(event)
-    {
-        
-    }
-    
-    function htmlAppendStep(idGame, name, status, steps) {
+    function htmlAppendGame(idGame, name, status, steps) {
         var gamesList = document.getElementById("gamesList");
               
         gamesList.innerHTML += ''
@@ -111,7 +105,7 @@
         postRequest('../data/games', jsonToSend).then(function(response) {
             console.log("Post Success!", response);
             var jsonReceived = JSON.parse(response);
-            htmlAppendStep(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
+            htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
         }, function(error) {
             console.error("Post Failed!", error);
         });

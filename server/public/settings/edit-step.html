@@ -38,7 +38,7 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="formOnSubmit()" action="./edit-game.html#tabSteps" style="margin: 10px">
+                <form onsubmit="updateStep()" action="./edit-game.html#tabSteps" style="margin: 10px">
                     <div class="form-group">
                         <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">                  
                     </div>
@@ -71,57 +71,11 @@
                         <h3>Clues list</h3>
                     </div>
                     <div class="col-xs-6" style="text-align: right;">            
-                        <button class="btn btn-success" style="margin-top: 10px" onclick="createNewClue(event, 1)">Create a new clue</button>            
+                        <button class="btn btn-success" style="margin-top: 10px" onclick="createNewClue(event)">Create a new clue</button>            
                     </div>
                 </div>  
                 
-                <div class="container">                    
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <div class="row" >                                    
-                                <div class="col-xs-4" >
-                                    <a href="./edit-clue.html?idclue=1" style="text-decoration: none; ">
-                                        <h3  class="panel-title">#1</h3>
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <h3 class="panel-title" style=" font-style: italic;">Cost : 5 points</h3>
-                                </div>
-                                <div class="col-xs-4" style="text-align: right;">
-                                    <button class="btn btn-danger" onclick="deleteClue(event, 1, 1)" style="margin-left: 0px;">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <a href="./edit-clue.html?idclue=1" style="text-decoration: none; ">
-                                description
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="container">                    
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <div class="row" >                                    
-                                <div class="col-xs-4" >
-                                    <a href="./edit-clue.html?idclue=2" style="text-decoration: none; ">
-                                        <h3  class="panel-title">#2</h3>
-                                    </a>
-                                </div>
-                                <div class="col-xs-4">
-                                    <h3 class="panel-title" style=" font-style: italic;">Cost : 2 points</h3>
-                                </div>
-                                <div class="col-xs-4" style="text-align: right;">
-                                    <button class="btn btn-danger" onclick="deleteClue(event, 1, 2)" style="margin-left: 0px;">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <a href="./edit-clue.html?idclue=2" style="text-decoration: none; ">
-                                Description
-                            </a>
-                        </div>
-                    </div>
+                <div id="cluesList">
                 </div>
                 
             </div>
@@ -133,9 +87,16 @@
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
     
     <script type="text/javascript">
+    
+    var idStep;
+    
     function onLoad() {
+    
+        idStep = getUrlParameter("idstep");
+    
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {
@@ -146,19 +107,128 @@
         $('.nav-tabs a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash;
         })
-    }
-    
-    function formOnSubmit()
-    {
         
+        if (idStep !== undefined) {
+            getRequest('../data/step/' + idStep).then(function(response) {
+                console.log("Get Success!", response);
+                var jsonReceived = JSON.parse(response);
+                
+                //orderNumber                   <==
+                
+                //type="radio" Move / Action    <==
+
+                var stepName = getElementById("stepName");
+                stepName.value = jsonReceived.name;
+                
+                var description = getElementById("description");
+                description.value = jsonReceived.explanation;
+                
+                var earnedPoints = getElementById("earnedPoints");
+                earnedPoints.value = jsonReceived.total_points;
+                
+                //type="file" Pictures          <==
+                
+                for (i = 0; i < jsonReceived.clues.length; i++) { 
+                    htmlAppendClue(jsonReceived.clues[i]._id, i + 1, jsonReceived.clues[i].cost, jsonReceived.clues[i].description);
+                }
+                            
+            }, function(error) {
+                console.error("Get Failed!", error);
+            });
+        }
     }
     
-    function createNewClue(event, idStep) {
+    function updateStep()
+    {
+        if (idStep !== undefined) {
+            var jsonToSend = {
+                "name": "",
+                "explanation": "",
+                "total_points" : 0
+            }
     
+            //orderNumber                   <==
+            
+            //type="radio" Move / Action    <==
+
+            var stepName = getElementById("stepName");
+            jsonToSend.name = stepName.value;
+            
+            var description = getElementById("description");
+            jsonToSend.explanation = description.value;
+            
+            var earnedPoints = getElementById("earnedPoints");
+            jsonToSend.total_points = earnedPoints.value;
+            
+            //type="file" Pictures          <==
+            
+            putRequest('../data/step/' + idStep, jsonToSend).then(function(response) {
+                console.log("Put Success!", response);
+            }, function(error) {
+                console.error("Put Failed!", error);
+            });
+        }
     }
     
-    function deleteClue(event, idStep, idclue) {
+    function htmlAppendClue(idClue, orderNumber, points, description) {
+        var cluesList = document.getElementById("cluesList");
+              
+        cluesList.innerHTML += ''
+                + '<div class="container">'                    
+                + '    <div class="panel panel-warning">'
+                + '        <div class="panel-heading">'
+                + '            <div class="row" >'                                    
+                + '                <div class="col-xs-4" >'
+                + '                    <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
+                + '                    </a>'
+                + '                </div>'
+                + '                <div class="col-xs-4">'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points.toString() + ' point' + ((points > 1) ? 's' : '') + '</h3>'
+                + '                </div>'
+                + '                <div class="col-xs-4" style="text-align: right;">'
+                + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + idClue + '\');" style="margin-left: 0px;">Delete</button>'
+                + '                </div>'
+                + '            </div>'
+                + '        </div>'
+                + '        <div class="panel-body">'
+                + '            <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '                ' + description
+                + '            </a>'
+                + '        </div>'
+                + '    </div>'
+                + '</div>';
+    }
     
+    function createNewClue(event) {
+        if (idStep !== undefined) {
+            var jsonToSend = {
+                "description": "(new clue)",
+                "cost": 1
+            }
+        
+            postRequest('../data/step/' + idStep + '/clues', jsonToSend).then(function(response) {
+                console.log("Post Success!", response);
+                var jsonReceived = JSON.parse(response);
+                htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
+            }, function(error) {
+                console.error("Post Failed!", error);
+            });
+        }
+    }
+    
+    function deleteClue(event, idClue) {
+        if (idStep !== undefined) {
+            var result = confirm("Delete this clue?");
+            if (result) {
+                deleteRequest('../data/step/' + idStep + '/clue/' + idClue).then(function(response) {
+                    console.log("Delete Success!", response);
+                    location.reload();
+                }, function(error) {
+                    console.error("Delete Failed!", error);
+                });
+            }
+        }
     }
     
     </script>

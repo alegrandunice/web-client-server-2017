@@ -22,7 +22,7 @@
 
         <div class="row">
             <div class="col-xs-8" >
-                <h3>Game #1</h3>
+                <h3 id="headerName"></h3>
             </div>
             <div class="col-xs-4" style="text-align: right;">
                 <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='./select-game.html';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
@@ -40,12 +40,14 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="formOnSubmit()" action="./select-game.html" style="margin: 10px">
+                <form onsubmit="updateGame()" action="./select-game.html" style="margin: 10px">
 
                     <div class="form-group">
-                      <label>Status</label><label class="form-control">In Progress</label>
+                      <label for="name">Name</label><input id="name" type="text" placeholder="Name" class="form-control">
                     </div>
-                                       
+                    <div class="form-group">
+                      <label>Status</label><label id="state" class="form-control"></label>
+                    </div>                                      
                     <div class="form-group">
                       <label for="country">Country</label><input id="country" type="text" placeholder="Country" class="form-control">
                     </div>
@@ -70,7 +72,7 @@
                         <h3>Steps list</h3>
                     </div>
                     <div class="col-xs-6" style="text-align: right;">            
-                        <button class="btn btn-success" style="margin-top: 10px" onclick="createNewStep(event, 1)">Create a new step</button>            
+                        <button class="btn btn-success" style="margin-top: 10px" onclick="createNewStep(event)">Create a new step</button>            
                     </div>
                 </div>  
                 
@@ -92,7 +94,12 @@
         
     <script type="text/javascript">
     
-    function onLoad() {
+    var idGame;
+    
+    function onLoad() {                
+        
+        idGame = getUrlParameter("idgame");
+        
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {
@@ -104,21 +111,66 @@
             window.location.hash = e.target.hash;
         });
         
-        getRequest('../data/steps').then(function(response) {
-            console.log("Get Success!", response);
-            var jsonReceived = JSON.parse(response);
-            
-            jsonReceived.forEach((j) => {
-                htmlAppendStep(j._id, 1, j.move, j.name, j.total_points);
+        if (idGame !== undefined) {
+            getRequest('../data/game/' + idGame).then(function(response) {
+                console.log("Get Success!", response);
+                var jsonReceived = JSON.parse(response);
+                
+                var headerName = getElementById("headerName");
+                headerName.innerHTML = jsonReceived.name;
+                var name = getElementById("name");
+                name.value = jsonReceived.name;
+                var state = getElementById("state");
+                state.innerHTML = jsonReceived.state;
+                var country = getElementById("country");
+                country.value = jsonReceived.country;
+                var region = getElementById("region");
+                region.value = jsonReceived.region;
+                var city = getElementById("city");
+                city.value = jsonReceived.city;
+                var gameType = getElementById("gameType");
+                gameType.value = jsonReceived.game_type;
+                
+                for (i = 0; i < jsonReceived.steps.length; i++) { 
+                    htmlAppendStep(jsonReceived.steps[i]._id, i + 1, jsonReceived.steps[i].move, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
+                }
+                            
+            }, function(error) {
+                console.error("Get Failed!", error);
             });
-                        
-        }, function(error) {
-            console.error("Get Failed!", error);
-        });
+        }
     }
     
-    function formOnSubmit() {
-        
+    function updateGame() {
+        if (idGame !== undefined) {
+            var jsonToSend = {
+                "name": "",
+                "state": "",
+                "country" : "",
+                "region" : "",
+                "city" : "",
+                "game_type" : ""
+            }
+            
+            var name = getElementById("name");
+            jsonToSend.name = name.value;
+            var state = getElementById("state");
+            jsonToSend.state = state.innerHTML;
+            var country = getElementById("country");
+            jsonToSend.country = country.value;
+            var region = getElementById("region");
+            jsonToSend.region = region.value;
+            var city = getElementById("city");
+            jsonToSend.city = city.value;
+            var gameType = getElementById("gameType");
+            jsonToSend.game_type = gameType.value;
+            
+            putRequest('../data/game/' + idGame, jsonToSend).then(function(response) {
+                console.log("Put Success!", response);
+            }, function(error) {
+                console.error("Put Failed!", error);
+            });
+        }
     }
     
     function htmlAppendStep(idStep, orderNumber, move, name, points) {
@@ -138,7 +190,7 @@
                 + '                    <h3 class="panel-title" style=" font-style: italic;">' + ((move == true) ? 'Move' : 'Action') + ' </h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
-                + '                    <button class="btn btn-danger" onclick="deleteStep(event, 1, \'' + idStep + '\');" style="margin-left: 0px;">Delete</button>'
+                + '                    <button class="btn btn-danger" onclick="deleteStep(event, \'' + idStep + '\');" style="margin-left: 0px;">Delete</button>'
                 + '                </div>'
                 + '            </div>'
                 + '        </div>'
@@ -158,38 +210,47 @@
                 + '</div>';
     }
     
-    function stopGame(event, idGame) {
+    function createNewStep(event) {
+        if (idGame !== undefined) {
+            var jsonToSend = {
+                "name": "(new step)",
+                "explanation": "...",
+                "move" : true,
+                "total_points" : 1
+            }
         
-    }
-    
-    function createNewStep(event, idGame) {
-        var jsonToSend = {
-            "name": "(new step)",
-            "explanation": "...",
-            "move" : true,
-            "total_points" : 1
-        }
-    
-        postRequest('../data/steps', jsonToSend).then(function(response) {
-            console.log("Post Success!", response);
-            var jsonReceived = JSON.parse(response);
-            htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
-        }, function(error) {
-            console.error("Post Failed!", error);
-        });
-    }
-    
-    function deleteStep(event, idGame, idStep) {
-        var result = confirm("Delete this step?");
-        if (result) {
-            deleteRequest('../data/step/' + idStep).then(function(response) {
-                console.log("Delete Success!", response);
-                location.reload();
+            postRequest('../data/game/' + idGame + '/steps', jsonToSend).then(function(response) {
+                console.log("Post Success!", response);
+                var jsonReceived = JSON.parse(response);
+                htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
-                console.error("Delete Failed!", error);
+                console.error("Post Failed!", error);
             });
         }
     }
+    
+    function deleteStep(event, idStep) {
+        if (idGame !== undefined) {
+            var result = confirm("Delete this step?");
+            if (result) {
+                deleteRequest('../data/game/' + idGame + '/step/' + idStep).then(function(response) {
+                    console.log("Delete Success!", response);
+                    location.reload();
+                }, function(error) {
+                    console.error("Delete Failed!", error);
+                });
+            }
+        }
+    }
+            
+    function startGame(event) {
+        
+    }
+    
+    function stopGame(event) {
+        
+    }
+    
     </script>
 </body>
 </html>

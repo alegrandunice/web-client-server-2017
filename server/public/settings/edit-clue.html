@@ -17,23 +17,27 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
+<body onload="onLoad()">
     <div class="container">
         <div class="jumbotron" style="margin-top: 10px; background-color: #fcf8e3;">
             <h3>Clue description</h3>
-            <form onsubmit="formOnSubmit()" action="./edit-step.html#tabClues">
+            
+            <form onsubmit="updateClue()" action="./edit-step.html#tabClues">
+            
                 <div class="form-group">
                   <label for="cost">Cost</label><input id="cost" type="number" placeholder="Cost" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="description">Description</label><input type="description" placeholder="Description" class="form-control">
+                  <label for="description">Description</label><input id="description" type="text" placeholder="Description" class="form-control">
                 </div>
                 <div class="form-group">
-                        <label>Pictures:</label>
-                        <input type="file" accept="image/*" capture="camera" multiple>
-                    </div>
+                    <label>Pictures:</label>
+                    <input type="file" accept="image/*" capture="camera" multiple>
+                </div>
+                
                 <button type="submit" class="btn btn-success">Update clue</button>            
                 <button class="btn" onclick="window.location='./edit-step.html#tabClues';return false;">Cancel</button>
+                
             </form>
         </div>
     </div>
@@ -42,12 +46,63 @@
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
         
     <script type="text/javascript">
-    function formOnSubmit()
-    {
-        
+    
+    var idStep;
+    var idClue;
+    
+    function onLoad() {
+    
+        idStep = getUrlParameter("idstep");
+        idClue = getUrlParameter("idclue");
+    
+        if ((idStep !== undefined) && (idClue !== undefined)) {
+            getRequest('../data/step/' + idStep + '/clue/' + idClue).then(function(response) {
+                console.log("Get Success!", response);
+                var jsonReceived = JSON.parse(response);
+
+                
+                var description = getElementById("description");
+                description.value = jsonReceived.explanation;
+                
+                var cost = getElementById("cost");
+                cost.value = jsonReceived.cost;
+                
+                //type="file" Pictures          <==
+                
+                            
+            }, function(error) {
+                console.error("Get Failed!", error);
+            });
+        }
     }
+    
+    function updateClue()
+    {
+        if ((idStep !== undefined) && (idClue !== undefined)) {
+            var jsonToSend = {
+                "cost": 0,
+                "description": ""
+            }
+
+            var description = getElementById("description");
+            jsonToSend.explanation = description.value;
+            
+            var cost = getElementById("cost");
+            jsonToSend.cost = cost.value;
+            
+            //type="file" Pictures          <==
+            
+            putRequest('../data/step/' + idStep + '/clue/' + idClue, jsonToSend).then(function(response) {
+                console.log("Put Success!", response);
+            }, function(error) {
+                console.error("Put Failed!", error);
+            });
+        }
+    }
+    
     </script>
 </body>
 </html>
