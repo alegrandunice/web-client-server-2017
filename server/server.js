@@ -187,3 +187,109 @@ app.delete("/data/game/:id", function(req, res) {
     }
   });
 });
+
+app.get("/data/games/:id/simple", function(req, res) {
+  var ids = [];
+
+  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
+    if (err) {
+      handleError(res, err.message, "Failed to get game");
+    } else {
+      //console.log(game);
+      for (i = 0; i < game.steps.length; i++) {
+        ids.push(new ObjectID(game.steps[i]));
+      }
+      console.log("ids :" + ids);
+      db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
+        if (err) {
+          handleError(res, err.message, "Failed to get steps for game " + req.params.id);
+        } else {
+          console.log(steps);
+          var simple = {
+            name: game.name,
+            status: game.status,
+            localisation : game.localisation,
+            game_type : game.game_type,
+            steps : steps
+          };
+          res.status(200).json(simple);
+        }
+      });
+    }
+  });
+});
+
+
+app.put("/data/game/:_id", function(req, res) {
+  var updateDoc = req.body;
+  delete updateDoc._id;
+
+  db.collection(GAMES_COLLECTION).updateOne({ _id : req.params._id },
+      {$set :
+        { name : updateDoc.name,
+          localisation : updateDoc.localisation,
+          status: updateDoc.status,
+          game_type : updateDoc.game_type
+        }}, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to update step");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+app.get("/data/games/:id/simple", function(req, res) {
+  var ids = [];
+
+  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
+    if (err) {
+      handleError(res, err.message, "Failed to get game");
+    } else {
+      //console.log(game);
+      for (i = 0; i < game.steps.length; i++) {
+        ids.push(new ObjectID(game.steps[i]));
+      }
+      console.log("ids :" + ids);
+      db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
+        if (err) {
+          handleError(res, err.message, "Failed to get steps for game " + req.params.id);
+        } else {
+          console.log(steps);
+          var simple = {
+            name: game.name,
+            status: game.status,
+            localisation : game.localisation,
+            game_type : game.game_type,
+            steps : steps
+          };
+          res.status(200).json(simple);
+        }
+      });
+    }
+  });
+});
+
+app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
+  console.log('Delete step: ' + req.params.idStep + ' from game: ' + req.params.idGame);
+  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $pull : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
+    if (err) {
+      handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' from game: ' + req.params.idGame);
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+app.post("/data/game/:idGame/step/:idStep", function(req, res) {
+  console.log('Add step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
+    if (err) {
+      handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+
