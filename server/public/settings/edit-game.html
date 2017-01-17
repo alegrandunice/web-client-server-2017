@@ -112,7 +112,7 @@
         });
         
         if (idGame !== undefined) {
-            getRequest('../data/game/' + idGame).then(function(response) {
+            getRequest('../data/game/' + idGame + '/simple/').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
                 
@@ -145,7 +145,8 @@
         if (idGame !== undefined) {
             var jsonToSend = {
                 "name": "",
-                "state": "",
+                "status": "",
+                "localisation" : "",
                 "country" : "",
                 "region" : "",
                 "city" : "",
@@ -154,14 +155,13 @@
             
             var name = getElementById("name");
             jsonToSend.name = name.value;
+            jsonToSend.localisation = {
+                country : getElementById("country").value,
+                region : getElementById("region").value,
+                city : getElementById("city").value
+            };
             var state = getElementById("state");
-            jsonToSend.state = state.innerHTML;
-            var country = getElementById("country");
-            jsonToSend.country = country.value;
-            var region = getElementById("region");
-            jsonToSend.region = region.value;
-            var city = getElementById("city");
-            jsonToSend.city = city.value;
+            jsonToSend.status = state.innerHTML;
             var gameType = getElementById("gameType");
             jsonToSend.game_type = gameType.value;
             

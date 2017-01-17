@@ -188,7 +188,7 @@ app.delete("/data/game/:id", function(req, res) {
   });
 });
 
-app.get("/data/games/:id/simple", function(req, res) {
+app.get("/data/game/:id/simple", function(req, res) {
   var ids = [];
 
   db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
