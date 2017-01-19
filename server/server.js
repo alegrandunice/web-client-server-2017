@@ -25,7 +25,7 @@ var db;
 var io;
 
 // Connect to the database before starting the application server.
-mongodb.MongoClient.connect(url, function (err, database) {
+mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, database) {
   if (err) {
     console.log(err);
     process.exit(1);
@@ -42,7 +42,7 @@ mongodb.MongoClient.connect(url, function (err, database) {
 function init()
 {
     // Initialize the app.
-    server = app.listen(8080, function () {
+    server = app.listen(process.env.PORT || 8080, function () {
         var port = server.address().port;
         console.log("App now running on port", port);
     });
@@ -76,18 +76,7 @@ app.get("/data/steps", function(req, res) {
   });
 });
 
-app.post("/data/steps", function(req, res) {
-  
-  var newContact = req.body;
-
-  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to create new step.");
-    } else {
-      res.status(201).json(doc.ops[0]);
-    }
-  });
-});
+app.post("/data/steps", insertStep);
 
 /*  "/data/step/:id"
  *    GET: find step by id
@@ -211,9 +200,11 @@ app.get("/data/game/:id/simple", function(req, res) {
       handleError(res, err.message, "Failed to get game");
     } else {
       //console.log(game);
-      for (i = 0; i < game.steps.length; i++) {
-		  
-        ids.push( game.steps[i].id_objectif);
+      if(game.steps){
+        for (i = 0; i < game.steps.length; i++) {
+
+          ids.push( game.steps[i].id_objectif);
+        }
       }
       console.log("ids :" + ids);
       db.collection(STEPS_COLLECTION).find({ id: { $in : ids}}).toArray(function(err, steps){
@@ -297,8 +288,9 @@ app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
   });
 });
 
-app.post("/data/game/:idGame/step/:idStep", function(req, res) {
+app.post("/data/game/:idGame/steps/", function(req, res) {
   console.log('Add step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+
   db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
@@ -308,6 +300,19 @@ app.post("/data/game/:idGame/step/:idStep", function(req, res) {
   });
 });
 
+function insertStep(req, res) {
+
+  var newContact = req.body;
+
+  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new step.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+}
+
 /************************************************************************************************
 ****************************************     SOCKET      ****************************************
 ************************************************************************************************/
@@ -315,6 +320,7 @@ app.post("/data/game/:idGame/step/:idStep", function(req, res) {
 app.get('/test', function (req, res) {
   res.sendFile(__dirname + '/public/settings/simpleChat.html');
 });
+
 
 app.get('/master',function (req, res) {
   res.sendFile(__dirname + '/public/settings/master.html');
@@ -448,3 +454,4 @@ var connectSocketFunction = function connectSocket(socket) {
 		socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
 	});
 };
+
