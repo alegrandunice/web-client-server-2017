@@ -17,8 +17,8 @@ function getRequest(url) {
             }
         };
         // Handle network errors
-        req.onerror = function() {
-            reject(Error("Network Error"));
+        req.onerror = function(error) {
+            reject(error);
         };
         // Make the request
         req.send();

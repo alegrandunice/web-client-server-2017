@@ -61,18 +61,7 @@ app.get("/data/steps", function(req, res) {
   });
 });
 
-app.post("/data/steps", function(req, res) {
-  
-  var newContact = req.body;
-
-  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to create new step.");
-    } else {
-      res.status(201).json(doc.ops[0]);
-    }
-  });
-});
+app.post("/data/steps", insertStep);
 
 /*  "/data/step/:id"
  *    GET: find step by id
@@ -196,9 +185,11 @@ app.get("/data/game/:id/simple", function(req, res) {
       handleError(res, err.message, "Failed to get game");
     } else {
       //console.log(game);
-      for (i = 0; i < game.steps.length; i++) {
-		  
-        ids.push( game.steps[i].id_objectif);
+      if(game.steps){
+        for (i = 0; i < game.steps.length; i++) {
+
+          ids.push( game.steps[i].id_objectif);
+        }
       }
       console.log("ids :" + ids);
       db.collection(STEPS_COLLECTION).find({ id: { $in : ids}}).toArray(function(err, steps){
@@ -282,8 +273,9 @@ app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
   });
 });
 
-app.post("/data/game/:idGame/step/:idStep", function(req, res) {
+app.post("/data/game/:idGame/steps/", function(req, res) {
   console.log('Add step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+
   db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
@@ -292,5 +284,20 @@ app.post("/data/game/:idGame/step/:idStep", function(req, res) {
     }
   });
 });
+
+
+
+function insertStep(req, res) {
+
+  var newContact = req.body;
+
+  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new step.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+}
 
 
