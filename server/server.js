@@ -192,40 +192,6 @@ app.delete("/data/game/:id", function(req, res) {
   });
 });
 
-app.get("/data/game/:id/simple", function(req, res) {
-  var ids = [];
-
-  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
-    if (err) {
-      handleError(res, err.message, "Failed to get game");
-    } else {
-      //console.log(game);
-      if(game.steps){
-        for (i = 0; i < game.steps.length; i++) {
-
-          ids.push( game.steps[i].id_objectif);
-        }
-      }
-      console.log("ids :" + ids);
-      db.collection(STEPS_COLLECTION).find({ id: { $in : ids}}).toArray(function(err, steps){
-        if (err) {
-          handleError(res, err.message, "Failed to get steps for game " + req.params.id);
-        } else {
-          var simple = {
-            name: game.name,
-            status: game.status,
-            localisation : game.localisation,
-            game_type : game.game_type,
-            steps : steps
-          };
-          res.status(200).json(simple);
-        }
-      });
-    }
-  });
-});
-
-
 app.put("/data/game/:id", function(req, res) {
   console.log("update game")
   var updateDoc = req.body;
@@ -250,7 +216,7 @@ app.put("/data/game/:id", function(req, res) {
         });
 });
 
-app.get("/data/games/:id/simple", function(req, res) {
+app.get("/data/game/:id/simple", function(req, res) {
   var ids = [];
 
   db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
@@ -258,9 +224,12 @@ app.get("/data/games/:id/simple", function(req, res) {
       handleError(res, err.message, "Failed to get game");
     } else {
       //console.log(game);
-      for (i = 0; i < game.steps.length; i++) {
-        ids.push(new ObjectID(game.steps[i]));
+      if(game.steps){
+        for (i = 0; i < game.steps.length; i++) {
+          ids.push(new ObjectID(game.steps[i]));
+        }
       }
+
       db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
@@ -292,8 +261,8 @@ app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
 
 app.post("/data/game/:idGame/steps/", function(req, res) {
   console.log('Add step for game: ' + req.params.idGame);
-  insertStep(req,res);
-  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
+  var newStepId = insertStep(req,res);
+  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(newStepId) }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step for game: ' + req.params.idGame);
     } else {
@@ -304,16 +273,18 @@ app.post("/data/game/:idGame/steps/", function(req, res) {
 
 function insertStep(req, res) {
   var id;
-  var newContact = req.body;
-
-  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
+  var newStep = req.body;
+  console.log(JSON.stringify(req.body));
+  db.collection(STEPS_COLLECTION).insertOne(newStep, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to create new step.");
     } else {
       res.status(201).json(doc.ops[0]);
       id = doc._id;
+
     }
   });
+  return newStep._id;
 }
 
 /************************************************************************************************
@@ -418,6 +389,8 @@ var connectSocketFunction = function connectSocket(socket) {
             listOfTeams[userdata['team']]= userdata['team'];
             listOfRoomsMaster.push(listOfPlayers[username].roomsList["withMaster"]);
             
+            io.sockets.in("master").emit('addRoom', listOfPlayers[username].roomsList["withMaster"]);
+            
             //On envoie la liste des joueurs sur la room master
             io.sockets.in("master").emit('positionOfPlayers', listOfPlayers);
         }
@@ -441,6 +414,10 @@ var connectSocketFunction = function connectSocket(socket) {
 		io.sockets.emit('updateusers', usernames);
         io.sockets.emit('updatepositions', positionOfPlayers);
 	});
+    
+    socket.on('addAdmin', function(username){
+        socket.username = username;
+    });
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){

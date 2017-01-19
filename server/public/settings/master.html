@@ -1,4 +1,3 @@
-
 <script src="/socket.io/socket.io.js"></script>
 <body>
 <div>
@@ -8,17 +7,33 @@
 	<b>Players</b>
 	<div id="users"></div>
 </div>
-<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
-	<div id="conversation"></div>
-	<input id="data" style="width:200px;" />
-	<input type="button" id="datasend" value="send" />
+<div id="chat">
+    <div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;">
+        <div id="conversation"></div>
+        <input id="data" style="width:200px;" />
+        <input type="button" id="datasend" value="send" />
+    </div>
 </div>
 <div>
 <div id="map" style="width:640px;height:480px"></div>
 </div>
 <script>
 
-	var conversation, data, datasend, users;
+	var username, chat, conversation, data, datasend, users, rooms;
+    
+    rooms = {};
+    function RoomBB(roomName) {
+      var id_room = roomName;
+      var id_data = "data"+roomName;
+      var id_datasend = "datasend"+roomName;
+      
+      // ----- API -----
+      return {
+        id_room:id_room,
+        id_data:id_data,
+        id_datasend:id_datasend,
+      }
+    }
     
     username = "Game Master";
 	var socket = io.connect();
@@ -29,6 +44,7 @@
 	socket.on('connect', function(){
     
         socket.emit('getPlayers', true);
+        socket.emit('addAdmin', username);
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body 
@@ -36,11 +52,54 @@
 		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
 		conversation.innerHTML += chatMessage; 
 	});
+    
+    socket.on('addRoom', function(roomName){
+        console.log(roomName);
+        socket.emit('subscribe', roomName);
+        
+        rooms[roomName] = new RoomBB(roomName);
+        
+        var chatRoom =  "<div style=\"float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;\">"+
+                        "<div id=\""+rooms[roomName].id_room+"\"></div>"+
+                        "<input id=\""+rooms[roomName].id_data+"\" style=\"width:200px;\" />"+
+                        "<input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" value=\"send\" />"+
+                        "</div>";
+        chat.innerHTML += chatRoom;
+        
+        var roomData = document.querySelector("#"+rooms[roomName].id_data+"");
+        var roomDatasend = document.querySelector("#"+rooms[roomName].id_datasend+"");
+        
+        // Listener for send button
+		roomDatasend.addEventListener("click", function(evt) {
+      		sendMessageToRoom(roomName);
+  		});
+
+		// detect if enter key pressed in the input field
+  		roomData.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessageToRoom(roomName);
+    		}
+  		});
+        
+    });
+    
+    socket.on('message', function (username, data) {
+        console.log(data);
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        
+        var room = document.querySelector("#"+rooms[data.room].id_room);
+        room.innerHTML += chatMessage;
+               
+        
+    });
 
 
 	// on load of page
 	window.addEventListener("load", function(){
 		// get handles on various GUI components
+        chat = document.querySelector("#chat");
 		conversation = document.querySelector("#conversation");
   		data = document.querySelector("#data");
   		datasend = document.querySelector("#datasend");
@@ -59,15 +118,27 @@
         		sendMessage();
     		}
   		});
+        
+        // sends the chat message to the server
+        function sendMessage() {
+            var message = data.value;
+            data.value = "";
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+        };
 
-  		// sends the chat message to the server
-  		function sendMessage() {
-  			var message = data.value;
-			data.value = "";
-			// tell server to execute 'sendchat' and send along one parameter
-			socket.emit('sendchat', message);
-  		}		
+  		
 	});
+    
+    // sends the chat message to the server
+    function sendMessageToRoom(roomName) {
+        console.log(roomName);
+        var data = document.querySelector("#"+rooms[roomName].id_data+"");
+        var message = data.value;
+        data.value = "";
+        // tell server to execute 'sendchat' and send along one parameter
+        socket.emit('send', { room: roomName, message: message });
+    };		
 
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
