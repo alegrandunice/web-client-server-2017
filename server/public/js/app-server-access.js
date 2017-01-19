@@ -25,7 +25,7 @@ function getRequest(url) {
     });
 }
 
-function putRequest(url) {
+function putRequest(url, jsonToSend) {
     // Return a new promise.
     return new Promise(function(resolve, reject) {
         // Do the usual XHR stuff
@@ -48,7 +48,9 @@ function putRequest(url) {
             reject(Error("Network Error"));
         };
         // Make the request
-        req.send();
+        req.setRequestHeader("Content-Type", "application/json");
+        req.send(JSON.stringify(jsonToSend));
+
     });
 }
 
