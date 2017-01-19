@@ -61,18 +61,7 @@ app.get("/data/steps", function(req, res) {
   });
 });
 
-app.post("/data/steps", function(req, res) {
-  
-  var newContact = req.body;
-
-  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to create new step.");
-    } else {
-      res.status(201).json(doc.ops[0]);
-    }
-  });
-});
+app.post("/data/steps", insertStep);
 
 /*  "/data/step/:id"
  *    GET: find step by id
@@ -81,7 +70,7 @@ app.post("/data/steps", function(req, res) {
  */
 
 app.get("/data/step/:_id", function(req, res) {
-  db.collection(STEPS_COLLECTION).findOne({ _id : req.params._id }, function(err, doc) {
+  db.collection(STEPS_COLLECTION).findOne({ id : req.params._id }, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to get step");
     } else {
@@ -196,11 +185,14 @@ app.get("/data/game/:id/simple", function(req, res) {
       handleError(res, err.message, "Failed to get game");
     } else {
       //console.log(game);
-      for (i = 0; i < game.steps.length; i++) {
-        ids.push(new ObjectID(game.steps[i]));
+      if(game.steps){
+        for (i = 0; i < game.steps.length; i++) {
+
+          ids.push( game.steps[i].id_objectif);
+        }
       }
       console.log("ids :" + ids);
-      db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
+      db.collection(STEPS_COLLECTION).find({ id: { $in : ids}}).toArray(function(err, steps){
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
         } else {
@@ -281,8 +273,9 @@ app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
   });
 });
 
-app.post("/data/game/:idGame/step/:idStep", function(req, res) {
+app.post("/data/game/:idGame/steps/", function(req, res) {
   console.log('Add step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+
   db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
@@ -291,5 +284,20 @@ app.post("/data/game/:idGame/step/:idStep", function(req, res) {
     }
   });
 });
+
+
+
+function insertStep(req, res) {
+
+  var newContact = req.body;
+
+  db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new step.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+    }
+  });
+}
 
 

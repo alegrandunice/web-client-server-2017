@@ -46,7 +46,7 @@
                       <label for="name">Name</label><input id="name" type="text" placeholder="Name" class="form-control">
                     </div>
                     <div class="form-group">
-                      <label>Status</label><label id="state" class="form-control"></label>
+                      <label for="state">Status</label><label id="state" class="form-control"></label>
                     </div>                                      
                     <div class="form-group">
                       <label for="country">Country</label><input id="country" type="text" placeholder="Country" class="form-control">
@@ -116,22 +116,25 @@
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
                 
-                var headerName = getElementById("headerName");
+                var headerName = document.getElementById("headerName");
                 headerName.innerHTML = jsonReceived.name;
-                var name = getElementById("name");
+                var name = document.getElementById("name");
                 name.value = jsonReceived.name;
-                var state = getElementById("state");
-                state.innerHTML = jsonReceived.state;
-                var country = getElementById("country");
-                country.value = jsonReceived.country;
-                var region = getElementById("region");
-                region.value = jsonReceived.region;
-                var city = getElementById("city");
-                city.value = jsonReceived.city;
-                var gameType = getElementById("gameType");
+                var state = document.getElementById("state");
+                state.innerHTML = jsonReceived.status;
+                if(jsonReceived.localisation){
+                    var country = document.getElementById("country");
+                    country.value = jsonReceived.localisation.country;
+                    var region = document.getElementById("region");
+                    region.value = jsonReceived.localisation.region;
+                    var city = document.getElementById("city");
+                    city.value = jsonReceived.localisation.city;
+                }
+                var gameType = document.getElementById("gameType");
                 gameType.value = jsonReceived.game_type;
                 
                 for (i = 0; i < jsonReceived.steps.length; i++) { 
+		       
                     htmlAppendStep(jsonReceived.steps[i]._id, i + 1, jsonReceived.steps[i].move, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
                 }
                             
@@ -208,10 +211,13 @@
                 + '        </div>'
                 + '    </div>'
                 + '</div>';
+		
+		console.log("Append function !", stepsList);
     }
     
     function createNewStep(event) {
-        if (idGame !== undefined) {
+    
+		if (idGame !== undefined) {
             var jsonToSend = {
                 "name": "(new step)",
                 "explanation": "...",
@@ -219,7 +225,7 @@
                 "total_points" : 1
             }
         
-            postRequest('../data/game/' + idGame + '/steps', jsonToSend).then(function(response) {
+            postRequest('../data/game/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
                 htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
@@ -227,6 +233,7 @@
                 console.error("Post Failed!", error);
             });
         }
+	
     }
     
     function deleteStep(event, idStep) {

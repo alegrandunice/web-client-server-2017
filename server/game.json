@@ -1,0 +1,801 @@
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+{
+
+     "id"          : "Type:Int",
+     "nbTeams"     : "Type:Int",
+     "name"        : "Type:String",
+     "game_type"   : "chasse aux trésors, ...",
+     "Localisation": 
+      {
+     	"country"     : "Type:String",
+     	"region"      : "Type:String",
+     	"city"        : "Type:String"
+      },
+     "steps" : 
+     [
+       { "id_objectif" : "1"},
+       { "id_objectif" : "4"},
+	{ "id_objectif" : "10"},
+	{ "id_objectif" : "13"},
+	{ "id_objectif" : "19"}
+     ],
+     "GameMaster" : 
+     {
+     	 "userName" : "Type: String",
+     	 "password" : "Type: String"
+     },
+     "id_game_master" : "TypeInt",
+     "state" : "Type: Int (0 = waiting ; 1= In progress ; 2= Finished)",
+     "Teams" : [
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		},
+		{
+		    "name" : "Type:String",
+		    "password": "Type: String",
+		    "nbPoints" : "Type:Int",
+		    "comment": "Type: String",
+		    "terminated": "type: Bool",
+		    "sorted_objectifs" : [
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue2"}]
+						},
+						     {
+							"id" : "Type:Int",
+							"time_began": "Type: DateTime",
+							"time_ended": "Type: DateTime",
+							"used_clues":[{"id_clue" : "clue2"},{"id_clue" : "clue1"}]
+						}
+					],
+	    
+		    " Players" : [ 
+				           {
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					},
+					{
+					"name" : "Type:String",
+					"sexe" : "Type:String",
+					"age" : "Type:Int"
+					}
+				]
+		}
+	   ]
+
+}
+
+
