@@ -1,0 +1,253 @@
+
+<script src="/socket.io/socket.io.js"></script>
+<body >
+<div>
+<div id="map" style="width:640px;height:480px"></div>
+</div>
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+	<b>USERS</b>
+	<div id="users"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;">
+	<div id="conversation"></div>
+	<input id="data" style="width:200px;" />
+	<input type="button" id="datasend" value="send" />
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;">
+	<div id="room1"></div>
+	<input id="dataRoom1" style="width:200px;" />
+	<input type="button" id="datasendroom1" value="send" />
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+	<div id="room2"></div>
+	<input id="dataRoom2" style="width:200px;" />
+	<input type="button" id="datasendroom2" value="send" />
+</div>
+<div>
+<div id="map" style="width:640px;height:480px"></div>
+</div>
+<script>
+	var username = prompt("What's your name?");
+    var team = prompt ("what's your team?");
+	var conversation, room1, room2, data, dataRoom1, dataRoom2, datasend, datasendroom1, datasendroom2, users, roomName1, roomName2;
+    
+
+	var socket = io.connect();
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+		// call the server-side function 'adduser' and send one parameter (value of prompt)
+        navigator.geolocation.getCurrentPosition(function(pos) {
+        
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            socket.emit('adduser', userdata);
+        });
+        
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body 
+	socket.on('updatechat', function (username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	});
+    
+    socket.on('message', function (username, data) {
+        console.log(data);
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        switch(data.room) {
+                case roomName1:
+                    room1.innerHTML += chatMessage;
+                break;
+                case roomName2:
+                    room2.innerHTML += chatMessage;
+                break;
+                default:
+                    conversation.innerHTML += chatMessage; 
+                    
+            }
+        
+    });
+    
+    socket.on('joinRooms', function(sendTo, groupRooms){
+    console.log(groupRooms);
+        var i = 1;
+        for(var room in groupRooms)
+        {
+            socket.emit('subscribe', groupRooms[room]);
+            if(i == 1)
+            {
+                roomName1 = groupRooms[room];
+                i++;
+            }
+            else{
+                roomName2 = groupRooms[room];
+            }
+        } 
+    });
+
+    // just one player moved
+	socket.on('updatepos', function (username, newPos) {
+		updatePlayerNewPos(newPos);
+	});
+
+	// listener, whenever the server emits 'updateusers', this updates the username list
+	socket.on('updateusers', function(listOfUsers) {
+		users.innerHTML = "";
+		for(var name in listOfUsers) {
+    		var userLineOfHTML = '<div>' + name + '</div>';
+    		users.innerHTML += userLineOfHTML;
+  		}
+	});
+    
+
+	// update the whole list of players, useful when a player
+	// connects or disconnects, we must update the whole list
+	socket.on('updatePlayers', function(listOfplayers) {
+		updatePlayers(listOfplayers);
+	});
+
+	// on load of page
+	window.addEventListener("load", function(){
+		// get handles on various GUI components
+		conversation = document.querySelector("#conversation");
+        room1 = document.querySelector("#room1");
+        room2 = document.querySelector("#room2");
+  		data = document.querySelector("#data");
+        dataRoom1 = document.querySelector("#dataRoom1");
+        dataRoom2 = document.querySelector("#dataRoom2");
+  		datasend = document.querySelector("#datasend");
+        datasendroom1 = document.querySelector("#datasendroom1");
+        datasendroom2 = document.querySelector("#datasendroom2");
+  		users = document.querySelector("#users");
+
+  		// Listener for send button
+		datasend.addEventListener("click", function(evt) {
+      		sendMessage("all");
+  		});
+
+		// detect if enter key pressed in the input field
+  		data.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("all");
+    		}
+  		});
+        
+        // Listener for send button
+		datasendroom1.addEventListener("click", function(evt) {
+      		sendMessage("room1");
+  		});
+
+		// detect if enter key pressed in the input field
+  		dataRoom1.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("room1");
+    		}
+  		});
+        
+        // Listener for send button
+		datasendroom2.addEventListener("click", function(evt) {
+      		sendMessage("room2");
+  		});
+
+		// detect if enter key pressed in the input field
+  		dataRoom2.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("room2");
+    		}
+  		});
+
+  		// sends the chat message to the server
+  		function sendMessage(room) {
+  			var message;
+			// tell server to execute 'sendchat' and send along one parameter
+            
+            switch(room) {
+                case "room1":
+                    message = dataRoom1.value;
+                    dataRoom1.value = "";
+                    socket.emit('send', { room: roomName1, message: message });
+                break;
+                case "room2":
+                    message = dataRoom2.value;
+                    dataRoom2.value = "";
+                    socket.emit('send', { room: roomName2, message: message });
+                break;
+                default:
+                    message = data.value;
+                    data.value = "";
+                    socket.emit('sendchat', message);
+                    
+            }
+			
+  		}		
+	});
+
+</script>
+<script src="https://maps.google.com/maps/api/js?sensor=false"></script>
+<script>
+// Default position
+var centerpos = new google.maps.LatLng(48.579400,7.7519);
+ 
+// default options for the google map
+var optionsGmaps = {
+    center:centerpos,
+    navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    zoom: 15
+};
+ 
+// Init map object
+var map = new google.maps.Map(document.getElementById("map"), optionsGmaps);
+
+var markersList = {};
+
+socket.on('updatepositions', function(listOfPositions) {
+        //on supprime les markers existants
+        
+        console.log(listOfPositions);
+
+		for(var name in listOfPositions) {
+    		console.log(name);
+            var marker = new google.maps.Marker({
+                             position: new google.maps.LatLng(listOfPositions[name].lat, listOfPositions[name].long),
+                             map: map,
+                             title:name
+            });
+  		}
+	});
+ 
+if(navigator.geolocation) {
+ 
+    // callback function, called by getCurrentPosition() in case of success
+    function drawPosition(position) {
+       // Make new object LatLng for Google Maps
+       var latlng = new google.maps.LatLng(position.coords.latitude,               
+                                           position.coords.longitude);
+ 
+       // Add a marker at position
+       //var marker = new google.maps.Marker({
+       //                      position: latlng,
+       //                      map: map,
+       //                      title:"You are here"
+       //});
+       // center map on longitude and latitude
+       map.panTo(latlng);
+       
+    }
+ 
+    // callback function, called by getCurrentPosition() in case of error
+    function errorPosition(error) {
+       
+    }
+    navigator.geolocation.getCurrentPosition(drawPosition,errorPosition);
+} else {
+    alert("Geolocation API not supported by your browser");
+}
+</script>
+</body>

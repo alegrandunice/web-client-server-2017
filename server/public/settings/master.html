@@ -1,0 +1,168 @@
+
+<script src="/socket.io/socket.io.js"></script>
+<body>
+<div>
+<div id="map" style="width:640px;height:480px"></div>
+</div>
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+	<b>Players</b>
+	<div id="users"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+	<div id="conversation"></div>
+	<input id="data" style="width:200px;" />
+	<input type="button" id="datasend" value="send" />
+</div>
+<div>
+<div id="map" style="width:640px;height:480px"></div>
+</div>
+<script>
+
+	var conversation, data, datasend, users;
+    
+    username = "Game Master";
+	var socket = io.connect();
+    //on souscrit à la room master qui permet de gérer les données des joueurs
+    socket.emit('subscribe', 'master');
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+    
+        socket.emit('getPlayers', true);
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body 
+	socket.on('updatechat', function (username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	});
+
+
+	// on load of page
+	window.addEventListener("load", function(){
+		// get handles on various GUI components
+		conversation = document.querySelector("#conversation");
+  		data = document.querySelector("#data");
+  		datasend = document.querySelector("#datasend");
+  		users = document.querySelector("#users");
+
+  		// Listener for send button
+		datasend.addEventListener("click", function(evt) {
+      		sendMessage();
+  		});
+
+		// detect if enter key pressed in the input field
+  		data.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage();
+    		}
+  		});
+
+  		// sends the chat message to the server
+  		function sendMessage() {
+  			var message = data.value;
+			data.value = "";
+			// tell server to execute 'sendchat' and send along one parameter
+			socket.emit('sendchat', message);
+  		}		
+	});
+
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
+<script>
+// Default position
+var centerpos = new google.maps.LatLng(48.579400,7.7519);
+ 
+// default options for the google map
+var optionsGmaps = {
+    center:centerpos,
+    navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    zoom: 15
+};
+ 
+// Init map object
+var map = new google.maps.Map(document.getElementById("map"), optionsGmaps);
+
+var markersList = {};
+var teams = [];
+var listIcones = [
+    "http://maps.google.com/mapfiles/ms/micons/campground.png",
+    "http://maps.google.com/mapfiles/ms/micons/bar.png",
+    "http://maps.google.com/mapfiles/ms/micons/earthquake.png",
+    "http://maps.google.com/mapfiles/ms/micons/fallingrocks.png",
+    "http://maps.google.com/mapfiles/ms/micons/marina.png"
+];
+
+
+function TeamBB(n, i) {
+  var nom = n;
+  var icone = i;
+  
+  // ----- API -----
+  return {
+    nom:nom,
+    icone:icone
+  }
+}
+
+socket.on('positionOfPlayers', function(listOfPositions) {
+        //on supprime les markers existants
+        //setMapOnAll(null);
+        console.log(listOfPositions);
+        //listOfPositions = JSON.parse(listOfPositions);
+		for(var name in listOfPositions) {
+    		console.log("username", name);
+            console.log("teams", teams);
+            if(typeof(teams[listOfPositions[name].team]) == "undefined")
+            {
+                var taille = 0;
+                for (o in teams) ++taille;
+            
+                teams[listOfPositions[name].team] = new TeamBB(listOfPositions[name].team, listIcones[taille]);
+            }
+            console.log("taille du tableau", taille);
+            console.log("chemin icone", teams[listOfPositions[name].team].icone);
+            var marker = new google.maps.Marker({
+                             position: new google.maps.LatLng(listOfPositions[name].lat, listOfPositions[name].long),
+                             map: map,
+                             title:name,
+                             icon:teams[listOfPositions[name].team].icone
+
+            });
+            
+            
+  		}
+	});
+ 
+if(navigator.geolocation) {
+ 
+    // callback function, called by getCurrentPosition() in case of success
+    function drawPosition(position) {
+       // Make new object LatLng for Google Maps
+       var latlng = new google.maps.LatLng(position.coords.latitude,               
+                                           position.coords.longitude);
+ 
+       // Add a marker at position
+       //var marker = new google.maps.Marker({
+       //                      position: latlng,
+       //                      map: map,
+       //                      title:"You are here"
+       //});
+       // center map on longitude and latitude
+       map.panTo(latlng);
+       
+    }
+ 
+    // callback function, called by getCurrentPosition() in case of error
+    function errorPosition(error) {
+       
+    }
+    navigator.geolocation.getCurrentPosition(drawPosition,errorPosition);
+} else {
+    alert("Geolocation API not supported by your browser");
+}
+</script>
+</body>
