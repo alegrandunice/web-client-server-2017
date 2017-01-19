@@ -8,7 +8,10 @@ var url = 'mongodb://localhost:27017/game';
 var STEPS_COLLECTION = "steps";
 var GAMES_COLLECTION = "games";
 
-var app = express();
+var app = express()
+    , http = require('http')
+    , server = http.createServer(app);
+    
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -19,9 +22,10 @@ app.use(bodyParser.json());
 
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 var db;
+var io;
 
 // Connect to the database before starting the application server.
-mongodb.MongoClient.connect(url, function (err, database) {
+mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, database) {
   if (err) {
     console.log(err);
     process.exit(1);
@@ -30,13 +34,24 @@ mongodb.MongoClient.connect(url, function (err, database) {
   // Save database object from the callback for reuse.
   db = database;
   console.log("Database connection ready");
+  
+  init();
 
-  // Initialize the app.
-  var server = app.listen(8080, function () {
-     var port = server.address().port;
-     console.log("App now running on port", port);
-  });
 });
+
+function init()
+{
+    // Initialize the app.
+    server = app.listen(process.env.PORT || 8080, function () {
+        var port = server.address().port;
+        console.log("App now running on port", port);
+    });
+    
+
+    io = require('socket.io').listen(server);
+    io.sockets.on('connection', connectSocketFunction);
+}
+
 
 // STEP API ROUTES BELOW
 
@@ -287,8 +302,6 @@ app.post("/data/game/:idGame/steps/", function(req, res) {
   });
 });
 
-
-
 function insertStep(req, res) {
   var id;
   var newContact = req.body;
@@ -303,4 +316,145 @@ function insertStep(req, res) {
   });
 }
 
+/************************************************************************************************
+****************************************     SOCKET      ****************************************
+************************************************************************************************/
+// routing
+app.get('/test', function (req, res) {
+  res.sendFile(__dirname + '/public/settings/simpleChat.html');
+});
+
+
+app.get('/master',function (req, res) {
+  res.sendFile(__dirname + '/public/settings/master.html');
+});
+
+app.post('/send/:room/', function(req, res) {
+    var room = req.params.room
+        message = req.body;
+    console.log(room, message);
+    io.sockets.in(room).emit('message', { room: room, message: message });
+
+    res.end('message sent');
+});
+
+
+function PlayerBB(n, t, lat, long) {
+  var nom = n;
+  var team = t;
+  
+  var lat = lat;
+  var long = long;
+  
+  var roomsList = {};
+  roomsList['only'] = "only"+t;
+  roomsList['withMaster'] = "Master"+t;
+  
+  // ----- API -----
+  return {
+    nom:nom,
+    team:team,
+    lat:lat,
+    long:long,
+    roomsList:roomsList
+  }
+}
+
+
+
+// usernames which are currently connected to the chat
+var usernames = {}; 
+var listOfPlayers = {};
+var listOfRoomsMaster = [];
+var listOfTeams = {};
+
+var positionOfPlayers = {};
+
+
+var connectSocketFunction = function connectSocket(socket) {
+    console.log("Hey !!");
+    
+    //Permet à un utilisateur de rejoindre une room
+    socket.on('subscribe', function(room) { 
+        console.log('joining room', room);
+        socket.join(room); 
+    });
+    
+    //permet à un utilisateur de quitter une room
+    socket.on('unsubscribe', function(room) {  
+        console.log('leaving room', room);
+        socket.leave(room); 
+    })
+    
+
+	// when the client emits 'sendchat', this listens and executes
+	socket.on('sendchat', function (data) {
+		// we tell the client to execute 'updatechat' with 2 parameters
+		io.sockets.emit('updatechat', socket.username, data);
+	});
+    
+    socket.on('send', function(data) {
+        console.log('sending message');
+        io.sockets.in(data.room).emit('message', socket.username, data);
+    });
+
+	// when the client emits 'sendpos', this listens and executes
+	socket.on('sendpos', function (newPos) {
+		
+	});
+
+	// when the client emits 'adduser', this listens and executes
+	socket.on('adduser', function(userdata){
+		// we store the username in the socket session for this client
+		// the 'socket' variable is unique for each client connected,
+		// so we can use it as a sort of HTTP session
+        
+        username = userdata['username'];
+        
+        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long']);
+
+        if(typeof(listOfTeams[userdata['team']]) === "undefined")
+        {
+            listOfTeams[userdata['team']]= userdata['team'];
+            listOfRoomsMaster.push(listOfPlayers[username].roomsList["withMaster"]);
+            
+            //On envoie la liste des joueurs sur la room master
+            io.sockets.in("master").emit('positionOfPlayers', listOfPlayers);
+        }
+        
+        console.log(listOfTeams);
+        console.log(listOfRoomsMaster);
+                
+
+		socket.username = username;
+		// add the client's username to the global list
+		// similar to usernames.michel = 'michel', usernames.toto = 'toto'
+		usernames[username] = username;
+		// echo to the current client that he is connecter
+		socket.emit('updatechat', 'SERVER', 'you have connected');
+        console.log("coucou");
+        //on envoie les rooms que l'utilisateur doit rejoindre
+        socket.emit('joinRooms', 'SERVER', listOfPlayers[username].roomsList);
+		// echo to all client except current, that a new person has connected
+		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
+		// tell all clients to update the list of users on the GUI
+		io.sockets.emit('updateusers', usernames);
+        io.sockets.emit('updatepositions', positionOfPlayers);
+	});
+
+	// when the user disconnects.. perform this
+	socket.on('disconnect', function(){
+		// remove the username from global usernames list
+		delete usernames[socket.username];
+				// update list of users in chat, client-side
+		io.sockets.emit('updateusers', usernames);
+
+		// Remove the player too
+		delete listOfPlayers[socket.username];		
+		io.sockets.emit('updatePlayers',listOfPlayers);
+		
+		// echo globally that this client has left
+		socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
+	});
+};
 
