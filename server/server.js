@@ -415,6 +415,8 @@ var connectSocketFunction = function connectSocket(socket) {
             listOfTeams[userdata['team']]= userdata['team'];
             listOfRoomsMaster.push(listOfPlayers[username].roomsList["withMaster"]);
             
+            io.sockets.in("master").emit('addRoom', listOfPlayers[username].roomsList["withMaster"]);
+            
             //On envoie la liste des joueurs sur la room master
             io.sockets.in("master").emit('positionOfPlayers', listOfPlayers);
         }
@@ -438,6 +440,10 @@ var connectSocketFunction = function connectSocket(socket) {
 		io.sockets.emit('updateusers', usernames);
         io.sockets.emit('updatepositions', positionOfPlayers);
 	});
+    
+    socket.on('addAdmin', function(username){
+        socket.username = username;
+    });
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
