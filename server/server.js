@@ -81,7 +81,7 @@ app.post("/data/steps", function(req, res) {
  */
 
 app.get("/data/step/:_id", function(req, res) {
-  db.collection(STEPS_COLLECTION).findOne({ _id : req.params._id }, function(err, doc) {
+  db.collection(STEPS_COLLECTION).findOne({ id : req.params._id }, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to get step");
     } else {
@@ -197,10 +197,11 @@ app.get("/data/game/:id/simple", function(req, res) {
     } else {
       //console.log(game);
       for (i = 0; i < game.steps.length; i++) {
-        ids.push(new ObjectID(game.steps[i]));
+		  
+        ids.push( game.steps[i].id_objectif);
       }
       console.log("ids :" + ids);
-      db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
+      db.collection(STEPS_COLLECTION).find({ id: { $in : ids}}).toArray(function(err, steps){
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
         } else {
