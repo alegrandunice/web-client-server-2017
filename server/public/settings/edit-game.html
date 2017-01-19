@@ -150,22 +150,19 @@
                 "name": "",
                 "status": "",
                 "localisation" : "",
-                "country" : "",
-                "region" : "",
-                "city" : "",
                 "game_type" : ""
             }
             
-            var name = getElementById("name");
+            var name = document.getElementById("name");
             jsonToSend.name = name.value;
             jsonToSend.localisation = {
-                country : getElementById("country").value,
-                region : getElementById("region").value,
-                city : getElementById("city").value
+                country : document.getElementById("country").value,
+                region : document.getElementById("region").value,
+                city : document.getElementById("city").value
             };
-            var state = getElementById("state");
+            var state = document.getElementById("state");
             jsonToSend.status = state.innerHTML;
-            var gameType = getElementById("gameType");
+            var gameType = document.getElementById("gameType");
             jsonToSend.game_type = gameType.value;
             
             putRequest('../data/game/' + idGame, jsonToSend).then(function(response) {

@@ -79,11 +79,11 @@ app.get("/data/step/:_id", function(req, res) {
   });
 });
 
-app.put("/data/step/:_id", function(req, res) {
+app.put("/data/step/:id", function(req, res) {
   var updateDoc = req.body;
-  delete updateDoc._id;
+  delete updateDoc.id;
 
-  db.collection(STEPS_COLLECTION).updateOne({ _id : req.params._id }, updateDoc, function(err, doc) {
+  db.collection(STEPS_COLLECTION).updateOne({ _id : req.params.id }, updateDoc, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to update step");
     } else {
@@ -196,7 +196,6 @@ app.get("/data/game/:id/simple", function(req, res) {
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
         } else {
-          console.log(steps);
           var simple = {
             name: game.name,
             status: game.status,
@@ -212,23 +211,28 @@ app.get("/data/game/:id/simple", function(req, res) {
 });
 
 
-app.put("/data/game/:_id", function(req, res) {
+app.put("/data/game/:id", function(req, res) {
+  console.log("update game")
   var updateDoc = req.body;
-  delete updateDoc._id;
-
-  db.collection(GAMES_COLLECTION).updateOne({ _id : req.params._id },
+  console.log(JSON.stringify(req.body));
+  //delete updateDoc._id;
+  console.log("name : " + updateDoc.name);
+  console.log("id :" + req.params.id);
+  db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
       {$set :
         { name : updateDoc.name,
           localisation : updateDoc.localisation,
           status: updateDoc.status,
           game_type : updateDoc.game_type
-        }}, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to update step");
-    } else {
-      res.status(204).end();
-    }
-  });
+        }
+      }, function(err, doc) {
+          if (err) {
+            handleError(res, err.message, "Failed to update step");
+          } else {
+            console.log("doc updated : " + doc.name );
+            res.status(204).end();
+          }
+        });
 });
 
 app.get("/data/games/:id/simple", function(req, res) {
@@ -242,12 +246,10 @@ app.get("/data/games/:id/simple", function(req, res) {
       for (i = 0; i < game.steps.length; i++) {
         ids.push(new ObjectID(game.steps[i]));
       }
-      console.log("ids :" + ids);
       db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
         } else {
-          console.log(steps);
           var simple = {
             name: game.name,
             status: game.status,
@@ -274,11 +276,11 @@ app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
 });
 
 app.post("/data/game/:idGame/steps/", function(req, res) {
-  console.log('Add step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
-
+  console.log('Add step for game: ' + req.params.idGame);
+  insertStep(req,res);
   db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
     if (err) {
-      handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' for game: ' + req.params.idGame);
+      handleError(res, err.message, 'Delete step for game: ' + req.params.idGame);
     } else {
       res.status(204).end();
     }
@@ -288,7 +290,7 @@ app.post("/data/game/:idGame/steps/", function(req, res) {
 
 
 function insertStep(req, res) {
-
+  var id;
   var newContact = req.body;
 
   db.collection(STEPS_COLLECTION).insertOne(newContact, function(err, doc) {
@@ -296,6 +298,7 @@ function insertStep(req, res) {
       handleError(res, err.message, "Failed to create new step.");
     } else {
       res.status(201).json(doc.ops[0]);
+      id = doc._id;
     }
   });
 }
