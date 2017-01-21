@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Master game - New account</title>
+    <title>Game Settings - New account</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -17,11 +17,11 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body>
+<body onload="onLoad()">
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
             <h3>New Game Master account</h3>
-            <form onsubmit="formOnSubmit()" action="./login.html">
+            <form onsubmit="formOnSubmit(); return false;" >
                 <div class="form-group">
                   <label for="user">User</label><input id="user" type="text" placeholder="User" class="form-control">
                 </div>
@@ -38,7 +38,7 @@
                   <label for="email">Email</label><input id="email" type="email" placeholder="Email" class="form-control">                  
                 </div>
                 <button type="submit" class="btn btn-success">Create account</button>            
-                <button class="btn" onclick="window.location='./login.html';return false;">Cancel</button>
+                <button class="btn" onclick="gotoPreviousUrl(); return false;">Cancel</button>
             </form>
         </div>
     </div>
@@ -47,12 +47,36 @@
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
         
     <script type="text/javascript">
+    
+    var ac;
+    
+    function onLoad() {
+        ac = getUrlParameter('ac');
+    }
+    
     function formOnSubmit()
     {
-        
+        gotoPreviousUrl();
     }
+    
+    function gotoPreviousUrl() {
+        
+        if (ac == "1") {
+            window.location='./login.html';
+        }
+        else if (ac == "2") {
+            window.location='../player/login.html';
+        }
+        else if (ac == "3") {
+            window.location='../gamemaster/login.html';
+        }
+        
+        return false;
+    }
+    
     </script>
 </body>
 </html>
