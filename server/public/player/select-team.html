@@ -26,18 +26,20 @@
         <h3>Create a new Team</h3>
     </div>
     
-    <form onsubmit="createNewTeam(); return false;" style="margin: 10px">
+    <div class="container" >
+        <form onsubmit="createNewTeam(); return false;" style="margin: 10px">
 
-        <div class="form-group">
-          <label for="newTeamName">Name</label><input id="newTeamName" type="text" placeholder="Name of your team" class="form-control">
-        </div>     
-        <div class="form-group">
-          <label for="newTeamAccessKey">Access Key</label><input id="newTeamAccessKey" type="text" placeholder="Access key to your team" class="form-control">
-        </div>           
-        
-        <button type="submit" class="btn btn-success">Create</button><span hidden id="createError" style="margin-left: 10px; color: red;"><b>You have to enter a Name and an Access Key</b></span>                                
-                            
-    </form>
+            <div class="form-group">
+              <label for="newTeamName">Name</label><input id="newTeamName" type="text" placeholder="Name of your team" class="form-control">
+            </div>     
+            <div class="form-group">
+              <label for="newTeamAccessKey">Access Key</label><input id="newTeamAccessKey" type="text" placeholder="Access key to your team" class="form-control">
+            </div>           
+            
+            <button type="submit" class="btn btn-success">Create</button><span hidden id="createError" style="margin-left: 10px; color: red;"><b>You have to enter a Name and an Access Key</b></span>                                
+                                
+        </form>
+    </div>
     
     <div class="container" style="margin-bottom:10px">
         <h3>Select an existing team</h3>
