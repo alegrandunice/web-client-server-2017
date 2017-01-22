@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Play</title>
+
+    <!-- Bootstrap -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body  onload="onLoad()">
+
+    <ul class="nav navbar-default nav-pills">
+      <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
+      <li><a data-toggle="tab" href="#tabPlay">Play</a></li>
+      <li><a data-toggle="tab" href="#tabChat">Chat</a></li>
+      <li><a data-toggle="tab" href="#tabMore">More...</a></li>
+    </ul>
+
+    <div class="tab-content">
+        
+        <div id="tabHome" class="tab-pane fade in active">  
+            <div class="container">
+                <h1 id="textHome1"></h1>
+                <br />
+                <h2 id="textHome2"></h2>
+                <h2 id="textHome2B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
+                <h2 id="textHome3"></h2>
+                <h2 id="textHome3B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
+            </div>    
+            <nav class="navbar-fixed-bottom">               
+                <div style="margin: 10px; text-align: center;">
+                    <button onclick="selectPlayTab();" class="btn btn-success btn-lg">Play now!</button>                                           
+                </div>
+            </nav>  
+        </div>
+        
+        <div id="tabPlay" class="tab-pane fade">   
+            <div class="container" >
+                <h3 id="headerStep"></h3>
+                <p id="description"></p>
+            </div>        
+            
+            <nav class="navbar-fixed-bottom">
+              <div id="messageWarning" hidden class="container" style="background-color: red; color: white; padding: 10px; font-weight: bold; text-align: center;">
+                Warning! You are out of the area
+              </div>
+              <div id="messageGood" hidden class="container" style="background-color: green; color: white; padding: 10px; font-weight: bold; text-align: center;">
+                Good! You are very near
+              </div>
+            </nav>  
+        </div>
+        
+        <div id="tabChat" class="tab-pane fade"> 
+            <ul class="nav nav-tabs" style="margin-top: 10px">
+                <li class="active"><a data-toggle="tab" href="#tabChatTeam">Team</a></li>
+                <li><a data-toggle="tab" href="#tabChatTeamAndGM">Team & Game master</a></li>
+                <li><a data-toggle="tab" href="#tabChatEverybody">Everybody</a></li>
+            </ul>
+            
+            <div class="tab-content">
+        
+                <div id="tabChatTeam" class="tab-pane fade in active"> 
+                    <div class="container">
+                        Chat with my team...
+                    </div>
+                </div>
+                
+                <div id="tabChatTeamAndGM" class="tab-pane fade"> 
+                    <div class="container">
+                        Chat with my team and the Game Master...
+                    </div>
+                </div>
+                
+                <div id="tabChatEverybody" class="tab-pane fade"> 
+                    <div class="container">
+                        Chat with everybody...
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div id="tabMore" class="tab-pane fade">  
+            <div class="panel panel-default" style="margin: 10px;">
+                <div class="panel-body">
+                    <form onsubmit="setDestination(); return false;" style="margin: 10px">
+                        <div class="form-group">
+                          <label for="latTo">Latitude</label><input id="latTo" type="text" placeholder="Destination latitude" class="form-control">
+                        </div>                                   
+                        <div class="form-group">
+                          <label for="longTo">Longitute</label><input id="longTo" type="text" placeholder="Destination logitude" class="form-control">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-default">Set destination</button>                                           
+                    </form>                                 
+                </div>
+            </div>           
+        </div>        
+    </div>
+    
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="../js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
+            
+    <script type="text/javascript">
+    
+    var idGame, latitudeTo, longitudeTo;
+    var checkEverySecond;
+    var currentStep, currentGame;
+    
+    function onLoad() {
+    
+        idGame = getUrlParameter('idgame');       
+    
+        retrieveCurrentStep();   
+    }   
+    
+    function retrieveCurrentStep() {
+        //TODO: retreive current step (first one, or last step if crashed)
+        
+        
+        //TODO: Remove
+        currentGame = {
+            "game_name": "Game #1",
+            "player_name": "Arnaud",
+            "team_name": "We are the best",
+            "team_accesskey": "1234"
+        };
+        currentStep = {
+            "name": "Step #1",
+            "explanation": "Goto BU...",
+            "move": true,
+            "coordonates" : {	
+                "latitude" : 43.760854,
+                "longitude" : 7.202076
+            }            
+        };
+        
+
+        loadStep();
+    }
+    
+    function retrieveNextStep() {
+        if (checkEverySecond !== undefined)
+            clearInterval(checkEverySecond);
+            
+        //TODO: retreive next step to move forward the game
+        
+        //TODO: Remove
+        currentGame = {
+            "game_name": "Game #1",
+            "player_name": "Arnaud",
+            "team_name": "We are the best",
+            "team_accesskey": "1234"
+        };
+        currentStep = {
+            "name": "Step #2",
+            "type" : 3,
+            "explanation": "Take a picture of external retrieve books",
+            "move": false      
+        };
+        
+        
+        loadStep();                    
+    }
+    
+    function loadStep() {
+    
+        //TODO: Clear Play tab
+        
+        
+        //TODO: select Play tab
+                      
+        if (currentGame !== undefined) {
+            var textHome1 = document.getElementById("textHome1");
+            var textHome2 = document.getElementById("textHome2");
+            var textHome2B = document.getElementById("textHome2B");
+            var textHome3 = document.getElementById("textHome3");
+            var textHome3B = document.getElementById("textHome3B");
+            
+            textHome1.innerHTML = "Wellcome to " + currentGame.game_name + " " + currentGame.player_name;
+            textHome2.innerHTML = "Your team is:"
+            textHome2B.innerHTML = currentGame.team_name;
+            textHome3.innerHTML = "The access key to your team:";
+            textHome3B.innerHTML = currentGame.team_accesskey;
+        }
+        
+        if (currentStep !== undefined) {
+            if (currentStep.move === true) {
+                initStepMove();
+            }
+            else if (currentStep.move === false) {
+                initStepAction();
+            }
+            else {
+                //TODO: Error ...
+            }   
+        }
+        else {
+            //TODO: Error ...
+        } 
+    }
+    
+    function initStepMove() {
+        //TODO: show Move informations...
+        var headerStep = document.getElementById("headerStep");
+        var description = document.getElementById("description");
+        
+        headerStep.innerHTML = currentStep.name + ": Move";
+        description.innerHTML = currentStep.explanation;
+
+        //start timer to help player (near or far from the destination spot)
+        checkEverySecond = window.setInterval(checkArea, 1000); 
+    }
+    
+    function initStepAction() {
+        latitudeTo = undefined;
+        longitudeTo = undefined;
+        
+        //TODO: show Action informations...
+        var headerStep = document.getElementById("headerStep");
+        var description = document.getElementById("description");
+        
+        headerStep.innerHTML = currentStep.name + ": Action";
+        description.innerHTML = currentStep.explanation;
+         
+        if (currentStep.type === 1) {
+            //TODO: show MCQ informations... with "Answer" button
+        }
+        else if (currentStep.type === 2) {
+            //TODO: show Answer question... with "Submit" button
+        }
+        else if (currentStep.type === 3) {
+            //TODO: show Take Picture... with "Submit" button
+        } 
+    }
+    
+    function setDestination() {
+        if (currentStep !== undefined) {
+            currentStep.coordonates = undefined;
+            
+            var latTo = parseFloat(document.getElementById("latTo").value);
+            var longTo = parseFloat(document.getElementById("longTo").value);
+            
+            if ((latTo > 0) && (longTo > 0)) {
+                currentStep.coordonates = {
+                    "latitude": latTo,
+                    "longitude": longTo
+                }
+            }
+        }
+    }
+    
+    function checkArea() {
+        if (navigator.geolocation && (currentStep !== undefined) && (currentStep.coordonates !== undefined) 
+                && (currentStep.coordonates.latitude !== undefined) && (currentStep.coordonates.longitude !== undefined)) {            
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var placeFrom = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                var placeTo = new google.maps.LatLng(currentStep.coordonates.latitude, currentStep.coordonates.longitude);
+                
+                var messageWarning = document.getElementById("messageWarning");
+                var messageGood = document.getElementById("messageGood");
+                
+                messageWarning.hidden = true;
+                messageGood.hidden = true;
+
+                // in meter
+                var distance = google.maps.geometry.spherical.computeDistanceBetween(placeFrom, placeTo);
+                
+                if (distance < 10) {
+                    retrieveNextStep();  
+                }
+                else if (distance < 30) 
+                     messageGood.hidden = false;
+                else if (distance > 50) 
+                    messageWarning.hidden = false;
+            });
+        }
+    }
+    
+    function selectPlayTab() {
+        $('.nav-pills a[href="#tabPlay"]').tab('show');
+    }
+    </script>
+</body>
+</html>

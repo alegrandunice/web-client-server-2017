@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Player - Select team</title>
+
+    <!-- Bootstrap -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body  onload="onLoad()">
+    <div class="container" >
+        <h2 id="gameName">Game #1</h2>             
+    </div>
+    
+    <div class="container" style="margin-bottom:10px">
+        <h3>Create a new Team</h3>
+    </div>
+    
+    <form onsubmit="createNewTeam(); return false;" style="margin: 10px">
+
+        <div class="form-group">
+          <label for="newTeamName">Name</label><input id="newTeamName" type="text" placeholder="Name of your team" class="form-control">
+        </div>     
+        <div class="form-group">
+          <label for="newTeamAccessKey">Access Key</label><input id="newTeamAccessKey" type="text" placeholder="Access key to your team" class="form-control">
+        </div>           
+        
+        <button type="submit" class="btn btn-success">Create</button><span hidden id="createError" style="margin-left: 10px; color: red;"><b>You have to enter a Name and an Access Key</b></span>                                
+                            
+    </form>
+    
+    <div class="container" style="margin-bottom:10px">
+        <h3>Select an existing team</h3>
+    </div>
+    
+    <div id="teamsList">
+    </div>                    
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="../js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
+            
+    <script type="text/javascript">
+    
+    var idGame;
+    
+    function onLoad() {
+        idGame = getUrlParameter('idgame');
+    
+        if (getUrlParameter('accessKey') === null) {            
+            document.location = "./play.html?idgame=" + idGame;
+        }
+        
+         //TODO : Check accessKey of game before continue!
+                
+        getRequest('../data/game/' + idGame + '/teams').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
+            
+            jsonReceived.forEach((j) => {
+                htmlAppendTeam(j._id, j.name, (j.players ? j.players.length : 0));
+            });
+                        
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+        
+        
+        //TODO: Remove !
+        htmlAppendTeam("1", "We are the best", 3);
+    }   
+    
+    function htmlAppendTeam(idTeam, name, players) {
+        var teamsList = document.getElementById("teamsList");
+              
+        teamsList.innerHTML += ''
+                    + '<div class="container">'                    
+                    + '    <div class="panel panel-info">'
+                    + '        <div class="panel-body">'
+                    + '            <div class="row" >'                                    
+                    + '                <div class="col-sm-4" >'
+                    + '                    <h3  class="panel-title">' + name + '</h3>'
+                    + '                    <span class="badge">' + players.toString() + ' player' + ((players > 1) ? 's' : '') + '</span>'
+                    + '                </div>'        
+                    + '                <div class="col-sm-4">'
+                    + '                    <div class="row" >'
+                    + '                      <div class="col-xs-4"><label for="accessKey' + idTeam + '">Access Key</label></div><div class="col-xs-8"><input id="accessKey' + idTeam + '" type="text" placeholder="Access Key" ></div>'
+                    + '                    </div>'
+                    + '                </div>'
+                    + '                <div class="col-sm-4" style="text-align: right;">'
+                    + '                    <button class="btn btn-success" onclick="enterTeam(event, \'' + idTeam + '\');" style="margin-left: 0px;">Enter</button>'
+                    + '                </div>'                       
+                    + '            </div>'                                       
+                    + '        </div>'
+                    + '    </div>'
+                    + '</div>';
+    }
+    
+    function createNewTeam(event) {
+        var jsonToSend = {
+                "name": "",
+                "access_key": ""
+            }
+        
+        var name = document.getElementById("newTeamName");
+        jsonToSend.name = name.value;
+        var newTeamAccessKey = document.getElementById("newTeamAccessKey");
+        jsonToSend.access_key = newTeamAccessKey.value;
+        
+        
+        var createError = document.getElementById("createError");
+        createError.hidden = true;
+        
+        if ((jsonToSend.name.trim() == "") || (jsonToSend.access_key.trim() == "")) {
+            createError.hidden = false;
+        }
+        else {     
+
+            //TODO: Remove!
+            document.location = "./play.html?idgame=" + idGame;
+            
+            postRequest('../data/game/' + idGame + '/teams', jsonToSend).then(function(response) {
+                console.log("Post Success!", response);
+                document.location = "./play.html?idgame=" + idGame;
+            }, function(error) {
+                console.error("Post Failed!", error);
+            });
+        } 
+        
+        
+    }
+    
+    function enterTeam(event, idTeam) {
+        var accessKey = document.getElementById("accessKey" + idTeam);
+        
+        //TODO : Check accessKey of the team before redirect!
+        
+        
+        document.location = "./play.html?idgame=" + idGame + "&accessKey=" + accessKey.value;
+    }
+    
+    </script>
+</body>
+</html>
