@@ -22,7 +22,7 @@
         <div class="jumbotron" style="margin-top: 10px; background-color: #fcf8e3;">
             <h3>Clue description</h3>
             
-            <form onsubmit="updateClue()" action="./edit-step.html#tabClues">
+            <form onsubmit="updateClue()" action="select-game.html">
             
                 <div class="form-group">
                   <label for="cost">Cost</label><input id="cost" type="number" placeholder="Cost" class="form-control">
@@ -59,15 +59,15 @@
         idClue = getUrlParameter("idclue");
     
         if ((idStep !== undefined) && (idClue !== undefined)) {
-            getRequest('../data/step/' + idStep + '/clue/' + idClue).then(function(response) {
+            getRequest('/data/clues/'+ idClue).then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
 
                 
-                var description = getElementById("description");
+                var description = document.getElementById("description");
                 description.value = jsonReceived.explanation;
                 
-                var cost = getElementById("cost");
+                var cost = document.getElementById("cost");
                 cost.value = jsonReceived.cost;
                 
                 //type="file" Pictures          <==
@@ -87,15 +87,15 @@
                 "description": ""
             }
 
-            var description = getElementById("description");
+            var description = document.getElementById("description");
             jsonToSend.explanation = description.value;
             
-            var cost = getElementById("cost");
+            var cost = document.getElementById("cost");
             jsonToSend.cost = cost.value;
             
             //type="file" Pictures          <==
             
-            putRequest('../data/step/' + idStep + '/clue/' + idClue, jsonToSend).then(function(response) {
+            putRequest('/data/clues/'+ idClue, jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
             }, function(error) {
                 console.error("Put Failed!", error);

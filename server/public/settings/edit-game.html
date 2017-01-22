@@ -94,11 +94,10 @@
         
     <script type="text/javascript">
     
-    var idGame;
+    var idGame = getUrlParameter("idgame"); 
     
     function onLoad() {                
-        
-        idGame = getUrlParameter("idgame");
+   
         
         // Javascript to enable link to tab
         var url = document.location.toString();
@@ -112,7 +111,7 @@
         });
         
         if (idGame !== undefined) {
-            getRequest('../data/game/' + idGame + '/simple/').then(function(response) {
+            getRequest('/data/games/' + idGame + '/simple/').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
                 
@@ -165,7 +164,7 @@
             var gameType = document.getElementById("gameType");
             jsonToSend.game_type = gameType.value;
             
-            putRequest('../data/game/' + idGame, jsonToSend).then(function(response) {
+            putRequest('/data/games/' + idGame, jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
             }, function(error) {
                 console.error("Put Failed!", error);
@@ -222,7 +221,7 @@
                 "total_points" : 1
             }
         
-            postRequest('../data/game/' + idGame + '/steps/', jsonToSend).then(function(response) {
+            postRequest('/data/games/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
                 htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
@@ -237,7 +236,7 @@
         if (idGame !== undefined) {
             var result = confirm("Delete this step?");
             if (result) {
-                deleteRequest('../data/game/' + idGame + '/step/' + idStep).then(function(response) {
+                deleteRequest('/data/games/' + idGame + '/step/' + idStep).then(function(response) {
                     console.log("Delete Success!", response);
                     location.reload();
                 }, function(error) {
