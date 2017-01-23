@@ -1,5 +1,9 @@
 <script src="/socket.io/socket.io.js"></script>
+<script src="../js/app-server-access.js"></script>
 <body>
+<div>
+    <button class="btn" onclick="logout(); return false;">Logout</button>
+</div>
 <div>
 <div id="map" style="width:640px;height:480px"></div>
 </div>
@@ -18,6 +22,21 @@
 <div id="map" style="width:640px;height:480px"></div>
 </div>
 <script>
+
+    function logout() {
+        var jsonToSend = {
+            "cost": 0,
+            "description": ""
+        }
+        getRequest('../logout').then(function(response) {
+
+            document.location.href = '/login';
+
+            console.log("Get Success!", response);
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+    }
 
 	var username, chat, conversation, data, datasend, users, rooms;
     

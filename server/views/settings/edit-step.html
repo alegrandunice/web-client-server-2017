@@ -38,7 +38,7 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="updateStep()" action="./edit-game.html#tabSteps" style="margin: 10px">
+                <form onsubmit="updateStep()" action="edit-game.html#tabSteps" style="margin: 10px">
                     <div class="form-group">
                         <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">                  
                     </div>
@@ -179,7 +179,7 @@
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                                    
                 + '                <div class="col-xs-4" >'
-                + '                    <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '' + idStep + '                    <a href="edit-clue.html?idstep=&idclue=" style="text-decoration: none; ">' + idClue + ''
                 + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
                 + '                    </a>'
                 + '                </div>'
@@ -192,7 +192,7 @@
                 + '            </div>'
                 + '        </div>'
                 + '        <div class="panel-body">'
-                + '            <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '' + idStep + '            <a href="edit-clue.html?idstep=&idclue=" style="text-decoration: none; ">' + idClue + ''
                 + '                ' + description
                 + '            </a>'
                 + '        </div>'

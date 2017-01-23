@@ -1,4 +1,5 @@
 var express = require("express");
+var session = require('express-session');
 var path = require("path");
 var bodyParser = require("body-parser");
 var mongodb = require("mongodb");
@@ -7,18 +8,21 @@ var url = 'mongodb://localhost:27017/game';
 
 var STEPS_COLLECTION = "steps";
 var GAMES_COLLECTION = "games";
+var GAMEMASTERS_COLLECTION = "gamemasters";
 
+var dirApp = __dirname + "/public";
+var views = __dirname + "/views";
+console.log('express directory: ' + dirApp);
 var app = express()
     , http = require('http')
     , server = http.createServer(app);
-    
+app.use(session({secret: 'ssshhhhh', resave: true, saveUninitialized: true}));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-var dirApp = __dirname + "/public";
-console.log('express directory: ' + dirApp);
-app.use(express.static(dirApp));
 app.use(bodyParser.json());
+app.use(express.static(dirApp));
+
 
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 var db;
@@ -39,8 +43,11 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, datab
 
 });
 
+
+
 function init()
 {
+
     // Initialize the app.
     server = app.listen(process.env.PORT || 8080, function () {
         var port = server.address().port;
@@ -50,6 +57,107 @@ function init()
 
     io = require('socket.io').listen(server);
     io.sockets.on('connection', connectSocketFunction);
+}
+
+
+//******************* VIEWS ***************************
+//*****************************************************
+var sess;
+app.get('/login', function(req,res) {
+    sess = req.session;
+    if(sess.username)
+        res.sendFile(views + '/settings/master.html');
+    else
+        res.sendFile( views + '/settings/login.html');
+    })
+
+    .post('/login', function(req,res) {
+        connect(req,res);
+    })
+
+    .get('/logout', function(req,res) {
+        console.log("Im the put");
+        //res.redirect('/login');
+        req.session.destroy(function(err) {
+            if(err) {
+                console.log("failed to destroy session");
+                console.log(err);
+            } else {
+                console.log("session destroyed");
+                res.redirect('/login');
+            }
+        });
+
+    })
+
+    .get('/account/edit', function(req,res) {
+        sess = req.session;
+        if(sess.username)
+            res.sendFile( views + '/settings/edit-account.html');
+        else
+            res.sendFile( views + '/settings/login.html');
+
+    })
+    .get('/account/new', function(req,res) {
+        sess = req.session;
+        if(sess.username)
+            res.sendFile( views + '/settings/new-account.html');
+        else
+            res.sendFile( views + '/settings/login.html');
+    })
+    .get('/game/edit', function(req,res) {
+        sess = req.session;
+        if(sess.username)
+            res.sendFile( views + '/settings/edit-game.html');
+        else
+            res.sendFile( views + '/settings/login.html');
+    })
+    .get('/game/select', function(req,res) {
+        sess = req.session;
+        if(sess.username)
+            res.sendFile( views + '/settings/select-game.html');
+        else
+            res.sendFile( views + '/settings/login.html');
+    })
+
+
+    .get('/', function(req,res) {
+        sess = req.session;
+        if(sess.username)
+            res.sendFile(views + '/settings/master.html');
+        else
+            res.redirect('/login');
+    })
+
+    .get('/*', function(req,res) {
+        res.sendFile( views + '/settings/login.html');
+    });
+
+//******************* DATA ***************************
+//****************************************************
+function connect(req, res) {
+    new Promise(function(resolve, reject) {
+        db.collection(GAMEMASTERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password }, function(err, doc) {
+            if (err) {
+                reject("error while getting account");
+            } else {
+                if(doc != null){
+                    resolve(doc);
+                }
+                else{
+                    reject("enable to find this account !");
+                }
+            }
+        });
+    }).then(function(response) {
+        console.log("doc retreived from db : " + JSON.stringify(response));
+        sess = req.session;
+        sess.username=req.body.username;
+        res.redirect('/');
+    }, function(error) {
+        console.error(error);
+        res.sendFile( views + '/gamemaster/login.html');
+    });
 }
 
 
