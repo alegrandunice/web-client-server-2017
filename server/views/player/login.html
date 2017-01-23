@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Master game - New account</title>
+    <title>Player - Login</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -20,38 +20,29 @@
 <body>
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
-            <h3>Game Master account</h3>
-            <form onsubmit="formOnSubmit()" action="./select-game.html">
+            <h3>Login Player </h3>
+            <form onsubmit="formOnSubmit()"  action="select-game.html">
                 <div class="form-group">
-                  <label for="user">User</label><input id="user" type="text" placeholder="User" class="form-control">
+                  <input type="text" placeholder="User" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="password">Password</label><input id="password" type="password" placeholder="Password" class="form-control">
+                  <input type="password" placeholder="Password" class="form-control">
                 </div>
-                <div class="form-group">
-                  <label for="firstName">First name</label><input type="firstName" placeholder="First name" class="form-control">
-                </div>
-                <div class="form-group">
-                  <label for="lastName">Last name</label><input id="lastName" type="text" placeholder="Last name" class="form-control">                  
-                </div>
-                <div class="form-group">
-                  <label for="email">Email</label><input id="email" type="email" placeholder="Email" class="form-control">                  
-                </div>
-                <button type="submit" class="btn btn-success">Update account</button>            
-                <button class="btn" onclick="window.location='./select-game.html';return false;">Cancel</button>
+                <button type="submit" class="btn btn-success">Sign in</button>            
             </form>
         </div>
+        <p><a href="../settings/new-account.html?ac=2">Create a new game master account</a></p>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
-        
+    
     <script type="text/javascript">
     function formOnSubmit()
     {
-        
+
     }
     </script>
 </body>

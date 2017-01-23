@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Master game - Edit step</title>
+    <title>Game Settings - Edit step</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -38,7 +38,7 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="updateStep()" action="./edit-game.html#tabSteps" style="margin: 10px">
+                <form onsubmit="updateStep()" action="edit-game.html#tabSteps" style="margin: 10px">
                     <div class="form-group">
                         <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">                  
                     </div>
@@ -91,11 +91,17 @@
     
     <script type="text/javascript">
     
-    var idStep;
+    var  idStep ;
     
+	function actionUrl() {
+		
+		return "./select-game.html";
+		
+	}
+		
     function onLoad() {
     
-        idStep = getUrlParameter("idstep");
+       idStep = getUrlParameter("idstep");
     
         // Javascript to enable link to tab
         var url = document.location.toString();
@@ -109,7 +115,7 @@
         })
         
         if (idStep !== undefined) {
-            getRequest('../data/step/' + idStep).then(function(response) {
+            getRequest('/data/steps/'+ idStep +'/simple').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
                 
@@ -117,13 +123,13 @@
                 
                 //type="radio" Move / Action    <==
 
-                var stepName = getElementById("stepName");
+                var stepName = document.getElementById("stepName");
                 stepName.value = jsonReceived.name;
                 
-                var description = getElementById("description");
+                var description = document.getElementById("description");
                 description.value = jsonReceived.explanation;
                 
-                var earnedPoints = getElementById("earnedPoints");
+                var earnedPoints = document.getElementById("earnedPoints");
                 earnedPoints.value = jsonReceived.total_points;
                 
                 //type="file" Pictures          <==
@@ -140,6 +146,8 @@
     
     function updateStep()
     {
+		idStep = getUrlParameter("idstep"); 
+		
         if (idStep !== undefined) {
             var jsonToSend = {
                 "name": "",
@@ -151,18 +159,20 @@
             
             //type="radio" Move / Action    <==
 
-            var stepName = getElementById("stepName");
+            var stepName = document.getElementById("stepName");
             jsonToSend.name = stepName.value;
             
-            var description = getElementById("description");
+            var description = document.getElementById("description");
             jsonToSend.explanation = description.value;
             
-            var earnedPoints = getElementById("earnedPoints");
+            var earnedPoints = document.getElementById("earnedPoints");
             jsonToSend.total_points = earnedPoints.value;
             
+
+			
             //type="file" Pictures          <==
             
-            putRequest('../data/step/' + idStep, jsonToSend).then(function(response) {
+            putRequest('/data/steps/'+ idStep, jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
             }, function(error) {
                 console.error("Put Failed!", error);
@@ -173,18 +183,20 @@
     function htmlAppendClue(idClue, orderNumber, points, description) {
         var cluesList = document.getElementById("cluesList");
               
+		var idStep = getUrlParameter("idstep");
+		
         cluesList.innerHTML += ''
                 + '<div class="container">'                    
                 + '    <div class="panel panel-warning">'
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                                    
                 + '                <div class="col-xs-4" >'
-                + '                    <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '' + idStep + '                    <a href="edit-clue.html?idstep=&idclue=" style="text-decoration: none; ">' + idClue + ''
                 + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
                 + '                    </a>'
                 + '                </div>'
                 + '                <div class="col-xs-4">'
-                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points.toString() + ' point' + ((points > 1) ? 's' : '') + '</h3>'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points + ' point' + ((points > 1) ? 's' : '') + '</h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
                 + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + idClue + '\');" style="margin-left: 0px;">Delete</button>'
@@ -192,25 +204,30 @@
                 + '            </div>'
                 + '        </div>'
                 + '        <div class="panel-body">'
-                + '            <a href="./edit-clue.html?idstep=' + idStep + '&idclue=' + idClue + '" style="text-decoration: none; ">'
+                + '' + idStep + '            <a href="edit-clue.html?idstep=&idclue=" style="text-decoration: none; ">' + idClue + ''
                 + '                ' + description
                 + '            </a>'
                 + '        </div>'
                 + '    </div>'
                 + '</div>';
     }
-    
+
     function createNewClue(event) {
+		
+		idStep = getUrlParameter("idstep");
         if (idStep !== undefined) {
+			
             var jsonToSend = {
                 "description": "(new clue)",
                 "cost": 1
+				
             }
+			
         
-            postRequest('../data/step/' + idStep + '/clues', jsonToSend).then(function(response) {
+            postRequest('/data/steps/' + idStep + '/clues/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
+                htmlAppendClue(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
                 console.error("Post Failed!", error);
             });
@@ -218,10 +235,11 @@
     }
     
     function deleteClue(event, idClue) {
+		idStep = getUrlParameter("idstep");
         if (idStep !== undefined) {
             var result = confirm("Delete this clue?");
             if (result) {
-                deleteRequest('../data/step/' + idStep + '/clue/' + idClue).then(function(response) {
+                deleteRequest('/data/steps/'+ idStep +'/clues/' + idClue).then(function(response) {
                     console.log("Delete Success!", response);
                     location.reload();
                 }, function(error) {

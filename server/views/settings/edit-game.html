@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Master game - Edit game</title>
+    <title>Game Settings - Edit game</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -25,7 +25,7 @@
                 <h3 id="headerName"></h3>
             </div>
             <div class="col-xs-4" style="text-align: right;">
-                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='./select-game.html';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
+                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='select-game.html';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
             </div>
         </div>
         
@@ -40,7 +40,7 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="updateGame()" action="./select-game.html" style="margin: 10px">
+                <form onsubmit="updateGame()" action="select-game.html" style="margin: 10px">
 
                     <div class="form-group">
                       <label for="name">Name</label><input id="name" type="text" placeholder="Name" class="form-control">
@@ -94,11 +94,10 @@
         
     <script type="text/javascript">
     
-    var idGame;
+    var idGame = getUrlParameter("idgame"); 
     
     function onLoad() {                
-        
-        idGame = getUrlParameter("idgame");
+   
         
         // Javascript to enable link to tab
         var url = document.location.toString();
@@ -112,7 +111,7 @@
         });
         
         if (idGame !== undefined) {
-            getRequest('../data/game/' + idGame + '/simple/').then(function(response) {
+            getRequest('/data/games/' + idGame + '/simple/').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
                 
@@ -165,7 +164,7 @@
             var gameType = document.getElementById("gameType");
             jsonToSend.game_type = gameType.value;
             
-            putRequest('../data/game/' + idGame, jsonToSend).then(function(response) {
+            putRequest('/data/games/' + idGame, jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
             }, function(error) {
                 console.error("Put Failed!", error);
@@ -182,7 +181,7 @@
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                              
                 + '                <div class="col-xs-4" >'
-                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
+                + '                    <a href=' + idStep + '"edit-step.html?idstep=" style="text-decoration: none; ">'
                 + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
                 + '                    </a>'
                 + '                </div>'
@@ -197,7 +196,7 @@
                 + '        <div class="panel-body">'
                 + '            <div class="row">'
                 + '                <div class="col-xs-8">'
-                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
+                + '                    <a href=' + idStep + '"edit-step.html?idstep=" style="text-decoration: none; ">'
                 + '                        ' + name
                 + '                    </a>'
                 + '                </div>'
@@ -222,7 +221,7 @@
                 "total_points" : 1
             }
         
-            postRequest('../data/game/' + idGame + '/steps/', jsonToSend).then(function(response) {
+            postRequest('/data/games/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
                 htmlAppendStep(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
@@ -237,7 +236,7 @@
         if (idGame !== undefined) {
             var result = confirm("Delete this step?");
             if (result) {
-                deleteRequest('../data/game/' + idGame + '/step/' + idStep).then(function(response) {
+                deleteRequest('/data/games/' + idGame + '/step/' + idStep).then(function(response) {
                     console.log("Delete Success!", response);
                     location.reload();
                 }, function(error) {

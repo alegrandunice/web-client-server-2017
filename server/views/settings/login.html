@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Master game - Login</title>
+    <title>Game Settings - Login</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -21,7 +21,7 @@
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
             <h3>Login Game Master </h3>
-            <form onsubmit="formOnSubmit()" action="./select-game.html">
+            <form onsubmit="formOnSubmit($event)" id="loginForm" method="post" action="../login">
                 <div class="form-group">
                   <input type="text" placeholder="User" class="form-control">
                 </div>
@@ -31,7 +31,7 @@
                 <button type="submit" class="btn btn-success">Sign in</button>            
             </form>
         </div>
-        <p><a href="./new-account.html">Create a new game master account</a></p>
+        <p><a href="new-account.html?ac=1">Create a new game master account</a></p>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -40,10 +40,27 @@
     <script src="../js/bootstrap.min.js"></script>
     
     <script type="text/javascript">
-    function formOnSubmit()
-    {
-        
-    }
+        function formOnSubmit(event)
+        {
+            event.preventDefault();
+            alert("form submit");
+            var $inputs = $('#loginForm :input');
+
+            // not sure if you wanted this, but I thought I'd add it.
+            // get an associative array of just the values.
+            var jsonToSend = {};
+            $inputs.each(function() {
+                jsonToSend[this.name] = $(this).val();
+                alert($(this).val());
+            });
+            postRequest('../login', jsonToSend).then(function(response) {
+                alert("Post Success!", response);
+                var jsonReceived = JSON.parse(response);
+                //htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
+            }, function(error) {
+                console.error("Post Failed!", error);
+            });
+        }
     </script>
 </body>
 </html>
