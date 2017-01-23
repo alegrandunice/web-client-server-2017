@@ -102,7 +102,7 @@
             "status": "WAITING"
         }
     
-        postRequest('../data/games', jsonToSend).then(function(response) {
+        postRequest('/data/games', jsonToSend).then(function(response) {
             console.log("Post Success!", response);
             var jsonReceived = JSON.parse(response);
             htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
@@ -114,7 +114,7 @@
     function deleteGame(event, idGame) {
         var result = confirm("Delete this game?");
         if (result) {
-            deleteRequest('../data/game/' + idGame).then(function(response) {
+            deleteRequest('/data/games/' + idGame).then(function(response) {
                 console.log("Delete Success!", response);
                 location.reload();
             }, function(error) {

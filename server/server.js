@@ -9,6 +9,7 @@ var url = 'mongodb://localhost:27017/game';
 var STEPS_COLLECTION = "steps";
 var GAMES_COLLECTION = "games";
 var GAMEMASTERS_COLLECTION = "gamemasters";
+var CLUES_COLLECTION = "clues";
 
 var dirApp = __dirname + "/public";
 var views = __dirname + "/views";
@@ -24,7 +25,7 @@ app.use(bodyParser.json());
 app.use(express.static(dirApp));
 
 
-// Create a database variable outside of the database connection callback to reuse the connection pool in your app.
+// Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
 var db;
 var io;
 
@@ -58,6 +59,11 @@ function init()
     io = require('socket.io').listen(server);
     io.sockets.on('connection', connectSocketFunction);
 }
+
+/********************************************************************************************************************************************************************************************************
+*************************************************************************************  API ROUTES BELOW *************************************************************************************************
+*********************************************************************************************************************************************************************************************************
+*/
 
 
 //******************* VIEWS ***************************
@@ -169,6 +175,11 @@ function handleError(res, reason, message, code) {
   res.status(code || 500).json({"error": message});
 }
 
+
+
+
+//************************************************************************************* STEP API ROUTES BELOW *********************************************************************************************
+
 /*  "/data/steps"
  *    GET: finds all steps
  *    POST: creates a new step
@@ -186,14 +197,33 @@ app.get("/data/steps", function(req, res) {
 
 app.post("/data/steps", insertStep);
 
-/*  "/data/step/:id"
+function insertStep(req, res) {
+	
+  var id;
+  var newStep = req.body;
+  
+  console.log(JSON.stringify(newStep));
+  
+  db.collection(STEPS_COLLECTION).insertOne(newStep, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to create new step.");
+    } else {
+      res.status(201).json(doc.ops[0]);
+      id = doc._id;
+
+    }
+  });
+  return newStep._id;
+}
+
+/*  "/data/steps/:id"
  *    GET: find step by id
  *    PUT: update step by id
  *    DELETE: delete step by id
  */
 
-app.get("/data/step/:_id", function(req, res) {
-  db.collection(STEPS_COLLECTION).findOne({ id : req.params._id }, function(err, doc) {
+app.get("/data/steps/:id", function(req, res) {
+  db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.params.id) }, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to get step");
     } else {
@@ -202,11 +232,18 @@ app.get("/data/step/:_id", function(req, res) {
   });
 });
 
-app.put("/data/step/:id", function(req, res) {
+app.put("/data/steps/:id", function(req, res) {
   var updateDoc = req.body;
-  delete updateDoc.id;
+  //delete updateDoc.id;
 
-  db.collection(STEPS_COLLECTION).updateOne({ _id : req.params.id }, updateDoc, function(err, doc) {
+  db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },	
+	{
+	  $set :
+        { name : updateDoc.name,
+          explanation : updateDoc.explanation,
+          total_points: updateDoc.total_points
+        }
+    }, updateDoc, function(err, doc) {
     if (err) {
       handleError(res, err.message, "Failed to update step");
     } else {
@@ -215,7 +252,7 @@ app.put("/data/step/:id", function(req, res) {
   });
 });
 
-app.delete("/data/step/:id", function(req, res) {
+app.delete("/data/steps/:id", function(req, res) {
   console.log('Delete step: ' + req.params._id);
   db.collection(STEPS_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
     if (err) {
@@ -225,6 +262,19 @@ app.delete("/data/step/:id", function(req, res) {
     }
   });
 });
+
+
+
+
+
+//************************************************************************************* GAME API ROUTES BELOW *****************************************************************************************************
+
+
+/*  "/data/games"
+ *    GET: finds all games
+ *    POST: creates a new game
+ */
+
 
 app.get("/data/games", function(req, res) {
   console.log('Select games');
@@ -237,32 +287,25 @@ app.get("/data/games", function(req, res) {
   });
 });
 
-/*  "/game/add"
- *    POST: add a new game
- */
+
 app.post("/data/games", function(req, res) {
+	
   console.log('add games');
   var newGame = req.body;
-
   newGame.createDate = new Date();
-
-  //if (!(newGame.name && newGame.nbPlayers)) {
-  //  handleError(res, "Invalid user input", "Must provide a name and the number of players.", 400);
-  //}
-  //else{
-    db.collection(GAMES_COLLECTION).insertOne(newGame, function(err, doc) {
+  db.collection(GAMES_COLLECTION).insertOne(newGame, function(err, doc) {
       if (err) {
         handleError(res, err.message, "Failed to create new game.");
       } else {
         res.status(201).json(doc.ops[0]);
       }
     });
-  //}
 });
 
-/*  "/games/:id"
+/*  "data/games/:id"
  *    GET: find game by id
- *    POST: update game by id
+ *    PUT: update game by id
+ *    DELETE : DELETE A GAME
  */
 
 app.get("/data/games/:id", function(req, res) {
@@ -275,21 +318,39 @@ app.get("/data/games/:id", function(req, res) {
   });
 });
 
-app.post("/data/games/:id", function(req, res) {
+
+app.put("/data/games/:id", function(req, res) {
+	
+  console.log("update game");
+	
   var updateDoc = req.body;
-
-  // TODO: get game by id , add trace or chat and update it
-
-  db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to update game");
-    } else {
-      res.status(204).end();
-    }
-  });
+  console.log(JSON.stringify(req.body));
+	
+  //delete updateDoc._id;
+  console.log("name : " + updateDoc.name);
+  console.log("id :" + req.params.id);
+	
+  db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
+      
+	{
+	  $set :
+        { name : updateDoc.name,
+          localisation : updateDoc.localisation,
+          status: updateDoc.status,
+          game_type : updateDoc.game_type
+        }
+    }, 
+	function(err, doc) {
+          if (err) {
+            handleError(res, err.message, "Failed to update game");
+          } else {
+            console.log("game updated : " + doc.name );
+            res.status(204).end();
+          }
+        });
 });
 
-app.delete("/data/game/:id", function(req, res) {
+app.delete("/data/games/:id", function(req, res) {
   console.log('Delete game: ' + req.params._id);
   db.collection(GAMES_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
     if (err) {
@@ -300,45 +361,123 @@ app.delete("/data/game/:id", function(req, res) {
   });
 });
 
-app.put("/data/game/:id", function(req, res) {
-  console.log("update game")
-  var updateDoc = req.body;
-  console.log(JSON.stringify(req.body));
-  //delete updateDoc._id;
-  console.log("name : " + updateDoc.name);
-  console.log("id :" + req.params.id);
-  db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
-      {$set :
-        { name : updateDoc.name,
-          localisation : updateDoc.localisation,
-          status: updateDoc.status,
-          game_type : updateDoc.game_type
-        }
-      }, function(err, doc) {
-          if (err) {
-            handleError(res, err.message, "Failed to update step");
-          } else {
-            console.log("doc updated : " + doc.name );
-            res.status(204).end();
-          }
-        });
+
+
+
+//**************************************************************************** CLUE API ROUTES BELOW *******************************************************************************************************
+
+
+/*  "/data/clues"
+ *    GET: finds all clues
+ *    POST: creates a new clue
+ */
+
+
+app.get("/data/clues", function(req, res) {
+  console.log('Select clues');
+  db.collection(CLUES_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get clues.");
+    } else {
+      res.status(200).json(docs);
+    }
+  });
 });
 
-app.get("/data/game/:id/simple", function(req, res) {
+
+app.post("/data/clues", insertClue);
+
+function insertClue(req,res) {
+
+	var id;
+	var newClue = req.body;
+	
+  console.log('add clues');
+	
+
+  newClue.createDate = new Date();
+  db.collection(CLUES_COLLECTION).insertOne(newClue, function(err, doc) {
+      if (err) {
+        handleError(res, err.message, "Failed to create new clue.");
+      } else {
+        res.status(201).json(doc.ops[0]);
+      }
+    });
+	return newClue._id;
+}
+
+
+
+/*  "data/clues/:id"
+ *    GET: find clue by id
+ *    POST: update clue by id
+ */
+
+app.get("/data/clues/:id", function(req, res) {
+  db.collection(CLUES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to get clue");
+    } else {
+      res.status(200).json(doc);
+    }
+  });
+});
+
+app.put("/data/clues/:id", function(req, res) {
+  var updateDoc = req.body;
+
+  // TODO: get game by id , add trace or chat and update it
+
+  db.collection(CLUES_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, doc) {
+    if (err) {
+      handleError(res, err.message, "Failed to update clue");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+app.delete("/data/clues/:id", function(req, res) {
+  console.log('Delete game: ' + req.params._id);
+  db.collection(CLUES_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to delete clue");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+
+//********************************************************************************************************************************************************************************************/
+//******************************************************************************** GENERAL WORKFLOW API BELOW*********************************************************************************/
+//********************************************************************************************************************************************************************************************/
+
+//************************************************************************************ GAMES && STEPS ****************************************************************************************/
+
+
+/*  "/data/games/:id/simple"
+ *    GET : GET A GAME WITH ITS REGISTRED STEPS
+ */
+
+
+app.get("/data/games/:id/simple", function(req, res) {
+	
   var ids = [];
 
-  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID(req.params.id) }, function(err, game) {
-    if (err) {
+  db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID( req.params.id ) }, function(err, game) {
+    
+	if (err) {
       handleError(res, err.message, "Failed to get game");
     } else {
       //console.log(game);
       if(game.steps){
         for (i = 0; i < game.steps.length; i++) {
-          ids.push(new ObjectID(game.steps[i]));
+          ids.push( new ObjectID( game.steps[i].id ) ) ;
         }
       }
 
-      db.collection(STEPS_COLLECTION).find({_id: { $in : ids}}).toArray(function(err, steps){
+      db.collection(STEPS_COLLECTION).find({ _id: { $in : ids}}).toArray(function(err, steps){
         if (err) {
           handleError(res, err.message, "Failed to get steps for game " + req.params.id);
         } else {
@@ -356,21 +495,40 @@ app.get("/data/game/:id/simple", function(req, res) {
   });
 });
 
-app.delete("/data/game/:idGame/step/:idStep", function(req, res) {
-  console.log('Delete step: ' + req.params.idStep + ' from game: ' + req.params.idGame);
-  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $pull : { steps : new ObjectID(req.params.idStep) }}, function(err, result) {
+
+
+/*  "/data/game/:idGame/step/:idStep"
+ *    DELETE : DELETE A STEP WITHIN A GAME 
+ */
+
+
+app.delete("/data/games/:idGame/step/:idStep", function(req, res) {
+  console.log('Delete step: ' + new ObjectID( req.params.idStep ) + ' from game: ' + new ObjectID( req.params.idGame ));
+  db.collection(GAMES_COLLECTION).findOneAndUpdate({ _id: new ObjectID( req.params.idGame ) },{ $pull : { steps : { id : req.params.idStep    } }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step: ' + req.params.idStep + ' from game: ' + req.params.idGame);
     } else {
       res.status(204).end();
     }
   });
+	db.collection(STEPS_COLLECTION).deleteOne({ _id:  new ObjectID( req.params.idStep ) }, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to delete step");
+    } else {
+      res.status(204).end();
+    }
+  });
 });
 
-app.post("/data/game/:idGame/steps/", function(req, res) {
+
+/*  "/data/game/:idGame/step/:idStep"
+ *    POST : ADD A NEW STEP TO A GAME 
+ */
+
+app.post("/data/games/:idGame/steps/", function(req, res) {
   console.log('Add step for game: ' + req.params.idGame);
   var newStepId = insertStep(req,res);
-  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID(req.params.idGame) },{ $addToSet : { steps : new ObjectID(newStepId) }}, function(err, result) {
+  db.collection(GAMES_COLLECTION).updateOne({ _id: new ObjectID( req.params.idGame ) },{ $addToSet : { steps : newStepId }}, function(err, result) {
     if (err) {
       handleError(res, err.message, 'Delete step for game: ' + req.params.idGame);
     } else {
@@ -379,21 +537,101 @@ app.post("/data/game/:idGame/steps/", function(req, res) {
   });
 });
 
-function insertStep(req, res) {
-  var id;
-  var newStep = req.body;
-  console.log(JSON.stringify(req.body));
-  db.collection(STEPS_COLLECTION).insertOne(newStep, function(err, doc) {
-    if (err) {
-      handleError(res, err.message, "Failed to create new step.");
-    } else {
-      res.status(201).json(doc.ops[0]);
-      id = doc._id;
 
+
+
+//************************************************************************************ CLUES && STEPS ****************************************************************************************/
+
+
+/*  "/data/steps/:id/simple"
+ *    GET : GET A STEP WITH ITS REGISTRED CLUES
+ */
+
+
+app.get("/data/steps/:id/simple", function(req, res) {
+	
+  var ids = [];
+
+	
+	 console.log('get step id information: ' + req.params.id );
+	
+  db.collection(STEPS_COLLECTION).findOne({ _id :new ObjectID ( req.params.id )   }, function(err, step) {
+    
+	if (err) {
+      handleError(res, err.message, "Failed to get step");
+    } else {
+      //console.log(game);
+      if(step.clues){
+        for (i = 0; i < step.clues.length; i++) {
+          ids.push(  new ObjectID( step.clues[i].id )  )   ;
+        }
+      }
+
+      db.collection(CLUES_COLLECTION).find({ _id : { $in : ids } } ).toArray(function(err, clues){
+        if (err) {
+          handleError(res, err.message, "Failed to get clues for step " + req.params.id);
+        } else {
+          var simple = {
+            name: step.name,
+            explanation: step.explanation,
+            total_points : step.total_points,
+            clues : clues
+          };
+          res.status(200).json(simple);
+        }
+      });
     }
   });
-  return newStep._id;
-}
+});
+
+
+
+/*  "/data/game/:idGame/step/:idStep"
+ *    DELETE : DELETE A CLUE WITHIN A STEP 
+ */
+
+
+app.delete("/data/steps/:idStep/clues/:idClue", function(req, res) {
+  console.log('Delete clue: ' + req.params.idClue + ' from step: ' + req.params.idStep);
+  db.collection(STEPS_COLLECTION).findOneAndUpdate({ id: req.params.idStep },{ $pull : { clues : { id : req.params.idClue } }}, function(err, result) {
+    if (err) {
+      handleError(res, err.message, 'Delete clue: ' + req.params.idClue + ' from step: ' + req.params.idStep);
+    } else {
+      res.status(204).end();
+    }
+  });
+	db.collection(CLUES_COLLECTION).deleteOne({ _id: new ObjectID(req.params.idClue) }, function(err, result) {
+    if (err) {
+      handleError(res, err.message, "Failed to delete step");
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+
+/*  "/data/game/:idGame/step/:idStep"
+ *    POST : ADD A NEW CLUE TO A STEP 
+ */
+
+app.post("/data/steps/:idStep/clues/", function(req, res) {
+  console.log('Add clue for step: ' + req.params.idStep);
+  
+  
+  var newClueId = insertClue(req,res);
+  db.collection(STEPS_COLLECTION).updateOne({ _id: new ObjectID (req.params.idStep) },{ $addToSet : { clues :  newClueId  }}, function(err, result) {
+    if (err) {
+      handleError(res, err.message, 'Add clue for step: ' + req.params.idStep);
+    } else {
+      res.status(204).end();
+    }
+  });
+});
+
+
+
+
+
 
 /************************************************************************************************
 ****************************************     SOCKET      ****************************************
