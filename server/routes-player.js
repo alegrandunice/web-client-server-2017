@@ -1,4 +1,4 @@
-module.exports = function(app, sess, views, connect){
+module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION){
 
     app
         .get('/player/login', function(req,res) {
@@ -55,6 +55,26 @@ module.exports = function(app, sess, views, connect){
                 console.log("fail");
                 res.sendFile( views + '/player/login.html');
             }
+        })
+        .get('/data/player/games-in', function(req,res) {
+            sess = req.session;
+            if(sess.username && sess.type == "player"){
+                console.log('Player: Select games in');
+                db.collection(GAMES_COLLECTION).find({}).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get contacts.");
+                    } else {
+                        res.status(200).json(docs);
+                    }
+                });
+            }
+            else{
+                console.log("fail");
+                res.sendFile( views + '/player/login.html');
+            }
+        })
+        .get('/data/player/games-not', function(req,res) {
+
         });
 
 }

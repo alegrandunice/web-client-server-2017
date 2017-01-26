@@ -28,6 +28,10 @@ app.use(express.static(dirApp));
 
 var sess = undefined;
 
+// Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
+var db = undefined;
+var io = undefined;
+
  //******************* DATA ***************************
  //****************************************************
  function connect(req, res, redirectHome, type) {
@@ -57,12 +61,11 @@ var sess = undefined;
     });
 }
 
-//required routes files
-require('./routes-player')(app, sess, views, connect);
-
-// Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
-var db;
-var io;
+// Generic error handler used by all endpoints.
+function handleError(res, reason, message, code) {
+    console.log("ERROR: " + reason);
+    res.status(code || 500).json({"error": message});
+}
 
 // Connect to the database before starting the application server.
 mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, database) {
@@ -76,6 +79,10 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, datab
   console.log("Database connection ready");
   
   init();
+
+  //required routes files
+  require('./routes-player')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION);
+
 
 });
 
@@ -242,12 +249,6 @@ app.get('/settings/login', function(req,res) {
 
 
 // STEP API ROUTES BELOW
-
-// Generic error handler used by all endpoints.
-function handleError(res, reason, message, code) {
-  console.log("ERROR: " + reason);
-  res.status(code || 500).json({"error": message});
-}
 
 
 
