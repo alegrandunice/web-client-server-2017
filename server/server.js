@@ -4,6 +4,7 @@ var path = require("path");
 var bodyParser = require("body-parser");
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
+
 var url = 'mongodb://localhost:27017/game';
 
 var STEPS_COLLECTION = "steps";
@@ -24,6 +25,40 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(express.static(dirApp));
 
+
+var sess = undefined;
+
+ //******************* DATA ***************************
+ //****************************************************
+ function connect(req, res, redirectHome, type) {
+    console.log(req.body.username + " : " + req.body.password);
+    console.log(redirectHome);
+    new Promise(function(resolve, reject) {
+        db.collection(USERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password, type: type }, function(err, doc) {
+            if (err) {
+                reject("error while getting account");
+            } else {
+                if(doc != null){
+                    resolve(doc);
+                }
+                else{
+                    reject("enable to find this account !");
+                }
+            }
+        });
+    }).then(function(response) {
+        console.log("doc retreived from db : " + JSON.stringify(response));
+        sess = req.session;
+        sess.username=response.username;
+        sess.type=response.type;
+        res.redirect(redirectHome);
+    }, function(error) {
+        console.error(error);
+    });
+}
+
+//required routes files
+require('./routes-player')(app, sess, views, connect);
 
 // Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
 var db;
@@ -68,67 +103,6 @@ function init()
 
 //******************* VIEWS ***************************
 //*****************************************************
-
-// ******************* player *************************
-//*****************************************************
-var sess;
-app.get('/player/login', function(req,res) {
-    console.log("get login");
-    sess = req.session;
-    if(sess.username)
-        res.sendFile(views + '/player/select-game.html');
-    else
-        res.sendFile( views + '/player/login.html');
-    })
-
-    .post('/player/login', function(req,res) {
-        connect(req,res,'/player/select-game.html', 'player');
-    })
-
-    .get('/player/logout', function(req,res) {
-        console.log("Im the put");
-        //res.redirect('/login');
-        req.session.destroy(function(err) {
-            if(err) {
-                console.log("failed to destroy session");
-                console.log(err);
-            } else {
-                console.log("session destroyed");
-                res.redirect('/player/login');
-            }
-        });
-    })
-    .get('/player/select-game.html?:idGame', function(req,res) {
-        console.log("I'm here");
-        sess = req.session;
-        if(sess.username && sess.type == "player"){
-            res.sendFile(views + '/player/select-game.html' );
-        }
-        else{
-            console.log("fail");
-            res.sendFile( views + '/player/login.html');
-        }
-    })
-    .get('/player/select-team.html', function(req,res) {
-        sess = req.session;
-        if(sess.username && sess.type == "player"){
-            res.sendFile(views + '/player/select-team.html');
-        }
-        else{
-            console.log("fail");
-            res.sendFile( views + '/player/login.html');
-        }
-    })
-    .get('/player/play.html', function(req,res) {
-        sess = req.session;
-        if(sess.username && sess.type == "player"){
-            res.sendFile(views + '/player/play.html');
-        }
-        else{
-            console.log("fail");
-            res.sendFile( views + '/player/login.html');
-        }
-    });
 
 // ******************* gamemaster *********************
 //*****************************************************
@@ -264,34 +238,7 @@ app.get('/settings/login', function(req,res) {
             res.sendFile(views + '/settings/new-account.html?ac=1');
     })
 
-//******************* DATA ***************************
-//****************************************************
-function connect(req, res, redirectHome, type) {
-    console.log(req.body.username + " : " + req.body.password);
-    console.log(redirectHome);
-    new Promise(function(resolve, reject) {
-        db.collection(USERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password, type: type }, function(err, doc) {
-            if (err) {
-                reject("error while getting account");
-            } else {
-                if(doc != null){
-                    resolve(doc);
-                }
-                else{
-                    reject("enable to find this account !");
-                }
-            }
-        });
-    }).then(function(response) {
-        console.log("doc retreived from db : " + JSON.stringify(response));
-        sess = req.session;
-        sess.username=response.username;
-        sess.type=response.type;
-        res.redirect(redirectHome);
-    }, function(error) {
-        console.error(error);
-    });
-}
+/
 
 
 // STEP API ROUTES BELOW
