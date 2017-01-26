@@ -68,7 +68,7 @@
                     + '        <div class="panel-heading">'
                     + '            <div class="row" >'                                    
                     + '                <div class="col-xs-4" >'
-                    + '                    <a href=' + idGame + '"edit-game.html?idgame=" style="text-decoration: none; ">'
+                    + '                    <a href="./edit-game.html?idgame=' + idGame + '" style="text-decoration: none; ">'
                     + '                        <h3  class="panel-title">' + name + '</h3>'
                     + '                    </a>'
                     + '                </div>'
@@ -83,7 +83,7 @@
                     + '        <div class="panel-body">'
                     + '            <div class="row">'
                     + '                <div class="col-xs-8">'
-                    + '                    <a href=' + idGame + '"edit-game.html?idgame=" style="text-decoration: none; ">'
+                    + '                    <a href="./edit-game.html?idgame=' + idGame + '" style="text-decoration: none; ">'
                     + '                        Game type'
                     + '                    </a>'
                     + '                </div>'
@@ -114,7 +114,7 @@
     function deleteGame(event, idGame) {
         var result = confirm("Delete this game?");
         if (result) {
-            deleteRequest('/data/games/' + idGame).then(function(response) {
+            deleteRequest('/data/game/' + idGame).then(function(response) {
                 console.log("Delete Success!", response);
                 location.reload();
             }, function(error) {

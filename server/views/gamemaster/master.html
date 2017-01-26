@@ -24,13 +24,9 @@
 <script>
 
     function logout() {
-        var jsonToSend = {
-            "cost": 0,
-            "description": ""
-        }
-        getRequest('../logout').then(function(response) {
+        getRequest('/gamemaster/logout').then(function(response) {
 
-            document.location.href = '/login';
+            document.location.href = '/gamemaster/login';
 
             console.log("Get Success!", response);
         }, function(error) {

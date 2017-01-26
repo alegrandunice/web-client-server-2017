@@ -74,10 +74,10 @@
     function onLoad() {
                 
         getRequest('../data/games').then(function(response) {
-            console.log("Get Success!", response);
+            console.log(response);
             var jsonReceived = JSON.parse(response);
             var gamesInProgress = document.getElementById("gamesInProgress");
-            
+
             jsonReceived.forEach((j) => {
                 htmlAppendGameInProgress(gamesInProgress, j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
             });

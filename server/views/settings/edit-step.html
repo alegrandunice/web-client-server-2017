@@ -25,7 +25,7 @@
                 <h3>Step #1</h3>
             </div>
             <div class="col-xs-4" style="text-align: right;">
-                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='./edit-game.html#tabSteps';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
+                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='select-game.html';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
             </div>
         </div>
         
@@ -100,9 +100,8 @@
 	}
 		
     function onLoad() {
-    
        idStep = getUrlParameter("idstep");
-    
+        //alert(idStep);
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {

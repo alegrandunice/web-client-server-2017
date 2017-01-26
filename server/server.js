@@ -8,7 +8,7 @@ var url = 'mongodb://localhost:27017/game';
 
 var STEPS_COLLECTION = "steps";
 var GAMES_COLLECTION = "games";
-var GAMEMASTERS_COLLECTION = "gamemasters";
+var USERS_COLLECTION = "users";
 var CLUES_COLLECTION = "clues";
 
 var dirApp = __dirname + "/public";
@@ -68,22 +68,134 @@ function init()
 
 //******************* VIEWS ***************************
 //*****************************************************
+
+// ******************* player *************************
+//*****************************************************
 var sess;
-app.get('/login', function(req,res) {
+app.get('/player/login', function(req,res) {
+    console.log("get login");
     sess = req.session;
     if(sess.username)
-        res.sendFile(views + '/settings/master.html');
+        res.sendFile(views + '/player/select-game.html');
     else
-        res.sendFile( views + '/settings/login.html');
+        res.sendFile( views + '/player/login.html');
     })
 
-    .post('/login', function(req,res) {
-        connect(req,res);
+    .post('/player/login', function(req,res) {
+        connect(req,res,'/player/select-game.html', 'player');
     })
 
-    .get('/logout', function(req,res) {
+    .get('/player/logout', function(req,res) {
         console.log("Im the put");
         //res.redirect('/login');
+        req.session.destroy(function(err) {
+            if(err) {
+                console.log("failed to destroy session");
+                console.log(err);
+            } else {
+                console.log("session destroyed");
+                res.redirect('/player/login');
+            }
+        });
+    })
+    .get('/player/select-game.html?:idGame', function(req,res) {
+        console.log("I'm here");
+        sess = req.session;
+        if(sess.username && sess.type == "player"){
+            res.sendFile(views + '/player/select-game.html' );
+        }
+        else{
+            console.log("fail");
+            res.sendFile( views + '/player/login.html');
+        }
+    })
+    .get('/player/select-team.html', function(req,res) {
+        sess = req.session;
+        if(sess.username && sess.type == "player"){
+            res.sendFile(views + '/player/select-team.html');
+        }
+        else{
+            console.log("fail");
+            res.sendFile( views + '/player/login.html');
+        }
+    })
+    .get('/player/play.html', function(req,res) {
+        sess = req.session;
+        if(sess.username && sess.type == "player"){
+            res.sendFile(views + '/player/play.html');
+        }
+        else{
+            console.log("fail");
+            res.sendFile( views + '/player/login.html');
+        }
+    });
+
+// ******************* gamemaster *********************
+//*****************************************************
+
+app.get('/gamemaster/login', function(req,res) {
+    sess = req.session;
+    if(sess.username)
+        res.sendFile(views + '/gamemaster/master.html');
+    else
+        res.sendFile( views + '/gamemaster/login.html');
+})
+
+    .post('/gamemaster/login', function(req,res) {
+        connect(req,res, '/gamemaster/master.html', 'gamemaster');
+    })
+
+    .get('/gamemaster/logout', function(req,res) {
+        req.session.destroy(function(err) {
+            if(err) {
+                console.log("failed to destroy session");
+                console.log(err);
+            } else {
+                console.log("session destroyed");
+                res.redirect('/gamemaster/login');
+            }
+        });
+    })
+
+/*    .get('/gamemaster/select-game.html', function(req,res) {
+        sess = req.session;
+        if(sess.username && sess.type == "gamemaster"){
+            res.sendFile(views + '/gamemaster/select-game.html');
+        }
+        else{
+            console.log("fail");
+            res.sendFile( views + '/gamemaster/login.html');
+        }
+    })*/
+
+    .get('/gamemaster/master.html', function(req,res) {
+        console.log("master.html");
+        sess = req.session;
+        if(sess.username && sess.type == "gamemaster"){
+            console.log("master.html ok");
+            res.sendFile(views + '/gamemaster/master.html');
+        }
+        else{
+            console.log("master.html ko");
+            res.sendFile( views + '/gamemaster/login.html');
+        }
+    });
+// ******************* settings ***********************
+//*****************************************************
+
+app.get('/settings/login', function(req,res) {
+    sess = req.session;
+    if(sess.username)
+        res.sendFile(views + '/settings/select-game.html');
+    else
+        res.sendFile( views + '/settings/login.html');
+})
+
+    .post('/settings/login', function(req,res) {
+        connect(req,res, '/settings/select-game.html','settings');
+    })
+
+    .get('/settings/logout', function(req,res) {
         req.session.destroy(function(err) {
             if(err) {
                 console.log("failed to destroy session");
@@ -93,57 +205,71 @@ app.get('/login', function(req,res) {
                 res.redirect('/login');
             }
         });
-
     })
-
-    .get('/account/edit', function(req,res) {
+    .get('/settings/select-game.html', function(req,res) {
         sess = req.session;
-        if(sess.username)
-            res.sendFile( views + '/settings/edit-account.html');
-        else
+        if(sess.username && sess.type == "settings"){
+            res.sendFile(views + '/settings/select-game.html');
+        }
+        else{
+            console.log("fail");
             res.sendFile( views + '/settings/login.html');
-
+        }
     })
-    .get('/account/new', function(req,res) {
+
+    .get('/settings/edit-account.html', function(req,res) {
         sess = req.session;
-        if(sess.username)
-            res.sendFile( views + '/settings/new-account.html');
-        else
+        if(sess.username && sess.type == "settings"){
+            res.sendFile(views + '/settings/edit-account.html');
+        }
+        else{
+            console.log("fail");
             res.sendFile( views + '/settings/login.html');
+        }
     })
-    .get('/game/edit', function(req,res) {
+    .get('/settings/edit-clue.html', function(req,res) {
         sess = req.session;
-        if(sess.username)
-            res.sendFile( views + '/settings/edit-game.html');
-        else
+        if(sess.username && sess.type == "settings"){
+            res.sendFile(views + '/settings/select-game.html');
+        }
+        else{
+            console.log("fail");
             res.sendFile( views + '/settings/login.html');
+        }
     })
-    .get('/game/select', function(req,res) {
+    .get('/settings/edit-game.html', function(req,res) {
         sess = req.session;
-        if(sess.username)
-            res.sendFile( views + '/settings/select-game.html');
-        else
+        if(sess.username && sess.type == "settings"){
+            res.sendFile(views + '/settings/edit-game.html');
+        }
+        else{
+            console.log("fail");
             res.sendFile( views + '/settings/login.html');
+        }
     })
 
-
-    .get('/', function(req,res) {
+    .get('/settings/edit-step.html', function(req,res) {
         sess = req.session;
-        if(sess.username)
-            res.sendFile(views + '/settings/master.html');
-        else
-            res.redirect('/login');
+        if(sess.username && sess.type == "settings"){
+            res.sendFile(views + '/settings/edit-step.html');
+        }
+        else{
+            console.log("fail");
+            res.sendFile( views + '/settings/login.html');
+        }
     })
 
-    .get('/*', function(req,res) {
-        res.sendFile( views + '/settings/login.html');
-    });
+    .get('/settings/new-account.html', function(req,res) {
+            res.sendFile(views + '/settings/new-account.html?ac=1');
+    })
 
 //******************* DATA ***************************
 //****************************************************
-function connect(req, res) {
+function connect(req, res, redirectHome, type) {
+    console.log(req.body.username + " : " + req.body.password);
+    console.log(redirectHome);
     new Promise(function(resolve, reject) {
-        db.collection(GAMEMASTERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password }, function(err, doc) {
+        db.collection(USERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password, type: type }, function(err, doc) {
             if (err) {
                 reject("error while getting account");
             } else {
@@ -158,11 +284,11 @@ function connect(req, res) {
     }).then(function(response) {
         console.log("doc retreived from db : " + JSON.stringify(response));
         sess = req.session;
-        sess.username=req.body.username;
-        res.redirect('/');
+        sess.username=response.username;
+        sess.type=response.type;
+        res.redirect(redirectHome);
     }, function(error) {
         console.error(error);
-        res.sendFile( views + '/gamemaster/login.html');
     });
 }
 
@@ -350,7 +476,7 @@ app.put("/data/games/:id", function(req, res) {
         });
 });
 
-app.delete("/data/games/:id", function(req, res) {
+app.delete("/data/game/:id", function(req, res) {
   console.log('Delete game: ' + req.params._id);
   db.collection(GAMES_COLLECTION).deleteOne({ _id: new ObjectID(req.params.id) }, function(err, result) {
     if (err) {
