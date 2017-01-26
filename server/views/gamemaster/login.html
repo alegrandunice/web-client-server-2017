@@ -53,7 +53,7 @@
             jsonToSend[this.name] = $(this).val();
         });
         postRequest('login', jsonToSend).then(function(response) {
-            document.location.href = '/gamemaster/master.html';
+            document.location.href = '/gamemaster/select-game.html';
             //alert("Post Success!", response);
             //var jsonReceived = JSON.parse(response);
             //htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));

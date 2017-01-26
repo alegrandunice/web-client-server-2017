@@ -136,7 +136,7 @@ app.get('/player/login', function(req,res) {
 app.get('/gamemaster/login', function(req,res) {
     sess = req.session;
     if(sess.username)
-        res.sendFile(views + '/gamemaster/master.html');
+        res.sendFile(views + '/gamemaster/select-game.html');
     else
         res.sendFile( views + '/gamemaster/login.html');
 })
@@ -157,7 +157,8 @@ app.get('/gamemaster/login', function(req,res) {
         });
     })
 
-/*    .get('/gamemaster/select-game.html', function(req,res) {
+    .get('/gamemaster/select-game.html', function(req,res) {
+        console.log("select game master");
         sess = req.session;
         if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/gamemaster/select-game.html');
@@ -166,7 +167,7 @@ app.get('/gamemaster/login', function(req,res) {
             console.log("fail");
             res.sendFile( views + '/gamemaster/login.html');
         }
-    })*/
+    })
 
     .get('/gamemaster/master.html', function(req,res) {
         console.log("master.html");
@@ -230,7 +231,7 @@ app.get('/settings/login', function(req,res) {
     .get('/settings/edit-clue.html', function(req,res) {
         sess = req.session;
         if(sess.username && sess.type == "settings"){
-            res.sendFile(views + '/settings/select-game.html');
+            res.sendFile(views + '/settings/edit-clue.html');
         }
         else{
             console.log("fail");
