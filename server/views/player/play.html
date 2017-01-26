@@ -36,6 +36,8 @@
                 <h2 id="textHome2B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
                 <h2 id="textHome3"></h2>
                 <h2 id="textHome3B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
+                
+                <div id="users"></div>
             </div>    
             <nav class="navbar-fixed-bottom">               
                 <div style="margin: 10px; text-align: center;">
@@ -72,18 +74,27 @@
                 <div id="tabChatTeam" class="tab-pane fade in active"> 
                     <div class="container">
                         Chat with my team...
+                        <div id="room1"></div>
+                        <input id="dataRoom1" style="width:200px;" />
+                        <input type="button" id="datasendroom1" value="send" />
                     </div>
                 </div>
                 
                 <div id="tabChatTeamAndGM" class="tab-pane fade"> 
                     <div class="container">
                         Chat with my team and the Game Master...
+                        <div id="room2"></div>
+                        <input id="dataRoom2" style="width:200px;" />
+                        <input type="button" id="datasendroom2" value="send" />
                     </div>
                 </div>
                 
                 <div id="tabChatEverybody" class="tab-pane fade"> 
                     <div class="container">
                         Chat with everybody...
+                        <div id="conversation"></div>
+                        <input id="data" style="width:200px;" />
+                        <input type="button" id="datasend" value="send" />
                     </div>
                 </div>
                 
@@ -115,19 +126,187 @@
     <script src="../js/bootstrap.min.js"></script>
     <script src="../js/app-server-access.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
-            
+    <script src="/socket.io/socket.io.js"></script>
+    
     <script type="text/javascript">
+    var username = prompt("What's your name?");
+    var team = prompt ("what's your team?");
     
     var idGame, latitudeTo, longitudeTo;
     var checkEverySecond;
     var currentStep, currentGame;
+    var conversation, room1, room2, data, dataRoom1, dataRoom2, datasend, datasendroom1, datasendroom2, users, roomName1, roomName2;   
+	var socket = io.connect();
     
     function onLoad() {
     
         idGame = getUrlParameter('idgame');       
     
         retrieveCurrentStep();   
+        
+        if(navigator.geolocation) {
+            navigator.geolocation.watchPosition(testWatch, errorTestPosition);
+        }
+        
+        // get handles on various GUI components
+		conversation = document.querySelector("#conversation");
+        room1 = document.querySelector("#room1");
+        room2 = document.querySelector("#room2");
+  		data = document.querySelector("#data");
+        dataRoom1 = document.querySelector("#dataRoom1");
+        dataRoom2 = document.querySelector("#dataRoom2");
+  		datasend = document.querySelector("#datasend");
+        datasendroom1 = document.querySelector("#datasendroom1");
+        datasendroom2 = document.querySelector("#datasendroom2");
+  		users = document.querySelector("#users");
+
+  		// Listener for send button
+		datasend.addEventListener("click", function(evt) {
+      		sendMessage("all");
+  		});
+
+		// detect if enter key pressed in the input field
+  		data.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("all");
+    		}
+  		});
+        
+        // Listener for send button
+		datasendroom1.addEventListener("click", function(evt) {
+      		sendMessage("room1");
+  		});
+
+		// detect if enter key pressed in the input field
+  		dataRoom1.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("room1");
+    		}
+  		});
+        
+        // Listener for send button
+		datasendroom2.addEventListener("click", function(evt) {
+      		sendMessage("room2");
+  		});
+
+		// detect if enter key pressed in the input field
+  		dataRoom2.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage("room2");
+    		}
+  		});
+
+
     }   
+    
+    // sends the chat message to the server
+    function sendMessage(room) {
+        var message;
+        // tell server to execute 'sendchat' and send along one parameter
+        
+        switch(room) {
+            case "room1":
+                message = dataRoom1.value;
+                dataRoom1.value = "";
+                socket.emit('send', { room: roomName1, message: message });
+            break;
+            case "room2":
+                message = dataRoom2.value;
+                dataRoom2.value = "";
+                socket.emit('send', { room: roomName2, message: message });
+            break;
+            default:
+                message = data.value;
+                data.value = "";
+                socket.emit('sendchat', message);
+                
+        }       
+    }
+    
+    function testWatch(position){
+        console.log('testwatch', position);
+        var data = {username:username, lat:position.coords.latitude, lng:position.coords.longitude};
+        console.log(data);
+        socket.emit('updatePlayerPosition', data);
+    }
+    function errorTestPosition(error)
+    {
+        console.log(error);
+    }
+    
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+		// call the server-side function 'adduser' and send one parameter (value of prompt)
+        navigator.geolocation.getCurrentPosition(function(pos) {
+        
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            socket.emit('adduser', userdata);
+        });
+        
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body 
+	socket.on('updatechat', function (username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	});
+    
+    socket.on('message', function (username, data) {
+        console.log(data);
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        switch(data.room) {
+                case roomName1:
+                    room1.innerHTML += chatMessage;
+                break;
+                case roomName2:
+                    room2.innerHTML += chatMessage;
+                break;
+                default:
+                    conversation.innerHTML += chatMessage; 
+                    
+            }
+        
+    });
+    
+    socket.on('joinRooms', function(sendTo, groupRooms){
+        var i = 1;
+        for(var room in groupRooms)
+        {
+            socket.emit('subscribe', groupRooms[room]);
+            if(i == 1)
+            {
+                roomName1 = groupRooms[room];
+                i++;
+            }
+            else{
+                roomName2 = groupRooms[room];
+            }
+        } 
+    });
+
+	// listener, whenever the server emits 'updateusers', this updates the username list
+	socket.on('updateusers', function(listOfUsers) {
+		users.innerHTML = "";
+		for(var name in listOfUsers) {
+    		var userLineOfHTML = '<div>' + name + '</div>';
+    		users.innerHTML += userLineOfHTML;
+  		}
+	});
+    
+
+	// update the whole list of players, useful when a player
+	// connects or disconnects, we must update the whole list
+	socket.on('updatePlayers', function(listOfplayers) {
+		updatePlayers(listOfplayers);
+	});
+
     
     function retrieveCurrentStep() {
         //TODO: retreive current step (first one, or last step if crashed)
@@ -264,6 +443,8 @@
             }
         }
     }
+    
+    
     
     function checkArea() {
         if (navigator.geolocation && (currentStep !== undefined) && (currentStep.coordonates !== undefined) 

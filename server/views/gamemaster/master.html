@@ -36,82 +36,7 @@
 
 	var username, chat, conversation, data, datasend, users, rooms;
     
-    rooms = {};
-    function RoomBB(roomName) {
-      var id_room = roomName;
-      var id_data = "data"+roomName;
-      var id_datasend = "datasend"+roomName;
-      
-      // ----- API -----
-      return {
-        id_room:id_room,
-        id_data:id_data,
-        id_datasend:id_datasend,
-      }
-    }
-    
-    username = "Game Master";
-	var socket = io.connect();
-    //on souscrit à la room master qui permet de gérer les données des joueurs
-    socket.emit('subscribe', 'master');
-
-	// on connection to server, ask for user's name with an anonymous callback
-	socket.on('connect', function(){
-    
-        socket.emit('getPlayers', true);
-        socket.emit('addAdmin', username);
-	});
-
-	// listener, whenever the server emits 'updatechat', this updates the chat body 
-	socket.on('updatechat', function (username, data) {
-		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
-		conversation.innerHTML += chatMessage; 
-	});
-    
-    socket.on('addRoom', function(roomName){
-        console.log(roomName);
-        socket.emit('subscribe', roomName);
-        
-        rooms[roomName] = new RoomBB(roomName);
-        
-        var chatRoom =  "<div style=\"float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;\">"+
-                        "<div id=\""+rooms[roomName].id_room+"\"></div>"+
-                        "<input id=\""+rooms[roomName].id_data+"\" style=\"width:200px;\" />"+
-                        "<input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" value=\"send\" />"+
-                        "</div>";
-        chat.innerHTML += chatRoom;
-        
-        var roomData = document.querySelector("#"+rooms[roomName].id_data+"");
-        var roomDatasend = document.querySelector("#"+rooms[roomName].id_datasend+"");
-        
-        // Listener for send button
-		roomDatasend.addEventListener("click", function(evt) {
-      		sendMessageToRoom(roomName);
-  		});
-
-		// detect if enter key pressed in the input field
-  		roomData.addEventListener("keypress", function(evt) {
-    		// if pressed ENTER, then send
-    		if(evt.keyCode == 13) {
-				this.blur();
-        		sendMessageToRoom(roomName);
-    		}
-  		});
-        
-    });
-    
-    socket.on('message', function (username, data) {
-        console.log(data);
-        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
-        
-        var room = document.querySelector("#"+rooms[data.room].id_room);
-        room.innerHTML += chatMessage;
-               
-        
-    });
-
-
-	// on load of page
+    // on load of page
 	window.addEventListener("load", function(){
 		// get handles on various GUI components
         chat = document.querySelector("#chat");
@@ -145,12 +70,136 @@
   		
 	});
     
+    
+    //Fonctions necessaires pour gérer les rooms
+    rooms = {};
+    function RoomBB(roomName) {
+      var id_room = roomName;
+      var id_data = "data"+roomName;
+      var id_datasend = "datasend"+roomName;
+      var roomData, roomDatasend;
+      
+      // ----- API -----
+      return {
+        id_room:id_room,
+        id_data:id_data,
+        id_datasend:id_datasend,
+        roomData:roomData,
+        roomDatasend:roomDatasend
+      }
+    }
+    
+    function addRoom(roomName){
+        console.log(rooms);
+        chat = document.querySelector("#chat");
+        socket.emit('subscribe', roomName);
+        
+        rooms[roomName] = new RoomBB(roomName);
+        
+        var chatRoom =  "<div style=\"float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;border-right:1px solid black;\">"+
+                        "<div id=\""+rooms[roomName].id_room+"\"></div>"+
+                        "<input id=\""+rooms[roomName].id_data+"\" style=\"width:200px;\" />"+
+                        //"<input id=\""+rooms[roomName].id_room+"\" onkeypress=\"keypressEnter(event);\" style=\"width:200px;\" />"+
+                        "<input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" value=\"send\" />"+
+                        //"<input type=\"button\" id=\""+rooms[roomName].id_room+"\" onclick=\"clic(event);\" value=\"send\" />"+
+                        "</div>";
+        chat.innerHTML += chatRoom;
+        
+        rooms[roomName].roomData = document.querySelector("#"+rooms[roomName].id_data+"");
+        rooms[roomName].roomDatasend = document.querySelector("#"+rooms[roomName].id_datasend+"");
+        
+        //Listener for send button
+		rooms[roomName].roomDatasend.addEventListener("click", function(evt) {
+      		sendMessageToRoom(roomName);
+  		});
+
+		// detect if enter key pressed in the input field
+  		rooms[roomName].roomData.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessageToRoom(roomName);
+    		}
+  		});
+        
+    }
+    
+    /*function keypressEnter(event) {
+        if(event.keyCode == 13) {
+            console.log(event);
+            this.blur();
+            sendMessageToRoom(event.srcElement.id);
+        }
+    }
+    
+    function clic(event) {
+    console.log(event.srcElement.id);
+        sendMessageToRoom(event.srcElement.id);
+    }*/
+    
+    
+    function addPlayer(player) {
+
+    if(typeof(teams[player.team]) == "undefined")
+    {
+        var taille = 0;
+        for (o in teams) ++taille;         
+        addRoom(player.roomsList["withMaster"]);         
+        teams[player.team] = new TeamBB(player.team, listIcones[taille]);
+        
+    } 
+    
+    var marker = new google.maps.Marker({
+                     position: new google.maps.LatLng(player.lat, player.long),
+                     map: map,
+                     title:name,
+                     icon:teams[player.team].icon
+
+    });
+    markersList[player.name] = marker;           
+    
+}
+    
+    username = "Game Master";
+	var socket = io.connect();
+    
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+        //on souscrit à la room master qui permet de gérer les données des joueurs
+        socket.emit('subscribe', 'master');
+        
+        socket.emit('addAdmin', username);
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body 
+	socket.on('updatechat', function (username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	});
+    
+    
+    
+    socket.on('addRoom', addRoom);
+    
+    socket.on('message', function (username, data) {
+console.log(arguments);
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        
+        var room = document.querySelector("#"+rooms[data.room].id_room);
+        room.innerHTML += chatMessage;
+               
+        
+    });
+
+
+	
+    
     // sends the chat message to the server
     function sendMessageToRoom(roomName) {
-        console.log(roomName);
-        var data = document.querySelector("#"+rooms[roomName].id_data+"");
-        var message = data.value;
-        data.value = "";
+        var dataRoom = document.querySelector("#"+rooms[roomName].id_data+"");
+        var message = dataRoom.value;
+        dataRoom.value = "";
         // tell server to execute 'sendchat' and send along one parameter
         socket.emit('send', { room: roomName, message: message });
     };		
@@ -184,44 +233,44 @@ var listIcones = [
 
 
 function TeamBB(n, i) {
-  var nom = n;
-  var icone = i;
+  var name = n;
+  var icon = i;
   
   // ----- API -----
   return {
-    nom:nom,
-    icone:icone
+    name:name,
+    icon:icon
   }
 }
 
-socket.on('positionOfPlayers', function(listOfPositions) {
-        //on supprime les markers existants
-        //setMapOnAll(null);
-        console.log(listOfPositions);
-        //listOfPositions = JSON.parse(listOfPositions);
-		for(var name in listOfPositions) {
-    		console.log("username", name);
-            console.log("teams", teams);
-            if(typeof(teams[listOfPositions[name].team]) == "undefined")
-            {
-                var taille = 0;
-                for (o in teams) ++taille;
-            
-                teams[listOfPositions[name].team] = new TeamBB(listOfPositions[name].team, listIcones[taille]);
-            }
-            console.log("taille du tableau", taille);
-            console.log("chemin icone", teams[listOfPositions[name].team].icone);
-            var marker = new google.maps.Marker({
-                             position: new google.maps.LatLng(listOfPositions[name].lat, listOfPositions[name].long),
-                             map: map,
-                             title:name,
-                             icon:teams[listOfPositions[name].team].icone
-
-            });
-            
-            
+socket.on('players', function(listOfPlayers) {
+		for(var name in listOfPlayers) {
+            addPlayer(listOfPlayers[name]); 
   		}
 	});
+
+socket.on('newPlayer', function(player){
+    addPlayer(player);
+});
+    
+socket.on('updatePlayersPosition', function(data){
+    if(typeof(markersList[data.name]) !== "undefined")
+    {
+        var playersMarker = markersList[data.name];
+        var latlng = new google.maps.LatLng(data.lat, data.long);
+        playersMarker.setPosition(latlng);
+    }
+});
+
+// listener, whenever the server emits 'updateusers', this updates the username list
+socket.on('updateusers', function(listOfUsers) {
+    users.innerHTML = "";
+    for(var name in listOfUsers) {
+        var userLineOfHTML = '<div>' + name + '</div>';
+        users.innerHTML += userLineOfHTML;
+    }
+});
+    
  
 if(navigator.geolocation) {
  
@@ -231,13 +280,6 @@ if(navigator.geolocation) {
        var latlng = new google.maps.LatLng(position.coords.latitude,               
                                            position.coords.longitude);
  
-       // Add a marker at position
-       //var marker = new google.maps.Marker({
-       //                      position: latlng,
-       //                      map: map,
-       //                      title:"You are here"
-       //});
-       // center map on longitude and latitude
        map.panTo(latlng);
        
     }

@@ -781,9 +781,12 @@ app.post('/send/:room/', function(req, res) {
     res.end('message sent');
 });
 
+/**
+*   Definition classe player
+*/
 
 function PlayerBB(n, t, lat, long) {
-  var nom = n;
+  var name = n;
   var team = t;
   
   var lat = lat;
@@ -795,7 +798,7 @@ function PlayerBB(n, t, lat, long) {
   
   // ----- API -----
   return {
-    nom:nom,
+    name:name,
     team:team,
     lat:lat,
     long:long,
@@ -806,16 +809,14 @@ function PlayerBB(n, t, lat, long) {
 
 
 // usernames which are currently connected to the chat
-var usernames = {}; 
+var usernames = {};
+//list of players currently in the game (username, team and position)
 var listOfPlayers = {};
-var listOfRoomsMaster = [];
+//list of teams
 var listOfTeams = {};
-
-var positionOfPlayers = {};
 
 
 var connectSocketFunction = function connectSocket(socket) {
-    console.log("Hey !!");
     
     //Permet à un utilisateur de rejoindre une room
     socket.on('subscribe', function(room) { 
@@ -832,26 +833,17 @@ var connectSocketFunction = function connectSocket(socket) {
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
-		// we tell the client to execute 'updatechat' with 2 parameters
 		io.sockets.emit('updatechat', socket.username, data);
 	});
     
+    //permet de gere les messages dans les rooms spécifiques
     socket.on('send', function(data) {
-        console.log('sending message');
         io.sockets.in(data.room).emit('message', socket.username, data);
     });
 
-	// when the client emits 'sendpos', this listens and executes
-	socket.on('sendpos', function (newPos) {
-		
-	});
-
 	// when the client emits 'adduser', this listens and executes
 	socket.on('adduser', function(userdata){
-		// we store the username in the socket session for this client
-		// the 'socket' variable is unique for each client connected,
-		// so we can use it as a sort of HTTP session
-        
+	       
         username = userdata['username'];
         
         listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long']);
@@ -859,36 +851,42 @@ var connectSocketFunction = function connectSocket(socket) {
         if(typeof(listOfTeams[userdata['team']]) === "undefined")
         {
             listOfTeams[userdata['team']]= userdata['team'];
-            listOfRoomsMaster.push(listOfPlayers[username].roomsList["withMaster"]);
             
             io.sockets.in("master").emit('addRoom', listOfPlayers[username].roomsList["withMaster"]);
-            
-            //On envoie la liste des joueurs sur la room master
-            io.sockets.in("master").emit('positionOfPlayers', listOfPlayers);
+           
         }
         
-        console.log(listOfTeams);
-        console.log(listOfRoomsMaster);
-                
+        //On envoie la liste des joueurs sur la room master
+        io.sockets.in("master").emit('newPlayer', listOfPlayers[username]);
 
 		socket.username = username;
 		// add the client's username to the global list
-		// similar to usernames.michel = 'michel', usernames.toto = 'toto'
 		usernames[username] = username;
 		// echo to the current client that he is connecter
 		socket.emit('updatechat', 'SERVER', 'you have connected');
-        console.log("coucou");
+
         //on envoie les rooms que l'utilisateur doit rejoindre
         socket.emit('joinRooms', 'SERVER', listOfPlayers[username].roomsList);
 		// echo to all client except current, that a new person has connected
 		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
 		// tell all clients to update the list of users on the GUI
-		io.sockets.emit('updateusers', usernames);
-        io.sockets.emit('updatepositions', positionOfPlayers);
+		io.sockets.emit("updateusers", usernames);
 	});
     
     socket.on('addAdmin', function(username){
         socket.username = username;
+        usernames[username] = username;
+        io.sockets.in('master').emit('players', listOfPlayers);
+    });
+    
+    socket.on("updatePlayerPosition", function(data){ 
+        if(typeof(listOfPlayers[data.username]) !== "undefined")
+        {
+            listOfPlayers[data.username].lat = data.lat;
+            listOfPlayers[data.username].long = data.lng;
+            io.sockets.in("master").emit("updatePlayersPosition", listOfPlayers[data.username]);
+        }
+        
     });
 
 	// when the user disconnects.. perform this
@@ -897,6 +895,8 @@ var connectSocketFunction = function connectSocket(socket) {
 		delete usernames[socket.username];
 				// update list of users in chat, client-side
 		io.sockets.emit('updateusers', usernames);
+        
+        io.sockets.in("master").emit('deleteUser', listOfPlayers[socket.username]);
 
 		// Remove the player too
 		delete listOfPlayers[socket.username];		
