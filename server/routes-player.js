@@ -39,9 +39,9 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.sendFile( views + '/player/login.html');
             }
         })
-        .get('/player/select-team/:idgame/:accesskey', function(req,res) {
+        .get('/player/select-team.html', function(req,res) {
             sess = req.session;
-            if(sess.username && sess.type == "player"){
+            if(sess.username && (sess.type == "player") && (sess.idGameChecked !== undefined) && (req.query.idgame === sess.idGameChecked)) {
                 res.sendFile(views + '/player/select-team.html');
             }
             else{
@@ -63,7 +63,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Select games in');
-                db.collection(GAMES_COLLECTION).find({"teams.players.userid" : sess.userid}).toArray(function(err, docs) {
+                db.collection(GAMES_COLLECTION).find({status: "IN PROGRESS", "teams.players.userid" : sess.userid}).toArray(function(err, docs) {
                     if (err) {
                         handleError(res, err.message, "Failed to get contacts.");
                     } else {
@@ -80,7 +80,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Select not in game with filters');
-                let filter = { "teams.players.userid":  { $ne: sess.userid } };
+                let filter = { status: "IN PROGRESS", "teams.players.userid":  { $ne: sess.userid } };
 
                 if ((req.body.name !== undefined) && (req.body.name.trim() != ""))
                     filter.name = {$regex : ".*" + req.body.name + ".*"};
@@ -112,7 +112,6 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Exit game');
-                //db.collection(GAMES_COLLECTION).findById({ new ObjectID(req.params.idgame) }, { $pull : { "teams.$.players" : { "userid" : sess.userid } }}, function(err, result) {
                 db.collection(GAMES_COLLECTION).find({_id: new ObjectID(req.params.idgame), "teams.players.userid" : sess.userid}).forEach(function(doc) {
                     for (t = 0; t < doc.teams.length; t++) {
                         var new_players = [];
@@ -139,33 +138,145 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.sendFile( views + '/player/login.html');
             }
         })
+        .post('/data/player/checkgame', function(req,res) {
+            sess = req.session;
+            if(sess.username && (sess.type == "player")
+                && (req.body.idgame !== undefined) && (req.body.idgame.trim() != "")
+                && (req.body.accesskey !== undefined) && (req.body.accesskey.trim() != "")) {
+
+                console.log('Player: Check game');
+                db.collection(GAMES_COLLECTION).find({_id: new ObjectID(req.body.idgame), accesskey: req.body.accesskey}).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to check game.");
+                    } else {
+                        if (docs.length > 0) {
+                            sess.idGameChecked = req.body.idgame;
+                            res.status(200).json({});
+                        }
+                        else
+                            res.status(200).json({ result: "Wrong access key" });
+                    }
+                });
+            }
+            else{
+                console.log("fail");
+                res.sendFile( views + '/player/login.html');
+            }
+        })
+        .get('/data/player/teams/:idgame', function(req,res) {
+            sess = req.session;
+            if(sess.username && sess.type == "player"){
+                console.log('Player: Select teams');
+                db.collection(GAMES_COLLECTION).find({ _id: new ObjectID(req.params.idgame) }).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get contacts.");
+                    } else {
+                        if ((docs.length > 0) && (docs[0].teams !== undefined))
+                            res.status(200).json({ name: docs[0].name, teams: docs[0].teams });
+                        else
+                            res.status(200).json({});
+                    }
+                });
+            }
+            else{
+                console.log("fail");
+                res.sendFile( views + '/player/login.html');
+            }
+        })
         .post('/data/player/teams', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
-                console.log('Player: add a team');
-
+                console.log('Player: Add teams');
+                db.collection(GAMES_COLLECTION).find({ _id: new ObjectID(req.body.idgame), "teams.name" : req.body.teamname }).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get team.");
+                    } else {
+                        if (docs.length > 0)
+                            res.status(200).json({ result: "Team already exists" });
+                        else {
+                            db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID( req.body.idgame ) }, { $push : {teams: { name: req.body.teamname, accesskey: req.body.accesskey, players: [ { userid: sess.userid, name: sess.username } ]} } }, undefined, function(err, doc) {
+                                if (err) {
+                                    handleError(res, err.message, "Failed to add team");
+                                } else {
+                                    res.status(201).json({});
+                                }
+                            });
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");
                 res.sendFile( views + '/player/login.html');
             }
         })
-        .get('/data/player/check-team/:idteam/:accesskey', function(req,res) {
+        .post('/data/player/check-team', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
-                console.log('Player: check access key to a team');
+                console.log('Player: Check team');
+                db.collection(GAMES_COLLECTION).find({ _id: new ObjectID(req.body.idgame), "teams.name" : req.body.teamname, "teams.accesskey": req.body.accesskey }).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get team.");
+                    } else {
+                        if (docs.length > 0) {
+                            for (t = 0; t < docs[0].teams.length; t++) {
+                                if (docs[0].teams[t].name == req.body.teamname) {
+                                    var new_players = [];
 
+                                    for (p = 0; p < docs[0].teams[t].players.length; p++)
+                                        new_players.push(docs[0].teams[t].players[p]);
+
+                                    new_players.push({ userid: sess.userid, name: sess.username });
+
+                                    let teamt = {};
+                                    teamt["teams." + t + ".players"] = new_players;
+                                    db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID( req.body.idgame ) }, { $set : teamt }, undefined, function(err, doc) {
+                                        if (err) {
+                                            handleError(res, err.message, "Failed to add player");
+                                        } else {
+                                            res.status(201).json({});
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        else {
+                            res.status(200).json({ result: "Wrong access key" });
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");
                 res.sendFile( views + '/player/login.html');
             }
         })
-        .get('/data/player/infos-user', function(req,res) {
+        .get('/data/player/infos-user/:idgame', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
-                console.log('Player: get user infos');
+                console.log('Player: user info');
+                db.collection(GAMES_COLLECTION).find({ _id: new ObjectID(req.params.idgame), "teams.players.userid": sess.userid }).toArray(function(err, docs) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get user info.");
+                    } else {
+                        if ((docs.length > 0) && (docs[0].teams !== undefined)) {
+                            for (t = 0; t < docs[0].teams.length; t++) {
+                                var new_players = [];
 
+                                for (p = 0; p < docs[0].teams[t].players.length; p++) {
+                                    if (docs[0].teams[t].players[p].userid == sess.userid) {
+                                        //new_players.push(docs[0].teams[t].players[p]);
+                                        res.status(200).json({ gamename: docs[0].name, username: sess.username, teamname: docs[0].teams[t].name, team_accesskey: docs[0].teams[t].accesskey });
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            console.log("fail");
+                            res.sendFile( views + '/player/login.html');
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");
@@ -187,17 +298,6 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Send an answer for validation');
-
-            }
-            else{
-                console.log("fail");
-                res.sendFile( views + '/player/login.html');
-            }
-        })
-        .get('/data/player/back-to-last-move', function(req,res) {
-            sess = req.session;
-            if(sess.username && sess.type == "player"){
-                console.log('Player: Back to last move step');
 
             }
             else{

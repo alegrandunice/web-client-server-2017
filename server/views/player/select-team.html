@@ -19,7 +19,7 @@
 </head>
 <body  onload="onLoad()">
     <div class="container" >
-        <h2 id="gameName">Game #1</h2>             
+        <h2 id="gameName"></h2>
     </div>
     
     <div class="container" style="margin-bottom:10px">
@@ -36,7 +36,7 @@
               <label for="newTeamAccessKey">Access Key</label><input id="newTeamAccessKey" type="text" placeholder="Access key to your team" class="form-control">
             </div>           
             
-            <button type="submit" class="btn btn-success">Create</button><span hidden id="createError" style="margin-left: 10px; color: red;"><b>You have to enter a Name and an Access Key</b></span>                                
+            <button type="submit" class="btn btn-success">Create</button><span hidden id="createError" style="margin-left: 10px; color: red; font-weight: bold;"></span>
                                 
         </form>
     </div>
@@ -60,28 +60,25 @@
     
     function onLoad() {
         idGame = getUrlParameter('idgame');
-    
-        if (getUrlParameter('accessKey') === null) {            
-            document.location = "./play.html?idgame=" + idGame;
-        }
-        
-         //TODO : Check accessKey of game before continue!
-                
-        getRequest('../data/game/' + idGame + '/teams').then(function(response) {
+
+        getRequest('../data/player/teams/' + idGame).then(function(response) {
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
-            
-            jsonReceived.forEach((j) => {
-                htmlAppendTeam(j._id, j.name, (j.players ? j.players.length : 0));
-            });
-                        
+
+            var gameName = document.getElementById("gameName");
+
+            if (jsonReceived.name !== undefined)
+                gameName.innerHTML = jsonReceived.name;
+
+            if ((jsonReceived.teams !== undefined) && (jsonReceived.teams.length !== undefined)) {
+                jsonReceived.teams.forEach((j) => {
+                    htmlAppendTeam(j._id, j.name, (j.players ? j.players.length : 0));
+                });
+            }
         }, function(error) {
             console.error("Get Failed!", error);
         });
-        
-        
-        //TODO: Remove !
-        htmlAppendTeam("1", "We are the best", 3);
+
     }   
     
     function htmlAppendTeam(idTeam, name, players) {
@@ -93,7 +90,7 @@
                     + '        <div class="panel-body">'
                     + '            <div class="row" >'                                    
                     + '                <div class="col-sm-4" >'
-                    + '                    <h3  class="panel-title">' + name + '</h3>'
+                    + '                    <h3  class="panel-title" id="teamname' + idTeam + '">' + name + '</h3>'
                     + '                    <span class="badge">' + players.toString() + ' player' + ((players > 1) ? 's' : '') + '</span>'
                     + '                </div>'        
                     + '                <div class="col-sm-4">'
@@ -102,6 +99,7 @@
                     + '                    </div>'
                     + '                </div>'
                     + '                <div class="col-sm-4" style="text-align: right;">'
+                    + '                    <span hidden id="createError' + idTeam + '" style="margin-right: 10px; color: red; font-weight: bold;"></span>'
                     + '                    <button class="btn btn-success" onclick="enterTeam(event, \'' + idTeam + '\');" style="margin-left: 0px;">Enter</button>'
                     + '                </div>'                       
                     + '            </div>'                                       
@@ -111,31 +109,37 @@
     }
     
     function createNewTeam(event) {
-        var jsonToSend = {
-                "name": "",
-                "access_key": ""
-            }
-        
         var name = document.getElementById("newTeamName");
-        jsonToSend.name = name.value;
         var newTeamAccessKey = document.getElementById("newTeamAccessKey");
-        jsonToSend.access_key = newTeamAccessKey.value;
-        
+
+        var jsonToSend = {
+            "idgame": idGame,
+            "teamname": name.value.trim(),
+            "accesskey": newTeamAccessKey.value.trim()
+        }
         
         var createError = document.getElementById("createError");
         createError.hidden = true;
         
-        if ((jsonToSend.name.trim() == "") || (jsonToSend.access_key.trim() == "")) {
+        if ((jsonToSend.teamname.trim() == "") || (jsonToSend.accesskey.trim() == "")) {
+            createError.innerHTML = "You have to enter a Name and an Access Key";
             createError.hidden = false;
         }
-        else {     
+        else {
+            postRequest('../data/player/teams', jsonToSend).then(function(response) {
+                var jsonReceived = JSON.parse(response);
 
-            //TODO: Remove!
-            document.location = "./play.html?idgame=" + idGame;
-            
-            postRequest('../data/game/' + idGame + '/teams', jsonToSend).then(function(response) {
-                console.log("Post Success!", response);
-                document.location = "./play.html?idgame=" + idGame;
+                if (jsonReceived.result === undefined) {
+                    console.log("Post Success!", response);
+                    name.value = "";
+                    newTeamAccessKey.value = "";
+                    document.location = "./play.html?idgame=" + idGame;
+                }
+                else {
+                    createError.innerHTML = jsonReceived.result;
+                    createError.hidden = false;
+                }
+
             }, function(error) {
                 console.error("Post Failed!", error);
             });
@@ -146,11 +150,39 @@
     
     function enterTeam(event, idTeam) {
         var accessKey = document.getElementById("accessKey" + idTeam);
-        
-        //TODO : Check accessKey of the team before redirect!
-        
-        
-        document.location = "./play.html?idgame=" + idGame + "&accessKey=" + accessKey.value;
+        var teamname = document.getElementById("teamname" + idTeam);
+        var createError = document.getElementById("createError" + idTeam);
+
+        var jsonToSend = {
+            "idgame": idGame,
+            "teamname": teamname.innerHTML,
+            "accesskey": accessKey.value.trim()
+        }
+
+        createError.hidden = true;
+
+        if (jsonToSend.accesskey.trim() == "") {
+            createError.innerHTML = "You have to enter an Access Key";
+            createError.hidden = false;
+        }
+        else {
+            postRequest('../data/player/check-team', jsonToSend).then(function(response) {
+                var jsonReceived = JSON.parse(response);
+
+                if (jsonReceived.result === undefined) {
+                    console.log("Post Success!", response);
+                    accessKey.value = "";
+                    document.location = "./play.html?idgame=" + idGame;
+                }
+                else {
+                    createError.innerHTML = jsonReceived.result;
+                    createError.hidden = false;
+                }
+
+            }, function(error) {
+                console.error("Post Failed!", error);
+            });
+        }
     }
     
     </script>
