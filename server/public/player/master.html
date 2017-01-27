@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Play</title>
+
+    <!-- Bootstrap -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../js/app-server-access.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+    <ul class="nav navbar-default nav-pills">
+      <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
+      <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
+      <li><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Launch demo modal</button></li>
+    </ul>
+
+    <div class="tab-content container-fluid">
+        
+        <div id="tabHome" class="row tab-pane fade in active">  
+            <div class="col-xs-8">
+                <div id="map"  style="width:1050px;height:750px"></div>
+            </div>
+            <div class="col-xs-4">
+                <div id="chat">
+                    <div class="panel-group">
+                        <div class="panel panle-default">
+                            <div class="panel-heading"  style="background-color: darkgrey;">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" href="#collapse-all" style="display:block; heigth:100%;">Tout le monde</a>
+                                </h4>
+                            </div>
+                            <div id="collapse-all" class="panel-collapse collapse">
+                                <div id="conversation" class="panel-body"  style="max-height:200px; overflow-y:auto;  word-warp:break-word;"></div>
+                                <div class="panel-footer">
+                                    <input id="data" style="width:80%;" />
+                                    <input type="button" id="datasend" value="send" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL -->
+    <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="myModalLabel">Demande de Validation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <ul class="nav navbar-default nav-pills" id="modal_list">
+                <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
+                <li><a data-toggle="tab" href="#tabPlay">Play</a></li>
+                <li><a data-toggle="tab" href="#tabChat">Chat</a></li>
+                <li><a data-toggle="tab" href="#tabMore">More...</a></li>
+            </ul>
+            
+            <div class="tab-content" id="modal_content">
+        
+                <div id="tabHome" class="tab-pane fade in active">  
+                     <div class="panel panel-default" style="margin: 10px;">
+                        <div class="panel-body">
+                            <p>coucou</p>                              
+                        </div>
+                    </div>   
+                      
+                </div>
+                
+                <div id="tabPlay" class="tab-pane fade">   
+                     <div class="panel panel-default" style="margin: 10px;">
+                        <div class="panel-body">
+                            <p>coucou</p>                              
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tabChat" class="tab-pane fade"> 
+                     <div class="panel panel-default" style="margin: 10px;">
+                        <div class="panel-body">
+                            <p>coucou</p>                              
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tabMore" class="tab-pane fade">  
+                    <div class="panel panel-default" style="margin: 10px;">
+                        <div class="panel-body">
+                            <p>coucou</p>                              
+                        </div>
+                    </div>           
+                </div>        
+            </div>
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--
+    <div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+        <b>Players</b>
+        <div id="users"></div>
+    </div> -->
+    
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="../js/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script type="text/javascript">
+
+    
+    var idGame, latitudeTo, longitudeTo;
+    var checkEverySecond;
+    var currentStep, currentGame;
+    
+    function logout() {
+        var jsonToSend = {
+            "cost": 0,
+            "description": ""
+        }
+        getRequest('../logout').then(function(response) {
+
+            document.location.href = '/login';
+
+            console.log("Get Success!", response);
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+    }
+
+	var username, chat, conversation, data, datasend, users, rooms;
+    
+    // on load of page
+	window.addEventListener("load", function(){
+		// get handles on various GUI components
+        chat = document.querySelector("#chat");
+		conversation = document.querySelector("#conversation");
+  		data = document.querySelector("#data");
+  		datasend = document.querySelector("#datasend");
+  		users = document.querySelector("#users");
+
+  		// Listener for send button
+		datasend.addEventListener("click", function(evt) {
+      		sendMessage();
+  		});
+
+		// detect if enter key pressed in the input field
+  		data.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessage();
+    		}
+  		});
+        
+        // sends the chat message to the server
+        function sendMessage() {
+            var message = data.value;
+            data.value = "";
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+            data.focus();
+        };
+
+  		
+	});
+    
+    
+    //Fonctions necessaires pour gérer les rooms
+    rooms = {};
+    function RoomBB(roomName) {
+      var id_room = roomName;
+      var id_data = "data"+roomName;
+      var id_datasend = "datasend"+roomName;
+      var roomData, roomDatasend;
+      
+      // ----- API -----
+      return {
+        id_room:id_room,
+        id_data:id_data,
+        id_datasend:id_datasend,
+        roomData:roomData,
+        roomDatasend:roomDatasend
+      }
+    }
+    
+    function addRoom(roomName){
+        console.log(rooms);
+        chat = document.querySelector("#chat");
+        socket.emit('subscribe', roomName);
+        
+        rooms[roomName] = new RoomBB(roomName);
+                        
+        var chatRoom = "<div class=\"panel-group\">"+
+                       "<div class=\"panel panle-default\">"+
+                       "    <div class=\"panel-heading\" style=\"background-color: darkgrey;\">"+
+                       "        <h4 class=\"panel-title\">"+
+                       "            <a data-toggle=\"collapse\" href=\"#collapse-"+roomName+"\" style=\"display:block; heigth:100%;\">Equipe : "+roomName.substring(6)+"</a>"+
+                       "        </h4>"+
+                       "    </div>"+
+                       "    <div id=\"collapse-"+roomName+"\" class=\"panel-collapse collapse\">"+
+                       "        <div id=\""+rooms[roomName].id_room+"\" class=\"panel-body\" style=\"max-height:200px; overflow-y:auto; word-warp:break-word;\"></div>"+
+                       "        <div class=\"panel-footer\">"+
+                       "<input id=\""+rooms[roomName].id_data+"\" onkeypress=\"keypressEnter(event);\" style=\"width:200px;\" />"+
+                       //"            <input id=\""+rooms[roomName].id_data+"\" style=\"width:80%;\" />"+
+                       "<input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" onclick=\"clic(event);\" value=\"send\" />"+
+                       //"            <input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" value=\"send\" />"+
+                       "        </div>"+
+                       "    </div>"+
+                       "</div>"+
+                       "</div>";                
+        chat.innerHTML += chatRoom;
+        /*
+        rooms[roomName].roomData = document.querySelector("#"+rooms[roomName].id_data+"");
+        rooms[roomName].roomDatasend = document.querySelector("#"+rooms[roomName].id_datasend+"");
+        
+        //Listener for send button
+		rooms[roomName].roomDatasend.addEventListener("click", function(evt) {
+      		sendMessageToRoom(roomName);
+  		});
+
+		// detect if enter key pressed in the input field
+  		rooms[roomName].roomData.addEventListener("keypress", function(evt) {
+    		// if pressed ENTER, then send
+    		if(evt.keyCode == 13) {
+				this.blur();
+        		sendMessageToRoom(roomName);
+    		}
+  		});   */     
+    }
+    
+    function keypressEnter(event) {
+        if(event.keyCode == 13) {
+            console.log(event);
+            this.blur();
+            sendMessageToRoom(event.srcElement.id.substring(4));
+        }
+    }
+    
+    function clic(event) {
+    console.log(event.srcElement.id);
+        sendMessageToRoom(event.srcElement.id.substring(4));
+    }
+    
+    
+    function addPlayer(player) {
+
+    if(typeof(teams[player.team]) == "undefined")
+    {
+        var taille = 0;
+        for (o in teams) ++taille;         
+        addRoom(player.roomsList["withMaster"]);         
+        teams[player.team] = new TeamBB(player.team, listIcones[taille]);
+        
+    } 
+    
+    var marker = new google.maps.Marker({
+                     position: new google.maps.LatLng(player.lat, player.long),
+                     map: map,
+                     title:name,
+                     icon:teams[player.team].icon
+
+    });
+    markersList[player.name] = marker;           
+    
+}
+    
+    username = "Game Master";
+	var socket = io.connect();
+    
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+        //on souscrit à la room master qui permet de gérer les données des joueurs
+        socket.emit('subscribe', 'master');
+        
+        socket.emit('addAdmin', username);
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body 
+	socket.on('updatechat', function (username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+        $("#collapse-all").collapse("show"); 
+        conversation.scrollTop = conversation.scrollHeight;
+	});
+    
+    
+    socket.on('message', function (username, data) {
+
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        var room = document.querySelector("#"+rooms[data.room].id_room);
+        room.innerHTML += chatMessage;
+        room.scrollTop = room.scrollHeight;
+        $("#collapse-"+data.room).collapse("show");        
+    });
+
+
+	
+    
+    // sends the chat message to the server
+    function sendMessageToRoom(roomName) {
+    console.log(roomName, rooms);
+    
+        var dataRoom = document.querySelector("#"+rooms[roomName].id_data+"");
+        var message = dataRoom.value;
+        dataRoom.value = "";
+        // tell server to execute 'sendchat' and send along one parameter
+        socket.emit('send', { room: roomName, message: message });
+        dataRoom.focus();
+    };		
+    
+    
+    
+    /** MAPS **/
+    
+   // Default position
+var centerpos = new google.maps.LatLng(48.579400,7.7519);
+ 
+// default options for the google map
+var optionsGmaps = {
+    center:centerpos,
+    navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
+    mapTypeId: google.maps.MapTypeId.ROADMAP,
+    zoom: 15
+};
+ 
+// Init map object
+var map = new google.maps.Map(document.getElementById("map"), optionsGmaps);
+
+var markersList = {};
+var teams = [];
+var listIcones = [
+    "http://maps.google.com/mapfiles/ms/micons/campground.png",
+    "http://maps.google.com/mapfiles/ms/micons/bar.png",
+    "http://maps.google.com/mapfiles/ms/micons/earthquake.png",
+    "http://maps.google.com/mapfiles/ms/micons/fallingrocks.png",
+    "http://maps.google.com/mapfiles/ms/micons/marina.png"
+];
+
+
+function TeamBB(n, i) {
+  var name = n;
+  var icon = i;
+  
+  // ----- API -----
+  return {
+    name:name,
+    icon:icon
+  }
+}
+
+socket.on('players', function(listOfPlayers) {
+		for(var name in listOfPlayers) {
+            addPlayer(listOfPlayers[name]); 
+  		}
+	});
+
+socket.on('newPlayer', function(player){
+    addPlayer(player);
+});
+    
+socket.on('updatePlayersPosition', function(data){
+    if(typeof(markersList[data.name]) !== "undefined")
+    {
+        var playersMarker = markersList[data.name];
+        var latlng = new google.maps.LatLng(data.lat, data.long);
+        playersMarker.setPosition(latlng);
+    }
+});
+
+// listener, whenever the server emits 'updateusers', this updates the username list
+socket.on('updateusers', function(listOfUsers) {
+    users.innerHTML = "";
+    for(var name in listOfUsers) {
+        var userLineOfHTML = '<div>' + name + '</div>';
+        users.innerHTML += userLineOfHTML;
+    }
+});
+    
+ 
+if(navigator.geolocation) {
+ 
+    // callback function, called by getCurrentPosition() in case of success
+    function drawPosition(position) {
+       // Make new object LatLng for Google Maps
+       var latlng = new google.maps.LatLng(position.coords.latitude,               
+                                           position.coords.longitude);
+ 
+       map.panTo(latlng);
+       
+    }
+ 
+    // callback function, called by getCurrentPosition() in case of error
+    function errorPosition(error) {
+       
+    }
+    navigator.geolocation.getCurrentPosition(drawPosition,errorPosition);
+} else {
+    alert("Geolocation API not supported by your browser");
+}
+    </script>
+</body>
+</html>
