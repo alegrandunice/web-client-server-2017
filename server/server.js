@@ -53,6 +53,7 @@ var io = undefined;
     }).then(function(response) {
         console.log("doc retreived from db : " + JSON.stringify(response));
         sess = req.session;
+        sess.userid=response._id;
         sess.username=response.username;
         sess.type=response.type;
         res.redirect(redirectHome);

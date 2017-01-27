@@ -73,7 +73,7 @@
     
     function onLoad() {
                 
-        getRequest('../data/games').then(function(response) {
+        getRequest('../data/player/games-in').then(function(response) {
             console.log(response);
             var jsonReceived = JSON.parse(response);
             var gamesInProgress = document.getElementById("gamesInProgress");
@@ -115,7 +115,7 @@
             fetchError.hidden = false;
         }
         else {        
-            getRequest('../data/games').then(function(response) {
+            postRequest('../data/player/games-not', jsonToSend).then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);                
                 
@@ -203,6 +203,17 @@
     }
     
     function exitGame(event, idGame) {
+        if (idGame !== undefined) {
+            var result = confirm("Exit this game?");
+            if (result) {
+                deleteRequest('../data/player/exit-game/' + idGame).then(function(response) {
+                    console.log("Exit Success!", response);
+                    location.reload();
+                }, function(error) {
+                    console.error("Exit Failed!", error);
+                });
+            }
+        }
     }
     
     function enterGame(event, idGame) {
