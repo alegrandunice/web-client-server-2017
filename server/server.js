@@ -638,12 +638,12 @@ app.post("/data/steps/:idStep/clues/", function(req, res) {
 ************************************************************************************************/
 // routing
 app.get('/test', function (req, res) {
-  res.sendFile(__dirname + '/public/settings/simpleChat.html');
+  res.sendFile(__dirname + '/public/player/play.html');
 });
 
 
 app.get('/master',function (req, res) {
-  res.sendFile(__dirname + '/public/settings/master.html');
+  res.sendFile(__dirname + '/public/player/master.html');
 });
 
 app.post('/send/:room/', function(req, res) {
@@ -725,8 +725,6 @@ var connectSocketFunction = function connectSocket(socket) {
         if(typeof(listOfTeams[userdata['team']]) === "undefined")
         {
             listOfTeams[userdata['team']]= userdata['team'];
-            
-            io.sockets.in("master").emit('addRoom', listOfPlayers[username].roomsList["withMaster"]);
            
         }
         
