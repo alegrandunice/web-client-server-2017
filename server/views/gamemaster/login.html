@@ -21,7 +21,7 @@
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
             <h3>Login Game Master </h3>
-            <form onsubmit="formOnSubmit($event)" action="../login" method="post" id="loginForm">
+            <form onsubmit="formOnSubmit(event)" method="post" id="loginForm">
                 <div class="form-group">
                   <input type="text" name="username" placeholder="User" class="form-control">
                 </div>
@@ -38,12 +38,12 @@
     <script src="../js/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/app-server-access.js"></script>
     
     <script type="text/javascript">
     function formOnSubmit(event)
     {
         event.preventDefault();
-        alert("form submit");
         var $inputs = $('#loginForm :input');
 
         // not sure if you wanted this, but I thought I'd add it.
@@ -51,11 +51,11 @@
         var jsonToSend = {};
         $inputs.each(function() {
             jsonToSend[this.name] = $(this).val();
-            alert($(this).val());
         });
-        postRequest('../login', jsonToSend).then(function(response) {
-            alert("Post Success!", response);
-            var jsonReceived = JSON.parse(response);
+        postRequest('login', jsonToSend).then(function(response) {
+            document.location.href = '/gamemaster/select-game.html';
+            //alert("Post Success!", response);
+            //var jsonReceived = JSON.parse(response);
             //htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
         }, function(error) {
             console.error("Post Failed!", error);

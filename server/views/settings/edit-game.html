@@ -94,11 +94,11 @@
         
     <script type="text/javascript">
     
-    var idGame = getUrlParameter("idgame"); 
+    var idGame;
     
-    function onLoad() {                
-   
-        
+    function onLoad() {
+        idGame = getUrlParameter("idgame");
+
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {
@@ -181,7 +181,7 @@
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                              
                 + '                <div class="col-xs-4" >'
-                + '                    <a href=' + idStep + '"edit-step.html?idstep=" style="text-decoration: none; ">'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
                 + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
                 + '                    </a>'
                 + '                </div>'
@@ -196,7 +196,7 @@
                 + '        <div class="panel-body">'
                 + '            <div class="row">'
                 + '                <div class="col-xs-8">'
-                + '                    <a href=' + idStep + '"edit-step.html?idstep=" style="text-decoration: none; ">'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
                 + '                        ' + name
                 + '                    </a>'
                 + '                </div>'
@@ -212,7 +212,8 @@
     }
     
     function createNewStep(event) {
-    
+        alert("create new step");
+        alert(idGame);
 		if (idGame !== undefined) {
             var jsonToSend = {
                 "name": "(new step)",

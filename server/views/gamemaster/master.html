@@ -24,13 +24,9 @@
 <script>
 
     function logout() {
-        var jsonToSend = {
-            "cost": 0,
-            "description": ""
-        }
-        getRequest('../logout').then(function(response) {
+        getRequest('/gamemaster/logout').then(function(response) {
 
-            document.location.href = '/login';
+            document.location.href = '/gamemaster/login';
 
             console.log("Get Success!", response);
         }, function(error) {
@@ -112,7 +108,7 @@
         rooms[roomName].roomData = document.querySelector("#"+rooms[roomName].id_data+"");
         rooms[roomName].roomDatasend = document.querySelector("#"+rooms[roomName].id_datasend+"");
         
-        Listener for send button
+        //Listener for send button
 		rooms[roomName].roomDatasend.addEventListener("click", function(evt) {
       		sendMessageToRoom(roomName);
   		});
