@@ -36,8 +36,8 @@
                 <h2 id="textHome2B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
                 <h2 id="textHome3"></h2>
                 <h2 id="textHome3B" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
-                
-                <div id="users"></div>
+                <h2>Connected users</h2>
+                <h2 id="users" style="color:DarkBlue; font-style: italic; margin-left: 20px"></h2>
             </div>    
             <nav class="navbar-fixed-bottom">               
                 <div style="margin: 10px; text-align: center;">
@@ -129,8 +129,8 @@
     <script src="/socket.io/socket.io.js"></script>
     
     <script type="text/javascript">
-    var username = prompt("What's your name?");
-    var team = prompt ("what's your team?");
+    var username;
+    var team;
     
     var idGame, latitudeTo, longitudeTo;
     var checkEverySecond;
@@ -202,7 +202,28 @@
     		}
   		});
 
+        getRequest('../data/player/infos-user/' + idGame).then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
 
+            var textHome1 = document.getElementById("textHome1");
+            var textHome2 = document.getElementById("textHome2");
+            var textHome2B = document.getElementById("textHome2B");
+            var textHome3 = document.getElementById("textHome3");
+            var textHome3B = document.getElementById("textHome3B");
+
+            textHome1.innerHTML = "Wellcome to " + jsonReceived.gamename + " " + jsonReceived.username;
+            textHome2.innerHTML = "Your team is:"
+            textHome2B.innerHTML = jsonReceived.teamname;
+            textHome3.innerHTML = "The access key to your team:";
+            textHome3B.innerHTML = jsonReceived.team_accesskey;
+
+            username = jsonReceived.username;
+            team = jsonReceived.teamname;
+
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
     }   
     
     //permet d'envoyer une demande de validation au GM
@@ -368,20 +389,7 @@
         
         
         //TODO: select Play tab
-                      
-        if (currentGame !== undefined) {
-            var textHome1 = document.getElementById("textHome1");
-            var textHome2 = document.getElementById("textHome2");
-            var textHome2B = document.getElementById("textHome2B");
-            var textHome3 = document.getElementById("textHome3");
-            var textHome3B = document.getElementById("textHome3B");
-            
-            textHome1.innerHTML = "Wellcome to " + currentGame.game_name + " " + currentGame.player_name;
-            textHome2.innerHTML = "Your team is:"
-            textHome2B.innerHTML = currentGame.team_name;
-            textHome3.innerHTML = "The access key to your team:";
-            textHome3B.innerHTML = currentGame.team_accesskey;
-        }
+
         
         if (currentStep !== undefined) {
             if (currentStep.move === true) {
