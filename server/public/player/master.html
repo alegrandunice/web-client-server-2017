@@ -12,6 +12,31 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="../js/app-server-access.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyCT6bUQrk5rHswL3dgykXVpWtHe2NcFxA8"></script>
+    <script>
+        function keypressEnterAll(event){
+            // if pressed ENTER, then send
+    		if(event.keyCode == 13) {
+				this.blur();
+        		sendMessage();
+    		}
+        }
+        
+        function clicAll(){
+            console.log("coucou");
+            sendMessage();
+        }
+        
+        function sendMessage() {
+            var data = document.querySelector("#data");
+            var message = data.value;
+            data.value = "";
+            // tell server to execute 'sendchat' and send along one parameter
+            socket.emit('sendchat', message);
+            data.focus();
+        };
+        
+        
+    </script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,7 +50,7 @@
     <ul class="nav navbar-default nav-pills">
       <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
       <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
-      <li><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Launch demo modal</button></li>
+      <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Launch demo modal</button></li>
     </ul>
 
     <div class="tab-content container-fluid">
@@ -46,8 +71,10 @@
                             <div id="collapse-all" class="panel-collapse collapse">
                                 <div id="conversation" class="panel-body"  style="max-height:200px; overflow-y:auto;  word-warp:break-word;"></div>
                                 <div class="panel-footer">
-                                    <input id="data" style="width:80%;" />
-                                    <input type="button" id="datasend" value="send" />
+                                    <!--<input id="data" style="width:80%;" />
+                                    <input type="button" id="datasend" value="send" />-->
+                                    <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
+                                    <input type="button" id="datasend" onclick="clicAll();" value="send" />
                                 </div>
                             </div>
                         </div>
@@ -68,52 +95,17 @@
           </div>
           <div class="modal-body">
             <ul class="nav navbar-default nav-pills" id="modal_list">
-                <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
-                <li><a data-toggle="tab" href="#tabPlay">Play</a></li>
-                <li><a data-toggle="tab" href="#tabChat">Chat</a></li>
-                <li><a data-toggle="tab" href="#tabMore">More...</a></li>
             </ul>
             
-            <div class="tab-content" id="modal_content">
-        
-                <div id="tabHome" class="tab-pane fade in active">  
-                     <div class="panel panel-default" style="margin: 10px;">
-                        <div class="panel-body">
-                            <p>coucou</p>                              
-                        </div>
-                    </div>   
-                      
-                </div>
-                
-                <div id="tabPlay" class="tab-pane fade">   
-                     <div class="panel panel-default" style="margin: 10px;">
-                        <div class="panel-body">
-                            <p>coucou</p>                              
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="tabChat" class="tab-pane fade"> 
-                     <div class="panel panel-default" style="margin: 10px;">
-                        <div class="panel-body">
-                            <p>coucou</p>                              
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="tabMore" class="tab-pane fade">  
-                    <div class="panel panel-default" style="margin: 10px;">
-                        <div class="panel-body">
-                            <p>coucou</p>                              
-                        </div>
-                    </div>           
-                </div>        
+            <div class="tab-content" id="modal_content"> 
             </div>
             
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-success" onclick="validStep();">Valide</button>
+            <button type="button" class="btn btn-danger" onclick="invalidStep();">Invalide</button>
+            <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
+            
           </div>
         </div>
       </div>
@@ -166,7 +158,7 @@
   		datasend = document.querySelector("#datasend");
   		users = document.querySelector("#users");
 
-  		// Listener for send button
+  		/*// Listener for send button
 		datasend.addEventListener("click", function(evt) {
       		sendMessage();
   		});
@@ -178,16 +170,16 @@
 				this.blur();
         		sendMessage();
     		}
-  		});
+  		});*/
         
         // sends the chat message to the server
-        function sendMessage() {
+        /*function sendMessage() {
             var message = data.value;
             data.value = "";
             // tell server to execute 'sendchat' and send along one parameter
             socket.emit('sendchat', message);
             data.focus();
-        };
+        };*/
 
   		
 	});
@@ -218,17 +210,19 @@
         
         rooms[roomName] = new RoomBB(roomName);
                         
-        var chatRoom = "<div class=\"panel-group\">"+
+        var chatRoom = "<div class=\"panel-group\" id=\"Room_"+roomName.substring(6)+"\">"+
                        "<div class=\"panel panle-default\">"+
                        "    <div class=\"panel-heading\" style=\"background-color: darkgrey;\">"+
                        "        <h4 class=\"panel-title\">"+
                        "            <a data-toggle=\"collapse\" href=\"#collapse-"+roomName+"\" style=\"display:block; heigth:100%;\">Equipe : "+roomName.substring(6)+"</a>"+
                        "        </h4>"+
                        "    </div>"+
-                       "    <div id=\"collapse-"+roomName+"\" class=\"panel-collapse collapse\">"+
+                       "    <div id=\"collapse-"+roomName+"\" class=\"panel-collapse collapse card-block\">"+
+                       "        <div>Step 3 : Tuer un ours</div>"+
+                       "        <div class=\"divider\"></div>"+
                        "        <div id=\""+rooms[roomName].id_room+"\" class=\"panel-body\" style=\"max-height:200px; overflow-y:auto; word-warp:break-word;\"></div>"+
                        "        <div class=\"panel-footer\">"+
-                       "<input id=\""+rooms[roomName].id_data+"\" onkeypress=\"keypressEnter(event);\" style=\"width:200px;\" />"+
+                       "<input id=\""+rooms[roomName].id_data+"\" onkeypress=\"keypressEnter(event);\" style=\"width:80%;\" />"+
                        //"            <input id=\""+rooms[roomName].id_data+"\" style=\"width:80%;\" />"+
                        "<input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" onclick=\"clic(event);\" value=\"send\" />"+
                        //"            <input type=\"button\" id=\""+rooms[roomName].id_datasend+"\" value=\"send\" />"+
@@ -272,25 +266,52 @@
     
     function addPlayer(player) {
 
-    if(typeof(teams[player.team]) == "undefined")
-    {
-        var taille = 0;
-        for (o in teams) ++taille;         
-        addRoom(player.roomsList["withMaster"]);         
-        teams[player.team] = new TeamBB(player.team, listIcones[taille]);
+        if(typeof(teams[player.team]) == "undefined")
+        {
+            var taille = 0;
+            for (o in teams) ++taille;         
+            addRoom(player.roomsList["withMaster"]);         
+            teams[player.team] = new TeamBB(player.team, listIcones[taille]);
+            
+        } 
+        console.log(teams);
+        teams[player.team].listPlayers[player.name] = player.name;
+        console.log(teams);
         
-    } 
-    
-    var marker = new google.maps.Marker({
-                     position: new google.maps.LatLng(player.lat, player.long),
-                     map: map,
-                     title:name,
-                     icon:teams[player.team].icon
+        var marker = new google.maps.Marker({
+                         position: new google.maps.LatLng(player.lat, player.long),
+                         map: map,
+                         title:name,
+                         icon:teams[player.team].icon
 
-    });
-    markersList[player.name] = marker;           
+        });
+        markersList[player.name] = marker; 
+        
+        resizeMap();
+
+        
+    }
     
-}
+    function resizeMap(){
+        var bounds = new google.maps.LatLngBounds();
+        for (marker in markersList)
+        {
+        
+            bounds.extend(markersList[marker].getPosition());
+        }
+        
+        map.fitBounds(bounds);
+        
+        google.maps.event.addListenerOnce(map, 'bounds_changed', function(event){
+            map.setZoom(map.getZoom()-1);
+            
+            if(map.getZoom()> 16){
+                map.setZoom(16);
+            }
+        });
+    }
+    
+    
     
     username = "Game Master";
 	var socket = io.connect();
@@ -305,12 +326,20 @@
 	});
 
 	// listener, whenever the server emits 'updatechat', this updates the chat body 
-	socket.on('updatechat', function (username, data) {
+	/*socket.on('updatechat', function (username, data) {
 		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
 		conversation.innerHTML += chatMessage; 
         $("#collapse-all").collapse("show"); 
         conversation.scrollTop = conversation.scrollHeight;
-	});
+	});*/
+    
+    socket.on('updatechat', function (username, data) {
+            var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+            var conversation = document.querySelector("#conversation");
+            conversation.innerHTML += chatMessage; 
+            $("#collapse-all").collapse("show"); 
+            conversation.scrollTop = conversation.scrollHeight;
+        });
     
     
     socket.on('message', function (username, data) {
@@ -369,11 +398,13 @@ var listIcones = [
 function TeamBB(n, i) {
   var name = n;
   var icon = i;
+  var listPlayers = {};
   
   // ----- API -----
   return {
     name:name,
-    icon:icon
+    icon:icon,
+    listPlayers:listPlayers
   }
 }
 
@@ -386,6 +417,30 @@ socket.on('players', function(listOfPlayers) {
 socket.on('newPlayer', function(player){
     addPlayer(player);
 });
+
+socket.on('deleteUser', function(player){
+    //suppression du joueur sur la carte
+    console.log(teams);
+    markersList[player.name].setMap(null);
+    markersList[player.name] = null;
+    delete markersList[player.name];
+    
+    resizeMap();
+    
+    //on supprime le joueur de la team
+    delete teams[player.team].listPlayers[player.name];
+    console.log(teams);
+    var nb_teamPlayers =0;
+    for(key in teams[player.team].listPlayers) nb_teamPlayers++;
+    
+    if(nb_teamPlayers == 0)
+    {
+        teams[player.team] = null;
+        delete teams[player.team]
+        $("#Room_"+player.team).remove();
+    }
+    
+});
     
 socket.on('updatePlayersPosition', function(data){
     if(typeof(markersList[data.name]) !== "undefined")
@@ -393,18 +448,99 @@ socket.on('updatePlayersPosition', function(data){
         var playersMarker = markersList[data.name];
         var latlng = new google.maps.LatLng(data.lat, data.long);
         playersMarker.setPosition(latlng);
+        
+        resizeMap();
     }
 });
 
 // listener, whenever the server emits 'updateusers', this updates the username list
 socket.on('updateusers', function(listOfUsers) {
+
     users.innerHTML = "";
     for(var name in listOfUsers) {
         var userLineOfHTML = '<div>' + name + '</div>';
         users.innerHTML += userLineOfHTML;
     }
 });
+
+socket.on('validate', function(team, message){
+    var modal = $("#myModal");
+    //la team a déjà un onglet
+    if(modal.find("#"+team).length != 0)
+    {
+        console.log("coucou");
+    }
+    else{
+        console.log("hey");
+        var modal = $("#modal_list");
+        var active_list = "";
+        var active_content = "";
+        if(modal.children().length == 0)
+        {
+            active_list = "active";
+            active_content = " in active";
+        }
+        
+        
+        var titreOnglet = "<li class=\""+active_list+"\"><a data-toggle=\"tab\" href=\"#"+team+"\">"+team+"</a></li>";
+        modal.append(titreOnglet);
+        
+        var modalContent = $("#modal_content");
+        content = "<div id=\""+team+"\" class=\"tab-pane fade"+active_content+"\">"+  
+                  "   <div class=\"panel panel-default\" style=\"margin: 10px;\">"+
+                  "      <div class=\"panel-body\">"+
+                  "          <p>"+message+"</p>"+                              
+                  "      </div>"+
+                  "  </div> "+   
+                  "</div>";
+                  
+        modalContent.append(content);
+    }
     
+    if(!modal.is(":visible"))
+    {
+        $("#modalButton").addClass("btn-danger");
+    }
+
+});
+   
+function removeWarning(){
+    $("#modalButton").removeClass("btn-danger");
+}   
+
+function invalidStep(){
+    //on supprime l'onglet actif
+    if($("#modal_list").children().length != 0)
+    {
+        $("#modal_list").find(".active").remove();
+        $("#modal_content").find(".active").remove();
+        
+        //on envoie un message KO
+    }
+    //si il reste un element
+    if($("#modal_list").children().length != 0)
+    {
+        $("#modal_list").children().eq(0).addClass("active");
+        $("#modal_content").children().eq(0).addClass("in active");
+    }
+}
+
+function validStep(){
+    //on supprime l'onglet actif
+    if($("#modal_list").children().length != 0)
+    {
+        $("#modal_list").find(".active").remove();
+        $("#modal_content").find(".active").remove();
+        
+        //on envoie un evenement pour que le serveur soit au courant
+    }
+    //si il reste un element
+    if($("#modal_list").children().length != 0)
+    {
+        $("#modal_list").children().eq(0).addClass("active");
+        $("#modal_content").children().eq(0).addClass("in active");
+    }
+}
  
 if(navigator.geolocation) {
  

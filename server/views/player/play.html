@@ -48,10 +48,10 @@
         
         <div id="tabPlay" class="tab-pane fade">   
             <div class="container" >
-                <h3 id="headerStep"></h3>
+                <h3 id="headerStep">hey !!</h3>
                 <p id="description"></p>
             </div>        
-            
+            <button type="button" class="btn btn-primary" onclick="validation();">Launch demo modal</button>
             <nav class="navbar-fixed-bottom">
               <div id="messageWarning" hidden class="container" style="background-color: red; color: white; padding: 10px; font-weight: bold; text-align: center;">
                 Warning! You are out of the area
@@ -204,6 +204,11 @@
 
 
     }   
+    
+    //permet d'envoyer une demande de validation au GM
+    function validation(){
+        socket.emit("validation", team, "Valide moi !! je suis de la team : "+team);
+    }
     
     // sends the chat message to the server
     function sendMessage(room) {

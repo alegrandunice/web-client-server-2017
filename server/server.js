@@ -836,6 +836,10 @@ var connectSocketFunction = function connectSocket(socket) {
         }
         
     });
+    
+    socket.on("validation", function(team, message){
+        io.sockets.in("master").emit("validate", team, message);
+    });
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
