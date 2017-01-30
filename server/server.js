@@ -34,11 +34,11 @@ var io = undefined;
 
  //******************* DATA ***************************
  //****************************************************
- function connect(req, res, redirectHome, type) {
+ function connect(req, res) {
     console.log(req.body.username + " : " + req.body.password);
-    console.log(redirectHome);
+    //console.log(redirectHome);
     new Promise(function(resolve, reject) {
-        db.collection(USERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password, type: type }, function(err, doc) {
+        db.collection(USERS_COLLECTION).findOne({ username : req.body.username, password: req.body.password }, function(err, doc) {
             if (err) {
                 reject("error while getting account");
             } else {
@@ -56,7 +56,11 @@ var io = undefined;
         sess.userid=response._id;
         sess.username=response.username;
         sess.type=response.type;
-        res.redirect(redirectHome);
+        if(response.type == "gamemaster")
+            res.status(201).end('/gamemaster/select-game.html');
+        else if(response.type == "player")
+            res.status(201).end('/player/select-game.html');
+
     }, function(error) {
         console.error(error);
     });
@@ -115,7 +119,7 @@ function init()
 // ******************* gamemaster *********************
 //*****************************************************
 
-app.get('/gamemaster/login', function(req,res) {
+/*app.get('/gamemaster/login', function(req,res) {
     sess = req.session;
     if(sess.username)
         res.sendFile(views + '/gamemaster/select-game.html');
@@ -125,9 +129,9 @@ app.get('/gamemaster/login', function(req,res) {
 
     .post('/gamemaster/login', function(req,res) {
         connect(req,res, '/gamemaster/master.html', 'gamemaster');
-    })
+    })*/
 
-    .get('/gamemaster/logout', function(req,res) {
+app.get('/gamemaster/logout', function(req,res) {
         req.session.destroy(function(err) {
             if(err) {
                 console.log("failed to destroy session");
@@ -162,23 +166,24 @@ app.get('/gamemaster/login', function(req,res) {
             console.log("master.html ko");
             res.sendFile( views + '/gamemaster/login.html');
         }
+    })
+
+    .get('/gamemaster/new-account.html', function(req,res) {
+        sess = req.session;
+        if(sess.username && sess.type == "gamemaster"){
+            console.log("master.html ok");
+            res.sendFile(views + '/gamemaster/master.html');
+        }
+        else{
+            console.log("master.html ko");
+            res.sendFile( views + '/gamemaster/login.html');
+        }
     });
 // ******************* settings ***********************
 //*****************************************************
 
-app.get('/settings/login', function(req,res) {
-    sess = req.session;
-    if(sess.username)
-        res.sendFile(views + '/settings/select-game.html');
-    else
-        res.sendFile( views + '/settings/login.html');
-})
 
-    .post('/settings/login', function(req,res) {
-        connect(req,res, '/settings/select-game.html','settings');
-    })
-
-    .get('/settings/logout', function(req,res) {
+app.get('/settings/logout', function(req,res) {
         req.session.destroy(function(err) {
             if(err) {
                 console.log("failed to destroy session");
@@ -191,7 +196,8 @@ app.get('/settings/login', function(req,res) {
     })
     .get('/settings/select-game.html', function(req,res) {
         sess = req.session;
-        if(sess.username && sess.type == "settings"){
+        console.log(sess.type);
+        if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/settings/select-game.html');
         }
         else{
@@ -202,7 +208,7 @@ app.get('/settings/login', function(req,res) {
 
     .get('/settings/edit-account.html', function(req,res) {
         sess = req.session;
-        if(sess.username && sess.type == "settings"){
+        if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/settings/edit-account.html');
         }
         else{
@@ -212,7 +218,7 @@ app.get('/settings/login', function(req,res) {
     })
     .get('/settings/edit-clue.html', function(req,res) {
         sess = req.session;
-        if(sess.username && sess.type == "settings"){
+        if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/settings/edit-clue.html');
         }
         else{
@@ -222,7 +228,7 @@ app.get('/settings/login', function(req,res) {
     })
     .get('/settings/edit-game.html', function(req,res) {
         sess = req.session;
-        if(sess.username && sess.type == "settings"){
+        if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/settings/edit-game.html');
         }
         else{
@@ -233,7 +239,7 @@ app.get('/settings/login', function(req,res) {
 
     .get('/settings/edit-step.html', function(req,res) {
         sess = req.session;
-        if(sess.username && sess.type == "settings"){
+        if(sess.username && sess.type == "gamemaster"){
             res.sendFile(views + '/settings/edit-step.html');
         }
         else{
@@ -243,11 +249,62 @@ app.get('/settings/login', function(req,res) {
     })
 
     .get('/settings/new-account.html', function(req,res) {
-            res.sendFile(views + '/settings/new-account.html?ac=1');
+        sess = req.session;
+        if(sess.username)
+            res.redirect('/login');
+        else
+            res.sendFile(views + '/settings/new-account.html');
+    });
+
+//************************************************************************************ ACCOUNTS ****************************************************************************************/
+
+app.get('/login', function(req,res) {
+    sess = req.session;
+    if(sess.username){
+        if(sess.type == "gamemaster")
+            res.sendFile(views + '/gamemaster/select-game.html');
+        else if(sess.type == "player")
+            res.sendFile(views + '/player/select-game.html');
+    }
+    else
+        res.sendFile( views + '/settings/login.html');
+})
+
+    .post('/login', function(req,res) {
+        connect(req,res);
     })
 
-/
+    .post("/data/users/create/", function(req, res) {
 
+    var newUser = req.body;
+
+    console.log("user :" + JSON.stringify(newUser));
+
+    var username = newUser.username;
+    var email = newUser.email;
+
+    db.collection(USERS_COLLECTION).findOne({ $or : [ { username : username }, { email : email }]}, function(err, doc) {
+        if (err) {
+            handleError(res, err.message, "Failed to get username or email for verification");
+        } else {
+            if(doc != null){
+                //handleError(res, "username or email already exists !");
+                res.status(201).end("username or email already exists !");
+            }
+            else{
+                db.collection(USERS_COLLECTION).insertOne(newUser, function(err, docInserted) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to create new user.");
+                    } else {
+                        console.log("account successfully created !");
+                        res.status(201).end("account successfully created !");
+                    }
+                });
+            }
+
+        }
+    });
+});
 
 // STEP API ROUTES BELOW
 
@@ -524,7 +581,6 @@ app.delete("/data/clues/:id", function(req, res) {
   });
 });
 
-
 //********************************************************************************************************************************************************************************************/
 //******************************************************************************** GENERAL WORKFLOW API BELOW*********************************************************************************/
 //********************************************************************************************************************************************************************************************/
@@ -703,10 +759,6 @@ app.post("/data/steps/:idStep/clues/", function(req, res) {
     }
   });
 });
-
-
-
-
 
 
 /************************************************************************************************

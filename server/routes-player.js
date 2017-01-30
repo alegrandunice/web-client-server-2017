@@ -3,8 +3,8 @@ var ObjectID = mongodb.ObjectID;
 
 module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION){
 
-    app
-        .get('/player/login', function(req,res) {
+
+        /*.get('/player/login', function(req,res) {
             console.log("get login");
             sess = req.session;
             if(sess.username)
@@ -14,7 +14,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         })
         .post('/player/login', function(req,res) {
             connect(req,res,'/player/select-game.html', 'player');
-        })
+        })*/
+    app
         .get('/player/logout', function(req,res) {
             console.log("Im the put");
             //res.redirect('/login');

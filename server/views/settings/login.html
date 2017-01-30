@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Game Settings - Login</title>
+    <title>Login</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 <body>
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
-            <h3>Login for Settings </h3>
+            <h3>Login</h3>
             <form onsubmit="formOnSubmit(event)" id="loginForm" method="post">
                 <div class="form-group">
                   <input type="text" placeholder="User" name="username" class="form-control">
@@ -31,7 +31,7 @@
                 <button type="submit" class="btn btn-success">Sign in</button>            
             </form>
         </div>
-        <p><a href="new-account.html?ac=1">Create a new game master account</a></p>
+        <p><a href="settings/new-account.html">Create a new account</a></p>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -52,8 +52,8 @@
             $inputs.each(function() {
                 jsonToSend[this.name] = $(this).val();
             });
-            postRequest('login', jsonToSend).then(function(response) {
-                document.location.href = '/settings/select-game.html';
+            postRequest('../login', jsonToSend).then(function(response) {
+                document.location.href = response;
                 //var jsonReceived = JSON.parse(response);
                 //htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
             }, function(error) {
