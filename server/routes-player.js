@@ -14,8 +14,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         })
         .post('/player/login', function(req,res) {
             connect(req,res,'/player/select-game.html', 'player');
-        })*/
-    app
+        })
+
         .get('/player/logout', function(req,res) {
             console.log("Im the put");
             //res.redirect('/login');
@@ -28,7 +28,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                     res.redirect('/player/login');
                 }
             });
-        })
+        }*/
+    app
         .get('/player/select-game.html', function(req,res) {
             console.log("I'm here");
             sess = req.session;
@@ -37,7 +38,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/player/select-team.html', function(req,res) {
@@ -47,7 +48,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/player/play.html', function(req,res) {
@@ -57,7 +58,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/data/player/games-in', function(req,res) {
@@ -74,7 +75,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .post('/data/player/games-not', function(req,res) {
@@ -106,7 +107,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .delete('/data/player/exit-game/:idgame', function(req,res) {
@@ -136,7 +137,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .post('/data/player/checkgame', function(req,res) {
@@ -161,7 +162,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/data/player/teams/:idgame', function(req,res) {
@@ -181,7 +182,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .post('/data/player/teams', function(req,res) {
@@ -208,7 +209,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .post('/data/player/check-team', function(req,res) {
@@ -249,7 +250,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/data/player/infos-user/:idgame', function(req,res) {
@@ -274,14 +275,14 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                         }
                         else {
                             console.log("fail");
-                            res.sendFile( views + '/player/login.html');
+                            res.redirect('/login');
                         }
                     }
                 });
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/data/player/current-step/:idgame', function(req,res) {
@@ -314,7 +315,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .put('/data/player/send-answer', function(req,res) {
@@ -325,7 +326,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .put('/data/player/endpoint-reached', function(req,res) {
@@ -336,7 +337,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
         .get('/data/player/consume-clue', function(req,res) {
@@ -347,7 +348,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             }
             else{
                 console.log("fail");
-                res.sendFile( views + '/player/login.html');
+                res.redirect('/login');
             }
         })
 

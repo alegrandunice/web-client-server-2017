@@ -138,9 +138,9 @@ function init()
 
     .post('/gamemaster/login', function(req,res) {
         connect(req,res, '/gamemaster/master.html', 'gamemaster');
-    })*/
+    })
 
-app.get('/gamemaster/logout', function(req,res) {
+    .get('/gamemaster/logout', function(req,res) {
         req.session.destroy(function(err) {
             if(err) {
                 console.log("failed to destroy session");
@@ -150,8 +150,8 @@ app.get('/gamemaster/logout', function(req,res) {
                 res.redirect('/gamemaster/login');
             }
         });
-    })
-
+    })*/
+app
     .get('/gamemaster/select-game.html', function(req,res) {
         console.log("select game master");
         sess = req.session;
@@ -160,7 +160,7 @@ app.get('/gamemaster/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/gamemaster/login.html');
+            res.redirect('/login');
         }
     })
 
@@ -173,11 +173,11 @@ app.get('/gamemaster/logout', function(req,res) {
         }
         else{
             console.log("master.html ko");
-            res.sendFile( views + '/gamemaster/login.html');
+            res.redirect('/login');
         }
-    })
+    });
 
-    .get('/gamemaster/new-account.html', function(req,res) {
+    /*.get('/gamemaster/new-account.html', function(req,res) {
         sess = req.session;
         if(sess.username && sess.type == "gamemaster"){
             console.log("master.html ok");
@@ -185,24 +185,13 @@ app.get('/gamemaster/logout', function(req,res) {
         }
         else{
             console.log("master.html ko");
-            res.sendFile( views + '/gamemaster/login.html');
+            res.redirect('/login');
         }
-    });
+    })*/
 // ******************* settings ***********************
 //*****************************************************
 
-
-app.get('/settings/logout', function(req,res) {
-        req.session.destroy(function(err) {
-            if(err) {
-                console.log("failed to destroy session");
-                console.log(err);
-            } else {
-                console.log("session destroyed");
-                res.redirect('/login');
-            }
-        });
-    })
+app
     .get('/settings/select-game.html', function(req,res) {
         sess = req.session;
         console.log(sess.type);
@@ -211,7 +200,7 @@ app.get('/settings/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/settings/login.html');
+            res.redirect('/login');
         }
     })
 
@@ -222,7 +211,7 @@ app.get('/settings/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/settings/login.html');
+            res.redirect('/login');
         }
     })
     .get('/settings/edit-clue.html', function(req,res) {
@@ -232,7 +221,7 @@ app.get('/settings/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/settings/login.html');
+            res.redirect('/login');
         }
     })
     .get('/settings/edit-game.html', function(req,res) {
@@ -242,7 +231,7 @@ app.get('/settings/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/settings/login.html');
+            res.redirect('/login');
         }
     })
 
@@ -253,7 +242,7 @@ app.get('/settings/logout', function(req,res) {
         }
         else{
             console.log("fail");
-            res.sendFile( views + '/settings/login.html');
+            res.redirect('/login');
         }
     })
 
@@ -263,6 +252,7 @@ app.get('/settings/logout', function(req,res) {
             res.redirect('/login');
         else
             res.sendFile(views + '/settings/new-account.html');
+
     });
 
 //************************************************************************************ ACCOUNTS ****************************************************************************************/
@@ -283,37 +273,49 @@ app.get('/login', function(req,res) {
         connect(req,res);
     })
 
+    .get('/logout', function(req,res) {
+        req.session.destroy(function(err) {
+            if(err) {
+                console.log("failed to destroy session");
+                console.log(err);
+            } else {
+                console.log("session destroyed");
+                res.redirect('/login');
+            }
+        });
+    })
+
     .post("/data/users/create/", function(req, res) {
 
-    var newUser = req.body;
+        var newUser = req.body;
 
-    console.log("user :" + JSON.stringify(newUser));
+        console.log("user :" + JSON.stringify(newUser));
 
-    var username = newUser.username;
-    var email = newUser.email;
+        var username = newUser.username;
+        var email = newUser.email;
 
-    db.collection(USERS_COLLECTION).findOne({ $or : [ { username : username }, { email : email }]}, function(err, doc) {
-        if (err) {
-            handleError(res, err.message, "Failed to get username or email for verification");
-        } else {
-            if(doc != null){
-                //handleError(res, "username or email already exists !");
-                res.status(201).end("username or email already exists !");
+        db.collection(USERS_COLLECTION).findOne({ $or : [ { username : username }, { email : email }]}, function(err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to get username or email for verification");
+            } else {
+                if(doc != null){
+                    //handleError(res, "username or email already exists !");
+                    res.status(201).end("username or email already exists !");
+                }
+                else{
+                    db.collection(USERS_COLLECTION).insertOne(newUser, function(err, docInserted) {
+                        if (err) {
+                            handleError(res, err.message, "Failed to create new user.");
+                        } else {
+                            console.log("account successfully created !");
+                            res.status(201).end("account successfully created !");
+                        }
+                    });
+                }
+
             }
-            else{
-                db.collection(USERS_COLLECTION).insertOne(newUser, function(err, docInserted) {
-                    if (err) {
-                        handleError(res, err.message, "Failed to create new user.");
-                    } else {
-                        console.log("account successfully created !");
-                        res.status(201).end("account successfully created !");
-                    }
-                });
-            }
-
-        }
+        });
     });
-});
 
 
 

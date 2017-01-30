@@ -24,9 +24,9 @@
 <script>
 
     function logout() {
-        getRequest('/gamemaster/logout').then(function(response) {
+        getRequest('/logout').then(function(response) {
 
-            document.location.href = '/gamemaster/login';
+            document.location.href = '/login';
 
             console.log("Get Success!", response);
         }, function(error) {

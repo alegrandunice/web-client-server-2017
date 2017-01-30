@@ -21,9 +21,11 @@
     <div class="container" style="margin-top:10px; ">
         <div class="row" >                                    
             <div class="col-xs-8" >
-                <button class="btn btn-success" onclick="createNewGame(event)">Create a new game</button>            
+                <button class="btn btn-success" onclick="createNewGame(event)">Create a new game</button>
+                <button class="btn" onclick="document.location.href = '/gamemaster/select-game.html'; return false;">Master</button>
+                <button class="btn" onclick="logout(); return false;">Logout</button>
             </div>
-            <div class="col-xs-4" style="text-align: right;">            
+            <div class="col-xs-4" style="text-align: right;">
                 <a href="edit-account.html?ac=1"><span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 2em;" data-toggle="tooltip" title="Edit your game master account"></span></a>
             </div>
         </div>              
@@ -95,7 +97,18 @@
                     + '    </div>'
                     + '</div>';
     }
-    
+
+    function logout() {
+        getRequest('/logout').then(function(response) {
+
+            document.location.href = '/login';
+
+            console.log("Get Success!", response);
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+    }
+
     function createNewGame(event) {
         var jsonToSend = {
             "name": "(new game)",
