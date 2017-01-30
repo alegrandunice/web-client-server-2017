@@ -911,11 +911,13 @@ var connectSocketFunction = function connectSocket(socket) {
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
 		io.sockets.emit('updatechat', socket.username, data);
+        console.log('ici');
 	});
     
     //permet de gere les messages dans les rooms spécifiques
     socket.on('send', function(data) {
         io.sockets.in(data.room).emit('message', socket.username, data);
+        console.log('la');
     });
 
 	// when the client emits 'adduser', this listens and executes
@@ -941,7 +943,7 @@ var connectSocketFunction = function connectSocket(socket) {
 		socket.emit('updatechat', 'SERVER', 'you have connected');
 
         //on envoie les rooms que l'utilisateur doit rejoindre
-        socket.emit('joinRooms', 'SERVER', listOfPlayers[username].roomsList);
+        socket.emit('joinRooms', listOfPlayers[username].roomsList);
 		// echo to all client except current, that a new person has connected
 		socket.broadcast.emit('updatechat', username + ' has connected');
 		// tell all clients to update the list of users on the GUI
