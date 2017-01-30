@@ -102,8 +102,8 @@
             
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-success" onclick="validStep();">Valide</button>
-            <button type="button" class="btn btn-danger" onclick="invalidStep();">Invalide</button>
+            <button type="button" class="btn btn-success" onclick="validStep(true);">Valide</button>
+            <button type="button" class="btn btn-danger" onclick="validStep(false);">Invalide</button>
             <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
             
           </div>
@@ -516,26 +516,7 @@ function removeWarning(){
     $("#modalButton").removeClass("btn-danger");
 }   
 
-function invalidStep(){
-    //on supprime l'onglet actif
-    if($("#modal_list").children().length != 0)
-    {
-        var team = $("#modal_list").find(".active").children().eq(0).data("team");
-        $("#modal_list").find(".active").remove();
-        $("#modal_content").find(".active").remove();
-        
-        //on envoie un message KO
-        socket.emit('ValidateStep', team, false);
-    }
-    //si il reste un element
-    if($("#modal_list").children().length != 0)
-    {
-        $("#modal_list").children().eq(0).addClass("active");
-        $("#modal_content").children().eq(0).addClass("in active");
-    }
-}
-
-function validStep(){
+function validStep(isValid){
     //on supprime l'onglet actif
     if($("#modal_list").children().length != 0)
     {
@@ -544,7 +525,7 @@ function validStep(){
         $("#modal_content").find(".active").remove();
         
         //on envoie un evenement pour que le serveur soit au courant
-        socket.emit('ValidateStep', team, true);
+        socket.emit('ValidateStep', team, isValid);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)
@@ -552,7 +533,12 @@ function validStep(){
         $("#modal_list").children().eq(0).addClass("active");
         $("#modal_content").children().eq(0).addClass("in active");
     }
+    else{
+        //fermeture de la modal
+        $("#myModal").modal("hide");
+    }
 }
+
  
 if(navigator.geolocation) {
  
