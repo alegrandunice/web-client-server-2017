@@ -294,21 +294,29 @@
     
     function resizeMap(){
         var bounds = new google.maps.LatLngBounds();
+        var nb_marker = 0;
         for (marker in markersList)
         {
-        
+            nb_marker++;
             bounds.extend(markersList[marker].getPosition());
         }
         
-        map.fitBounds(bounds);
+        if(nb_marker != 0)
+        {
+            map.fitBounds(bounds);
         
-        google.maps.event.addListenerOnce(map, 'bounds_changed', function(event){
-            map.setZoom(map.getZoom()-1);
-            
-            if(map.getZoom()> 16){
-                map.setZoom(16);
-            }
-        });
+            google.maps.event.addListenerOnce(map, 'bounds_changed', function(event){
+                map.setZoom(map.getZoom()-1);
+                
+                if(map.getZoom()> 16){
+                    map.setZoom(16);
+                }
+            });
+        }
+        else {
+            //Quand le dernier joueur est parti
+        }
+        
     }
     
     
@@ -482,7 +490,7 @@ socket.on('validate', function(team, message){
         }
         
         
-        var titreOnglet = "<li class=\""+active_list+"\"><a data-toggle=\"tab\" href=\"#"+team+"\">"+team+"</a></li>";
+        var titreOnglet = "<li class=\""+active_list+"\"><a data-team=\""+team+"\" data-toggle=\"tab\" href=\"#"+team+"\">"+team+"</a></li>";
         modal.append(titreOnglet);
         
         var modalContent = $("#modal_content");
@@ -512,10 +520,12 @@ function invalidStep(){
     //on supprime l'onglet actif
     if($("#modal_list").children().length != 0)
     {
+        var team = $("#modal_list").find(".active").children().eq(0).data("team");
         $("#modal_list").find(".active").remove();
         $("#modal_content").find(".active").remove();
         
         //on envoie un message KO
+        socket.emit('ValidateStep', team, false);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)
@@ -529,10 +539,12 @@ function validStep(){
     //on supprime l'onglet actif
     if($("#modal_list").children().length != 0)
     {
+        var team = $("#modal_list").find(".active").children().eq(0).data("team");
         $("#modal_list").find(".active").remove();
         $("#modal_content").find(".active").remove();
         
         //on envoie un evenement pour que le serveur soit au courant
+        socket.emit('ValidateStep', team, true);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)

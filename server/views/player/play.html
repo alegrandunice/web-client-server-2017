@@ -136,7 +136,7 @@
     var checkEverySecond;
     var currentStep, currentGame;
     var conversation, room1, room2, data, dataRoom1, dataRoom2, datasend, datasendroom1, datasendroom2, users, roomName1, roomName2;   
-	var socket = io.connect();
+	var socket;
     
     function onLoad() {
     
@@ -220,15 +220,124 @@
 
             username = jsonReceived.username;
             team = jsonReceived.teamname;
+            
+            //on se connect sur la socket
+            
+            initSocket();
+            
 
         }, function(error) {
             console.error("Get Failed!", error);
         });
-    }   
+    }
+
+    function initSocket(){
+        socket = io.connect();
+            
+        // on connection to server, ask for user's name with an anonymous callback
+        socket.on('connect', connectUser);
+        // listener, whenever the server emits 'updatechat', this updates the chat body 
+        socket.on('updatechat', updateChat);
+        //listener, whenever the server emits 'message', this update the correct room body
+        socket.on('message', updateRoomChat);
+        //listener, the server say which room the client must join
+        socket.on('joinRooms', joinRooms);
+        // listener, whenever the server emits 'updateusers', this updates the username list
+        socket.on('updateusers', updatePlayerList);
+        // update the whole list of players, useful when a player
+        // connects or disconnects, we must update the whole list
+        socket.on('updatePlayers', updateUsernameList);
+        //listener for validating the step
+        socket.on('resultValidationStep', updateStep);
+
+    }
+    
+    /**************************************************
+    ***************  CALLBACK  SOCKET   ***************
+    **************************************************/
+    
+    //Fonction permettant de donner au serveur le nom, l'équipe et la position initiale du joueur. Associé à 'connect'
+    function connectUser(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+        navigator.geolocation.getCurrentPosition(function(pos) {
+        
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            socket.emit('adduser', userdata);
+        });
+    };
+    
+    //fonction permettant de modifier le texte du chat général du joueur. Associé à 'updatechat'
+    function updateChat(username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	};
+    
+    //fonction permettant de modifier le texte d'une room . Associé à 'message'
+    function updateRoomChat(username, data) {
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        switch(data.room) {
+                case roomName1:
+                    room1.innerHTML += chatMessage;
+                break;
+                case roomName2:
+                    room2.innerHTML += chatMessage;
+                break;
+                default:
+                    conversation.innerHTML += chatMessage; 
+                    
+            }
+        
+    };
+    
+    //fonction permettant de rejoindre les rooms de l'équipe. Associé à 'joinRooms'
+    function joinRooms(groupRooms){
+        var i = 1;
+        for(var room in groupRooms)
+        {
+            socket.emit('subscribe', groupRooms[room]);
+            if(i == 1)
+            {
+                roomName1 = groupRooms[room];
+                i++;
+            }
+            else{
+                roomName2 = groupRooms[room];
+            }
+        } 
+    };
+    
+    //fonction permettant de mettre à jour la liste des joueurs. Associé à 'updateusers'
+    function updatePlayerList(listOfUsers) {
+		users.innerHTML = "";
+		for(var name in listOfUsers) {
+    		var userLineOfHTML = '<div>' + name + '</div>';
+    		users.innerHTML += userLineOfHTML;
+  		}
+	};
+    
+    //Associé à 'updatePlayers'
+    function updateUsernameList(listOfplayers) {
+        console.log(listOfplayers);
+        //updatePlayers(listOfplayers);
+    }
+    
+    //fonction permettant de valider ou invalider la reponse du joueur. Associé à 'resultValidationStep'
+    function updateStep(isValid){
+        console.log("resultValidationStep", isValid);
+        
+        //Arnaud met ton code ici stp :D
+        
+    }
+
+    
+    /**************************************************
+    *************** FIN CALLBACK SOCKET ***************
+    **************************************************/
+    
     
     //permet d'envoyer une demande de validation au GM
     function validation(){
-        socket.emit("validation", team, "Valide moi !! je suis de la team : "+team);
+        socket.emit("validationStep", team, "Valide moi !! je suis de la team : "+team);
     }
     
     // sends the chat message to the server
@@ -256,9 +365,7 @@
     }
     
     function testWatch(position){
-        console.log('testwatch', position);
         var data = {username:username, lat:position.coords.latitude, lng:position.coords.longitude};
-        console.log(data);
         socket.emit('updatePlayerPosition', data);
     }
     function errorTestPosition(error)
@@ -266,73 +373,6 @@
         console.log(error);
     }
     
-
-	// on connection to server, ask for user's name with an anonymous callback
-	socket.on('connect', function(){
-		// call the server-side function 'adduser' and send one parameter (value of prompt)
-        navigator.geolocation.getCurrentPosition(function(pos) {
-        
-            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
-            socket.emit('adduser', userdata);
-        });
-        
-	});
-
-	// listener, whenever the server emits 'updatechat', this updates the chat body 
-	socket.on('updatechat', function (username, data) {
-		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
-		conversation.innerHTML += chatMessage; 
-	});
-    
-    socket.on('message', function (username, data) {
-        console.log(data);
-        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
-        switch(data.room) {
-                case roomName1:
-                    room1.innerHTML += chatMessage;
-                break;
-                case roomName2:
-                    room2.innerHTML += chatMessage;
-                break;
-                default:
-                    conversation.innerHTML += chatMessage; 
-                    
-            }
-        
-    });
-    
-    socket.on('joinRooms', function(sendTo, groupRooms){
-        var i = 1;
-        for(var room in groupRooms)
-        {
-            socket.emit('subscribe', groupRooms[room]);
-            if(i == 1)
-            {
-                roomName1 = groupRooms[room];
-                i++;
-            }
-            else{
-                roomName2 = groupRooms[room];
-            }
-        } 
-    });
-
-	// listener, whenever the server emits 'updateusers', this updates the username list
-	socket.on('updateusers', function(listOfUsers) {
-		users.innerHTML = "";
-		for(var name in listOfUsers) {
-    		var userLineOfHTML = '<div>' + name + '</div>';
-    		users.innerHTML += userLineOfHTML;
-  		}
-	});
-    
-
-	// update the whole list of players, useful when a player
-	// connects or disconnects, we must update the whole list
-	socket.on('updatePlayers', function(listOfplayers) {
-		updatePlayers(listOfplayers);
-	});
-
     
     function retrieveCurrentStep() {
         //TODO: retreive current step (first one, or last step if crashed)
