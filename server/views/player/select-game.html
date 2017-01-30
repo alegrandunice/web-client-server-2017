@@ -73,14 +73,16 @@
     
     function onLoad() {
                 
-        getRequest('../data/games').then(function(response) {
+        getRequest('../data/player/games-in').then(function(response) {
             console.log(response);
             var jsonReceived = JSON.parse(response);
             var gamesInProgress = document.getElementById("gamesInProgress");
 
-            jsonReceived.forEach((j) => {
-                htmlAppendGameInProgress(gamesInProgress, j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
-            });
+            if (jsonReceived.length !== undefined) {
+                jsonReceived.forEach((j) => {
+                    htmlAppendGameInProgress(gamesInProgress, j._id, j.name, j.status, (j.game_type === undefined ? "" : j.game_type), (j.steps ? j.steps.length : 0));
+                });
+            }
                         
         }, function(error) {
             console.error("Get Failed!", error);
@@ -115,13 +117,15 @@
             fetchError.hidden = false;
         }
         else {        
-            getRequest('../data/games').then(function(response) {
+            postRequest('../data/player/games-not', jsonToSend).then(function(response) {
                 console.log("Get Success!", response);
-                var jsonReceived = JSON.parse(response);                
-                
-                jsonReceived.forEach((j) => {
-                    htmlAppendOpenedGames(openedGames, j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
-                });
+                var jsonReceived = JSON.parse(response);
+
+                if (jsonReceived.length !== undefined) {
+                    jsonReceived.forEach((j) => {
+                        htmlAppendOpenedGames(openedGames, j._id, j.name, (j.game_type === undefined ? "" : j.game_type), (j.steps ? j.steps.length : 0));
+                    });
+                }
                             
             }, function(error) {
                 console.error("Get Failed!", error);
@@ -129,7 +133,7 @@
         }          
     }
     
-    function htmlAppendGameInProgress(gamesList, idGame, name, status, steps) {
+    function htmlAppendGameInProgress(gamesList, idGame, name, status, gameType,  steps) {
 
         gamesList.innerHTML += ''
                     + '<div class="container">'                    
@@ -137,7 +141,7 @@
                     + '        <div class="panel-heading">'
                     + '            <div class="row" >'                                    
                     + '                <div class="col-xs-4" >'
-                    + '                    <a href="./select-team.html?idgame=' + idGame + '" style="text-decoration: none; ">'
+                    + '                    <a href="./play.html?idgame=' + idGame + '" style="text-decoration: none; ">'
                     + '                        <h3  class="panel-title">' + name + '</h3>'
                     + '                    </a>'
                     + '                </div>'          
@@ -152,8 +156,8 @@
                     + '        <div class="panel-body">'
                     + '            <div class="row">'
                     + '                <div class="col-xs-8">'
-                    + '                    <a href="./select-team.html?idgame=' + idGame + '" style="text-decoration: none; ">'
-                    + '                        Game type'
+                    + '                    <a href="./play.html?idgame=' + idGame + '" style="text-decoration: none; ">'
+                    + '                        ' + gameType
                     + '                    </a>'
                     + '                </div>'
                     + '                <div class="col-xs-4">'
@@ -166,7 +170,7 @@
                 
     }
     
-    function htmlAppendOpenedGames(gamesList, idGame, name, status, steps) {
+    function htmlAppendOpenedGames(gamesList, idGame, name, gameType, steps) {
 
         gamesList.innerHTML += ''
                     + '<div class="container">'                    
@@ -182,6 +186,7 @@
                     + '                    </div>'
                     + '                </div>'
                     + '                <div class="col-sm-4" style="text-align: right;">'
+                    + '                    <span hidden id="createError' + idGame + '" style="margin-right: 10px; color: red; font-weight: bold;"></span>'
                     + '                    <button class="btn btn-success" onclick="enterGame(event, \'' + idGame + '\');" style="margin-left: 0px;">Enter</button>'
                     + '                </div>'                       
                     + '            </div>'
@@ -189,7 +194,7 @@
                     + '        <div class="panel-body">'
                     + '            <div class="row">'
                     + '                <div class="col-xs-8">'
-                    + '                    Game type'
+                    + '                    ' + gameType
                     + '                </div>'
                     + '                <div class="col-xs-4">'
                     + '                    <span class="badge">' + steps.toString() + ' step' + ((steps > 1) ? 's' : '') + '</span>'
@@ -203,11 +208,48 @@
     }
     
     function exitGame(event, idGame) {
+        if (idGame !== undefined) {
+            var result = confirm("Exit this game?");
+            if (result) {
+                deleteRequest('../data/player/exit-game/' + idGame).then(function(response) {
+                    console.log("Exit Success!", response);
+                    location.reload();
+                }, function(error) {
+                    console.error("Exit Failed!", error);
+                });
+            }
+        }
     }
     
     function enterGame(event, idGame) {
-        var accessKey = document.getElementById("accessKey" + idGame);
-        document.location = "./select-team.html?idgame=" + idGame + "&accessKey=" + accessKey.value;
+        let accessKey = document.getElementById("accessKey" + idGame);
+        let createError = document.getElementById("createError" + idGame);
+
+        createError.hidden = true;
+
+        let  key  = accessKey.value.trim().replace(/\s/g, "");
+
+        if (key != "") {
+            postRequest('../data/player/checkgame', { idgame: idGame, accesskey: key}).then(function(response) {
+                console.log("Check Success!", response);
+                var jsonReceived = JSON.parse(response);
+
+                if (jsonReceived.result === undefined) {
+                    console.log("Post Success!", response);
+                    accessKey.value = "";
+                    document.location = "./select-team.html?idgame=" + idGame;
+                }
+                else {
+                    createError.innerHTML = jsonReceived.result;
+                    createError.hidden = false;
+                }
+
+            });
+        }
+        else {
+            createError.innerHTML = "You have to enter an Access Key";
+            createError.hidden = false;
+        }
     }
     
     </script>

@@ -61,6 +61,7 @@ var io = undefined;
     }).then(function(response) {
         console.log("doc retreived from db : " + JSON.stringify(response));
         sess = req.session;
+        sess.userid=response._id;
         sess.username=response.username;
         sess.type=response.type;
         res.redirect(redirectHome);
@@ -791,12 +792,12 @@ app.post("/data/steps/:idStep/clues/", function(req, res) {
 ************************************************************************************************/
 // routing
 app.get('/test', function (req, res) {
-  res.sendFile(__dirname + '/public/settings/simpleChat.html');
+  res.sendFile(__dirname + '/public/player/play.html');
 });
 
 
 app.get('/master',function (req, res) {
-  res.sendFile(__dirname + '/public/settings/master.html');
+  res.sendFile(__dirname + '/public/player/master.html');
 });
 
 app.post('/send/:room/', function(req, res) {
@@ -870,16 +871,14 @@ var connectSocketFunction = function connectSocket(socket) {
 
 	// when the client emits 'adduser', this listens and executes
 	socket.on('adduser', function(userdata){
-	       
+	       console.log("Hello " + userdata['username']);
         username = userdata['username'];
         
         listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long']);
 
         if(typeof(listOfTeams[userdata['team']]) === "undefined")
         {
-            listOfTeams[userdata['team']]= userdata['team'];
-            
-            io.sockets.in("master").emit('addRoom', listOfPlayers[username].roomsList["withMaster"]);
+            listOfTeams[userdata['team']]= listOfPlayers[username].roomsList;
            
         }
         
@@ -895,7 +894,7 @@ var connectSocketFunction = function connectSocket(socket) {
         //on envoie les rooms que l'utilisateur doit rejoindre
         socket.emit('joinRooms', 'SERVER', listOfPlayers[username].roomsList);
 		// echo to all client except current, that a new person has connected
-		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
+		socket.broadcast.emit('updatechat', username + ' has connected');
 		// tell all clients to update the list of users on the GUI
 		io.sockets.emit("updateusers", usernames);
 	});
@@ -915,6 +914,16 @@ var connectSocketFunction = function connectSocket(socket) {
         }
         
     });
+    
+    socket.on("validationStep", function(team, message){
+        io.sockets.in("master").emit("validate", team, message);
+    });
+    
+    socket.on("ValidateStep", function(team, isValid){
+        console.log(listOfTeams[team]['only']);
+        io.sockets.in(listOfTeams[team]['only']).emit("resultValidationStep", isValid);
+    });
+    
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
