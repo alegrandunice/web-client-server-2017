@@ -11,7 +11,7 @@ var ObjectID = mongodb.ObjectID;
 var url = 'mongodb://localhost:27017/game';
 
 //var STEPS_COLLECTION = "steps";
-var STEPS_COLLECTION = "stepsss";
+var STEPS_COLLECTION = "steps";
 var GAMES_COLLECTION = "games";
 var USERS_COLLECTION = "users";
 var CLUES_COLLECTION = "clues";
