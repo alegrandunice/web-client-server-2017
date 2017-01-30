@@ -284,10 +284,32 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.sendFile( views + '/player/login.html');
             }
         })
-        .get('/data/player/current-step', function(req,res) {
+        .get('/data/player/current-step/:idgame', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Get current step with consumed clues');
+
+
+                //TODO: Remove
+
+//        currentStep = {
+//            "name": "Step #1",
+//            "explanation": "Goto BU...",
+//            "move": true,
+//            "coordonates" : {
+//                "latitude" : 43.760854,
+//                "longitude" : 7.202076
+//            }
+//        };
+
+                currentStep = {
+                    "name": "Step #2",
+                    "type" : 2,
+                    "explanation": "Tu dois faire quelque chose !...",
+                    "move": false
+                };
+
+                res.status(200).json(currentStep);
 
             }
             else{
@@ -295,7 +317,18 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.sendFile( views + '/player/login.html');
             }
         })
-        .get('/data/player/send-answer', function(req,res) {
+        .put('/data/player/send-answer', function(req,res) {
+            sess = req.session;
+            if(sess.username && sess.type == "player"){
+                console.log('Player: Send an answer for validation');
+
+            }
+            else{
+                console.log("fail");
+                res.sendFile( views + '/player/login.html');
+            }
+        })
+        .put('/data/player/endpoint-reached', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Send an answer for validation');

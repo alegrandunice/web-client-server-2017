@@ -48,10 +48,31 @@
         
         <div id="tabPlay" class="tab-pane fade">   
             <div class="container" >
-                <h3 id="headerStep">hey !!</h3>
+                <h3 id="headerStep"></h3>
                 <p id="description"></p>
+
+                <div id="textQuestion">
+                    Answer:<br />
+                    <textarea id="valueTextQuestion" rows="4" style="margin-top: 20px; width: 100%"></textarea>
+                </div>
+
+                <div id="pictureQuestion">
+                    Take a pictures:
+                    <input id="valuePictureQuestion" type="file" accept="image/*" capture="camera" multiple style="margin-top: 20px;" />
+                </div>
+
+                <ul class="list-group" id="qcmQuestion">
+                    <li class="list-group-item"><input type="radio" name="qcmAnswer" value="answer1" ><span id="labelAnswer1" style="margin-left: 10px;">Answer 1</span></li>
+                    <li class="list-group-item"><input type="radio" name="qcmAnswer" value="answer2" ><span id="labelAnswer2" style="margin-left: 10px;">Answer 2</span></li>
+                    <li class="list-group-item"><input type="radio" name="qcmAnswer" value="answer3" ><span id="labelAnswer3" style="margin-left: 10px;">Answer 3</span></li>
+                    <li class="list-group-item"><input type="radio" name="qcmAnswer" value="answer4" ><span id="labelAnswer4" style="margin-left: 10px;">Answer 4</span></li>
+                </ul>
+
+                <div style="text-align: center; margin-top: 10px;">
+                    <button type="button" class="btn btn-primary" onclick="validation();">Submit!</button>
+                </div>
             </div>        
-            <button type="button" class="btn btn-primary" onclick="validation();">Launch demo modal</button>
+
             <nav class="navbar-fixed-bottom">
               <div id="messageWarning" hidden class="container" style="background-color: red; color: white; padding: 10px; font-weight: bold; text-align: center;">
                 Warning! You are out of the area
@@ -134,9 +155,9 @@
     
     var idGame, latitudeTo, longitudeTo;
     var checkEverySecond;
-    var currentStep, currentGame;
+    var currentStep;
     var conversation, room1, room2, data, dataRoom1, dataRoom2, datasend, datasendroom1, datasendroom2, users, roomName1, roomName2;   
-	var socket = io.connect();
+	var socket;
     
     function onLoad() {
     
@@ -212,7 +233,7 @@
             var textHome3 = document.getElementById("textHome3");
             var textHome3B = document.getElementById("textHome3B");
 
-            textHome1.innerHTML = "Wellcome to " + jsonReceived.gamename + " " + jsonReceived.username;
+            textHome1.innerHTML = "Welcome to " + jsonReceived.gamename + " " + jsonReceived.username;
             textHome2.innerHTML = "Your team is:"
             textHome2B.innerHTML = jsonReceived.teamname;
             textHome3.innerHTML = "The access key to your team:";
@@ -220,15 +241,124 @@
 
             username = jsonReceived.username;
             team = jsonReceived.teamname;
+            
+            //on se connect sur la socket
+            
+            initSocket();
+            
 
         }, function(error) {
             console.error("Get Failed!", error);
         });
-    }   
+    }
+
+    function initSocket(){
+        socket = io.connect();
+            
+        // on connection to server, ask for user's name with an anonymous callback
+        socket.on('connect', connectUser);
+        // listener, whenever the server emits 'updatechat', this updates the chat body 
+        socket.on('updatechat', updateChat);
+        //listener, whenever the server emits 'message', this update the correct room body
+        socket.on('message', updateRoomChat);
+        //listener, the server say which room the client must join
+        socket.on('joinRooms', joinRooms);
+        // listener, whenever the server emits 'updateusers', this updates the username list
+        socket.on('updateusers', updatePlayerList);
+        // update the whole list of players, useful when a player
+        // connects or disconnects, we must update the whole list
+        socket.on('updatePlayers', updateUsernameList);
+        //listener for validating the step
+        socket.on('resultValidationStep', updateStep);
+
+    }
+    
+    /**************************************************
+    ***************  CALLBACK  SOCKET   ***************
+    **************************************************/
+    
+    //Fonction permettant de donner au serveur le nom, l'équipe et la position initiale du joueur. Associé à 'connect'
+    function connectUser(){
+        // call the server-side function 'adduser' and send one parameter (value of prompt)
+        navigator.geolocation.getCurrentPosition(function(pos) {
+        
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            socket.emit('adduser', userdata);
+        });
+    };
+    
+    //fonction permettant de modifier le texte du chat général du joueur. Associé à 'updatechat'
+    function updateChat(username, data) {
+		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
+		conversation.innerHTML += chatMessage; 
+	};
+    
+    //fonction permettant de modifier le texte d'une room . Associé à 'message'
+    function updateRoomChat(username, data) {
+        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
+        switch(data.room) {
+                case roomName1:
+                    room1.innerHTML += chatMessage;
+                break;
+                case roomName2:
+                    room2.innerHTML += chatMessage;
+                break;
+                default:
+                    conversation.innerHTML += chatMessage; 
+                    
+            }
+        
+    };
+    
+    //fonction permettant de rejoindre les rooms de l'équipe. Associé à 'joinRooms'
+    function joinRooms(groupRooms){
+        var i = 1;
+        for(var room in groupRooms)
+        {
+            socket.emit('subscribe', groupRooms[room]);
+            if(i == 1)
+            {
+                roomName1 = groupRooms[room];
+                i++;
+            }
+            else{
+                roomName2 = groupRooms[room];
+            }
+        } 
+    };
+    
+    //fonction permettant de mettre à jour la liste des joueurs. Associé à 'updateusers'
+    function updatePlayerList(listOfUsers) {
+		users.innerHTML = "";
+		for(var name in listOfUsers) {
+    		var userLineOfHTML = '<div>' + name + '</div>';
+    		users.innerHTML += userLineOfHTML;
+  		}
+	};
+    
+    //Associé à 'updatePlayers'
+    function updateUsernameList(listOfplayers) {
+        console.log(listOfplayers);
+        //updatePlayers(listOfplayers);
+    }
+    
+    //fonction permettant de valider ou invalider la reponse du joueur. Associé à 'resultValidationStep'
+    function updateStep(isValid){
+        console.log("resultValidationStep", isValid);
+        
+        //Arnaud met ton code ici stp :D
+        
+    }
+
+    
+    /**************************************************
+    *************** FIN CALLBACK SOCKET ***************
+    **************************************************/
+    
     
     //permet d'envoyer une demande de validation au GM
     function validation(){
-        socket.emit("validation", team, "Valide moi !! je suis de la team : "+team);
+        socket.emit("validationStep", team, "Valide moi !! je suis de la team : "+team);
     }
     
     // sends the chat message to the server
@@ -256,9 +386,7 @@
     }
     
     function testWatch(position){
-        console.log('testwatch', position);
         var data = {username:username, lat:position.coords.latitude, lng:position.coords.longitude};
-        console.log(data);
         socket.emit('updatePlayerPosition', data);
     }
     function errorTestPosition(error)
@@ -266,154 +394,63 @@
         console.log(error);
     }
     
-
-	// on connection to server, ask for user's name with an anonymous callback
-	socket.on('connect', function(){
-		// call the server-side function 'adduser' and send one parameter (value of prompt)
-        navigator.geolocation.getCurrentPosition(function(pos) {
-        
-            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
-            socket.emit('adduser', userdata);
-        });
-        
-	});
-
-	// listener, whenever the server emits 'updatechat', this updates the chat body 
-	socket.on('updatechat', function (username, data) {
-		var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
-		conversation.innerHTML += chatMessage; 
-	});
-    
-    socket.on('message', function (username, data) {
-        console.log(data);
-        var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
-        switch(data.room) {
-                case roomName1:
-                    room1.innerHTML += chatMessage;
-                break;
-                case roomName2:
-                    room2.innerHTML += chatMessage;
-                break;
-                default:
-                    conversation.innerHTML += chatMessage; 
-                    
-            }
-        
-    });
-    
-    socket.on('joinRooms', function(sendTo, groupRooms){
-        var i = 1;
-        for(var room in groupRooms)
-        {
-            socket.emit('subscribe', groupRooms[room]);
-            if(i == 1)
-            {
-                roomName1 = groupRooms[room];
-                i++;
-            }
-            else{
-                roomName2 = groupRooms[room];
-            }
-        } 
-    });
-
-	// listener, whenever the server emits 'updateusers', this updates the username list
-	socket.on('updateusers', function(listOfUsers) {
-		users.innerHTML = "";
-		for(var name in listOfUsers) {
-    		var userLineOfHTML = '<div>' + name + '</div>';
-    		users.innerHTML += userLineOfHTML;
-  		}
-	});
-    
-
-	// update the whole list of players, useful when a player
-	// connects or disconnects, we must update the whole list
-	socket.on('updatePlayers', function(listOfplayers) {
-		updatePlayers(listOfplayers);
-	});
-
     
     function retrieveCurrentStep() {
-        //TODO: retreive current step (first one, or last step if crashed)
-        
-        
-        //TODO: Remove
-        currentGame = {
-            "game_name": "Game #1",
-            "player_name": "Arnaud",
-            "team_name": "We are the best",
-            "team_accesskey": "1234"
-        };
-        currentStep = {
-            "name": "Step #1",
-            "explanation": "Goto BU...",
-            "move": true,
-            "coordonates" : {	
-                "latitude" : 43.760854,
-                "longitude" : 7.202076
-            }            
-        };
-        
 
-        loadStep();
-    }
-    
-    function retrieveNextStep() {
-        if (checkEverySecond !== undefined)
-            clearInterval(checkEverySecond);
-            
-        //TODO: retreive next step to move forward the game
-        
-        //TODO: Remove
-        currentGame = {
-            "game_name": "Game #1",
-            "player_name": "Arnaud",
-            "team_name": "We are the best",
-            "team_accesskey": "1234"
-        };
-        currentStep = {
-            "name": "Step #2",
-            "type" : 3,
-            "explanation": "Take a picture of external retrieve books",
-            "move": false      
-        };
-        
-        
-        loadStep();                    
-    }
-    
-    function loadStep() {
-    
-        //TODO: Clear Play tab
-        
-        
-        //TODO: select Play tab
+        getRequest('../data/player/current-step/' + idGame).then(function(response) {
+            console.log("Get Success!", response);
+            currentStep = JSON.parse(response);
 
-        
-        if (currentStep !== undefined) {
-            if (currentStep.move === true) {
-                initStepMove();
-            }
-            else if (currentStep.move === false) {
-                initStepAction();
+            if (currentStep !== undefined) {
+                if (currentStep.move === true) {
+                    initStepMove();
+                }
+                else if (currentStep.move === false) {
+                    initStepAction();
+                }
+                else {
+                    //TODO: Error ...
+                }
             }
             else {
                 //TODO: Error ...
-            }   
-        }
-        else {
-            //TODO: Error ...
-        } 
+            }
+
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
     }
     
+    function endPointReached() {
+        if (checkEverySecond !== undefined)
+            clearInterval(checkEverySecond);
+            
+        //TODO: Send information to server...
+        
+
+        retrieveCurrentStep();
+    }
+
     function initStepMove() {
         //TODO: show Move informations...
         var headerStep = document.getElementById("headerStep");
         var description = document.getElementById("description");
+        var textQuestion = document.getElementById("textQuestion");
+        var valueTextQuestion = document.getElementById("valueTextQuestion");
+        var pictureQuestion = document.getElementById("pictureQuestion");
+        var valuePictureQuestion = document.getElementById("valuePictureQuestion");
+        var qcmQuestion = document.getElementById("qcmQuestion");
         
         headerStep.innerHTML = currentStep.name + ": Move";
         description.innerHTML = currentStep.explanation;
+
+        textQuestion.hidden = true;
+        pictureQuestion.hidden = true;
+        qcmQuestion.hidden = true;
+
+        valueTextQuestion.innerHTML = '';
+        valuePictureQuestion.value = "";
+        $('input[name=qcmAnswer]').attr('checked',false);
 
         //start timer to help player (near or far from the destination spot)
         checkEverySecond = window.setInterval(checkArea, 1000); 
@@ -422,22 +459,37 @@
     function initStepAction() {
         latitudeTo = undefined;
         longitudeTo = undefined;
-        
-        //TODO: show Action informations...
+
         var headerStep = document.getElementById("headerStep");
         var description = document.getElementById("description");
+        var textQuestion = document.getElementById("textQuestion");
+        var valueTextQuestion = document.getElementById("valueTextQuestion");
+        var pictureQuestion = document.getElementById("pictureQuestion");
+        var valuePictureQuestion = document.getElementById("valuePictureQuestion");
+        var qcmQuestion = document.getElementById("qcmQuestion");
         
         headerStep.innerHTML = currentStep.name + ": Action";
         description.innerHTML = currentStep.explanation;
+
+        textQuestion.hidden = true;
+        pictureQuestion.hidden = true;
+        qcmQuestion.hidden = true;
+
+        valueTextQuestion.innerHTML = '';
+        valuePictureQuestion.value = "";
+        $('input[name=qcmAnswer]').attr('checked',false);
          
         if (currentStep.type === 1) {
-            //TODO: show MCQ informations... with "Answer" button
+            //Text question
+            textQuestion.hidden = false;
         }
         else if (currentStep.type === 2) {
-            //TODO: show Answer question... with "Submit" button
+            //Picture question
+            pictureQuestion.hidden = false;
         }
         else if (currentStep.type === 3) {
-            //TODO: show Take Picture... with "Submit" button
+            //QCM
+            qcmQuestion.hidden = false;
         } 
     }
     
@@ -476,7 +528,7 @@
                 var distance = google.maps.geometry.spherical.computeDistanceBetween(placeFrom, placeTo);
                 
                 if (distance < 10) {
-                    retrieveNextStep();  
+                    endPointReached();
                 }
                 else if (distance < 30) 
                      messageGood.hidden = false;
