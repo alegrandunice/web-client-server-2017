@@ -38,26 +38,47 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="updateStep()" action="edit-game.html#tabSteps" style="margin: 10px">
+                <form onsubmit="updateStep()" action="select-game.html" style="margin: 10px">
                     <div class="form-group">
                         <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">                  
                     </div>
-                    <div class="form-group">
-                        <input type="radio" name="stepType" value="move" checked> Move<br>
-                        <input type="radio" name="stepType" value="action"> Action<br>
+                    <div>
+                        <label for="move">Move</label><input id="move" type="radio" name="stepType" value="move" onchange="toMove()">
+                        <label for="action">Action</label><input id="action" type="radio" name="stepType" value="action" onchange="toAction()"><br>
+                    </div>
+                    <div class = "form-group" id="destParent">
+                        <div id="destination" action = toMove()>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="stepName">Step name</label><input id="stepName" type="text" placeholder="Step name" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label for="description">Description</label><input id="description" type="text" placeholder="Description" class="form-control">
+                        <div>
+                            <div>
+                                <label id="descriptionType">Description type</label><br>
+                            </div>
+                            <div class="form-group">
+                                <label for="question">Question</label><input id="question" type="radio" name="explanationType" value="question" onchange = "toQuestion()">
+                                <label for="picture">Picture</label><input id="picture" type="radio" name="explanationType" value="picture" onchange = "toPicture()">
+                                <label for="qcm">QCM</label><input id="qcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label><input id="description" type="text" placeholder="Description" class="form-control">
+                        </div>
+
+                        <div id = answers>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="earnedPoints">Earned points</label><input id="earnedPoints" type="number" placeholder="Earned points" class="form-control">                  
                     </div>
                     <div class="form-group">
                         <label>Pictures:</label>
-                        <input type="file" accept="image/*" capture="camera" multiple>
+                        <input id="file" type="file" accept="image/*" capture="camera" multiple>
+                        <br/>
+                        Progress: <progress value = 0 id="progress"></progress>
                     </div>
                                 
                     <button type="submit" class="btn btn-success">Update step</button>            
@@ -90,7 +111,13 @@
     <script src="../js/app-server-access.js"></script>
     
     <script type="text/javascript">
-    
+
+
+        var fileInput = document.querySelector('#file'),
+         progress = document.querySelector('#progress');
+
+
+
     var  idStep ;
     
 	function actionUrl() {
@@ -127,10 +154,87 @@
                 
                 var description = document.getElementById("description");
                 description.value = jsonReceived.explanation;
-                
+
+                var descriptionType = document.getElementById("descriptionType");
+                descriptionType.value = jsonReceived.explanationType;
+
+                var question = document.getElementById("question");
+                //question.value = jsonReceived.explanationType;
+
+                var picture = document.getElementById("picture");
+                //picture.value = jsonReceived.explanationType;
+
+                var qcm = document.getElementById("qcm");
+                //qcm.value = jsonReceived.explanationType;
+
+              //  var file = document.getElementById("file");
+               // file.value = jsonReceived.media;
+
                 var earnedPoints = document.getElementById("earnedPoints");
                 earnedPoints.value = jsonReceived.total_points;
-                
+
+                var answers = document.getElementById("answers");
+                answers.value = jsonReceived.answers;
+
+                var move = document.getElementById("move");
+                //move.value = jsonReceived.move;
+
+                var destination = document.getElementById("destination");
+
+                var action = document.getElementById("action");
+
+
+                if( jsonReceived.type == "move"){
+
+                    action.checked = false;
+
+                    move.checked = true ;
+
+                    destination.value = jsonReceived.coordinate;
+
+                    if(move.checked){
+
+                        destination.innerHTML += ""
+                         +'<div class="form-group">'
+                         +'   <div>'
+                         +'   <label for="latTo">Latitude    :</label><input id="latTo" type="text">'
+                         +'  </div>'
+                         +'  <div>'
+                         +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
+                         +'   </div>'
+                         +'</div>';
+                    }
+
+                } else{
+                    action.checked = true;
+                }
+
+
+                if(jsonReceived.explanationType.localeCompare("question") == 0){
+
+                    question.checked = true;
+                    answers.innerHTML += ''
+                    +'<label for="reponse">put the right answer</label><input id="reponse" type="text">';
+                }
+                if(jsonReceived.explanationType.localeCompare("picture") == 0){
+
+                    picture.checked = true;
+                    answers.innerHTML = ''
+                        +'<label>Upload the picture described in the explenation</label>';
+                }
+                if(jsonReceived.explanationType.localeCompare("qcm") == 0 ){
+
+                    qcm.checked = true;
+                    answers.innerHTML = ''
+                        +'<div class="form-group">'
+                        +'<label>Answer:</label>'
+                        +'<input id="res1" type="text" name="res1" value="res1"><br>'
+                        +'<input id="res2" type="text" name="res1" value="res2"><br>'
+                        +'<input id="res3" type="text" name="res1" value="res3"><br>'
+                        +'<input id="res4" type="text" name="res1" value="res4"><br>'
+                        +'</div><br>';
+                }
+
                 //type="file" Pictures          <==
                 
                 for (i = 0; i < jsonReceived.clues.length; i++) { 
@@ -142,21 +246,201 @@
             });
         }
     }
-    
-    function updateStep()
-    {
+
+//*********************************************************Controlling the DOM ************************************************************************************
+                                    function toMove(){
+
+                                       var destination = document.getElementById("destination");
+                                        var move = document.getElementById("move");
+                                        var action = document.getElementById("action");
+
+                                        if(move.checked == true){
+
+                                            destination.innerHTML = ''
+                                                +'<div class="form-group">'
+                                                +'   <div>'
+                                                +'   <label for="latTo">Latitude   :</label><input id="latTo" type="text">'
+                                                +'  </div>'
+                                                +'  <div>'
+                                                +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
+                                                +'   </div>'
+                                                +'</div>';
+
+                                        }else
+                                        {
+
+                                            destination.innerHTML  = '';
+
+                                        }
+                                    }
+                                    function toAction(){
+
+                                        var destination = document.getElementById("destination");
+                                        var move = document.getElementById("move");
+                                        var action = document.getElementById("action");
+
+                                        if(action.checked == true){
+
+                                            destination.innerHTML = '';
+
+
+                                        }else
+                                        {
+
+                                            destination.innerHTML  = ''
+                                                +'<div class="form-group">'
+                                                +'   <div>'
+                                                +'   <label for="latTo">Latitude   :</label><input id="latTo" type="text">'
+                                                +'  </div>'
+                                                +'  <div>'
+                                                +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
+                                                +'   </div>'
+                                                +'</div>';
+
+                                        }
+                                    }
+
+
+                                    function toQuestion(){
+
+                                        var answers = document.getElementById("answers");
+                                        var question = document.getElementById("question");
+
+                                        if(question.checked == true){
+
+                                            answers.innerHTML = ''
+                                                +'<label for="reponse">put your answer here</label><input id="reponse" type="text">';
+
+                                        }
+
+                                    }
+
+
+                                    function toPicture(){
+
+                                        var answers = document.getElementById("answers");
+                                        var picture = document.getElementById("picture");
+
+                                        if(picture.checked == true){
+
+                                            answers.innerHTML = ''
+                                            +'<label>Upload the picture described in the explenation</label>';
+
+
+                                        }
+
+                                    }
+
+                                    function toQcm(){
+
+                                        var answers = document.getElementById("answers");
+                                        var qcm = document.getElementById("qcm");
+
+                                        if(qcm.checked == true){
+
+                                            answers.innerHTML = ''
+                                                +'<div class="form-group">'
+                                                +'<label> Answers:</label><br>'
+                                                +'<input id="res1" type="text" name="res1" value="res1"><br>'
+                                                +'<input id="res2" type="text" name="res1" value="res2"><br>'
+                                                +'<input id="res3" type="text" name="res1" value="res3"><br>'
+                                                +'<input id="res4" type="text" name="res1" value="res4"><br>'
+                                                +'</div><br>';
+
+                                        }
+
+                                    }
+        //********************************************END OF Controlling the DOM *********************************************************************************
+
+
+
+        //******************************************************** to load a picture *****************************************************************************
+        fileInput.onchange = function() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('PUT', '/data/step/pic/'+idStep);
+
+            xhr.upload.onprogress = function(e) {
+                progress.value = e.loaded;
+                progress.max = e.total;
+            };
+
+            xhr.onload = function() {
+                console.log('Upload complete!');
+
+            };
+
+            var form = new FormData();
+            for(var i=0; i < fileInput.files.length; i++)
+                form.append('file', fileInput.files[i]);
+
+            xhr.send(form);
+        };
+
+
+
+
+
+
+        //***************************************************************TO UPDATE A STEP *************************************************************************
+
+
+        function updateStep()
+        {
+
 		idStep = getUrlParameter("idstep"); 
 		
         if (idStep !== undefined) {
             var jsonToSend = {
-                "name": "",
-                "explanation": "",
-                "total_points" : 0
-            }
+                "name" : "",
+                "type" : "",
+                "move" : "",
+                "total_points" : 1,
+                "explanation" : "",
+                "explanationType" : "",
+                "answers" : [
+                    {
+                        "reponse" : ""
+                    },
+                    {
+                        "reponse" : ""
+                    },
+                    {
+                        "reponse" : ""
+                    },
+                    {
+                        "reponse" : ""
+                    },
+                    {
+                        "reponse" : ""
+                    }
+                ],
+                "coordinate" : {
+                    "longitude" : "",
+                    "latitude" : ""
+                }
+            };
     
             //orderNumber                   <==
             
             //type="radio" Move / Action    <==
+
+            var move = document.getElementById("move");
+            var action = document.getElementById("action");
+
+            if(move.checked = true){
+                jsonToSend.move = "true";
+                jsonToSend.type = "move";
+            }else{
+                jsonToSend.type = "action";
+                jsonToSend.move = "false";
+             }
+
+            var logitude = document.getElementById("latTo");
+            var lattude  = document.getElementById(("longTo"));
+
+            jsonToSend.coordinate.latitude = logitude.value;
+            jsonToSend.coordinate.longitude = lattude.value;
+
 
             var stepName = document.getElementById("stepName");
             jsonToSend.name = stepName.value;
@@ -166,7 +450,32 @@
             
             var earnedPoints = document.getElementById("earnedPoints");
             jsonToSend.total_points = earnedPoints.value;
-            
+
+            var question = document.getElementById("question");
+            var picture = document.getElementById("picture");
+            var qcm = document.getElementById("qcm");
+            var descriptionType = document.getElementById("descriptionType");
+
+            var answers = document.getElementById("answers");
+            var res1 = document.getElementById("res1");
+            var res2 = document.getElementById("res2");
+            var res3 = document.getElementById("res3");
+            var res4 = document.getElementById("res4");
+            var res5 = document.getElementById("reponse");
+
+            jsonToSend.answers[0].reponse = res1.value;
+            jsonToSend.answers[1].reponse = res2.value;
+            jsonToSend.answers[2].reponse = res3.value;
+            jsonToSend.answers[3].reponse = res4.value;
+            jsonToSend.answers[4].reponse = res5.value;
+
+            if(question.checked == true) {
+                jsonToSend.explanationType = "question";
+            }else if(picture.checked == true){
+                jsonToSend.explanationType = "picture";
+            }else if(qcm.checked == true){
+                jsonToSend.explanationType = "qcm";
+            }
 
 			
             //type="file" Pictures          <==
@@ -195,7 +504,7 @@
                 + '                    </a>'
                 + '                </div>'
                 + '                <div class="col-xs-4">'
-                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points + ' point' + ((points > 1) ? 's' : '') + '</h3>'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points.toString() + ' point' + ((points > 1) ? 's' : '') + '</h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
                 + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + idClue + '\');" style="margin-left: 0px;">Delete</button>'

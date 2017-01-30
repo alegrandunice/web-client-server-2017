@@ -1,4 +1,7 @@
 var express = require("express");
+var fs = require("fs");
+var multer  = require('multer');
+var upload = multer({ dest: './public/uploads' });
 var session = require('express-session');
 var path = require("path");
 var bodyParser = require("body-parser");
@@ -7,10 +10,15 @@ var ObjectID = mongodb.ObjectID;
 
 var url = 'mongodb://localhost:27017/game';
 
-var STEPS_COLLECTION = "steps";
+//var STEPS_COLLECTION = "steps";
+var STEPS_COLLECTION = "stepsss";
 var GAMES_COLLECTION = "games";
 var USERS_COLLECTION = "users";
 var CLUES_COLLECTION = "clues";
+
+var encoded = "";
+var decoded = "";
+
 
 var dirApp = __dirname + "/public";
 var views = __dirname + "/views";
@@ -113,6 +121,10 @@ function init()
 
 // ******************* gamemaster *********************
 //*****************************************************
+
+
+
+
 
 app.get('/gamemaster/login', function(req,res) {
     sess = req.session;
@@ -248,6 +260,10 @@ app.get('/settings/login', function(req,res) {
 /
 
 
+
+
+
+
 // STEP API ROUTES BELOW
 
 
@@ -307,16 +323,69 @@ app.get("/data/steps/:id", function(req, res) {
   });
 });
 
+
+app.put("/data/step/pic/:id",upload.array('file'), function(req, res) {
+    var updateDoc = req.body;
+    //delete updateDoc.id;
+
+
+
+    console.log("received " + req.files.length + " files");// form files
+    for(var i=0; i < req.files.length; i++) {
+        console.log("### " + req.files[i].path);
+        // read binary data
+        var encode = fs.readFileSync(req.files[i].path);
+
+        // convert binary data to base64 encoded string
+        var ress = new Buffer(encode).toString('base64');
+
+        encoded = ress.toString();
+
+    }
+
+    db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },
+        {
+            $set :
+                {
+                    media : [{ "nom": "", "url" : encoded}]
+                }
+        }, updateDoc, function(err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to update step pic");
+            } else {
+                res.status(204).end();
+            }
+        });
+});
+
+
 app.put("/data/steps/:id", function(req, res) {
   var updateDoc = req.body;
   //delete updateDoc.id;
-
+    console.log(JSON.stringify(req.body));
   db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },	
 	{
 	  $set :
         { name : updateDoc.name,
           explanation : updateDoc.explanation,
-          total_points: updateDoc.total_points
+          total_points: updateDoc.total_points,
+            explanationType : updateDoc.explanationType,
+            move : updateDoc.move,
+            type : updateDoc.type,
+            coordinate : {  "longitude" : updateDoc.coordinate.longitude, "latitude" : updateDoc.coordinate.latitude  },
+
+
+            answers : [ {"reponse": updateDoc.answers[0].reponse},
+                        {"reponse":updateDoc.answers[1].reponse},
+                        {"reponse":updateDoc.answers[2].reponse},
+                        {"reponse":updateDoc.answers[3].reponse},
+                        {"reponse":updateDoc.answers[4].reponse}
+                        ],
+            media : [
+                        { "nom": "", "url" : encoded}
+                   ]
+
+
         }
     }, updateDoc, function(err, doc) {
     if (err) {
@@ -439,6 +508,7 @@ app.delete("/data/game/:id", function(req, res) {
 
 
 
+
 //**************************************************************************** CLUE API ROUTES BELOW *******************************************************************************************************
 
 
@@ -548,7 +618,7 @@ app.get("/data/games/:id/simple", function(req, res) {
       //console.log(game);
       if(game.steps){
         for (i = 0; i < game.steps.length; i++) {
-          ids.push( new ObjectID( game.steps[i].id ) ) ;
+          ids.push( new ObjectID(game.steps[i].id)  ) ;
         }
       }
 
@@ -627,16 +697,18 @@ app.get("/data/steps/:id/simple", function(req, res) {
 	
   var ids = [];
 
+
 	
 	 console.log('get step id information: ' + req.params.id );
 	
-  db.collection(STEPS_COLLECTION).findOne({ _id :new ObjectID ( req.params.id )   }, function(err, step) {
+  db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.params.id)   }, function(err, step) {
     
 	if (err) {
       handleError(res, err.message, "Failed to get step");
     } else {
       //console.log(game);
       if(step.clues){
+          console.log('get step id information: ' + req.params.id );
         for (i = 0; i < step.clues.length; i++) {
           ids.push(  new ObjectID( step.clues[i].id )  )   ;
         }
@@ -646,12 +718,18 @@ app.get("/data/steps/:id/simple", function(req, res) {
         if (err) {
           handleError(res, err.message, "Failed to get clues for step " + req.params.id);
         } else {
-          var simple = {
-            name: step.name,
-            explanation: step.explanation,
-            total_points : step.total_points,
-            clues : clues
-          };
+             var simple = {
+                    name: step.name,
+                    explanation: step.explanation,
+                    total_points : step.total_points,
+                    explanationType : step.explanationType,
+                    answers : step.answers,
+                    type : step.type,
+                    move : step.move,
+                    coordinate : step.coordinate,
+                    media : step.media,
+                    clues : clues
+                };
           res.status(200).json(simple);
         }
       });
