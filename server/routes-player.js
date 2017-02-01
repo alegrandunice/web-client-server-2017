@@ -3,32 +3,6 @@ var ObjectID = mongodb.ObjectID;
 
 module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION){
 
-
-        /*.get('/player/login', function(req,res) {
-            console.log("get login");
-            sess = req.session;
-            if(sess.username)
-                res.sendFile(views + '/player/select-game.html');
-            else
-                res.sendFile( views + '/player/login.html');
-        })
-        .post('/player/login', function(req,res) {
-            connect(req,res,'/player/select-game.html', 'player');
-        })
-
-        .get('/player/logout', function(req,res) {
-            console.log("Im the put");
-            //res.redirect('/login');
-            req.session.destroy(function(err) {
-                if(err) {
-                    console.log("failed to destroy session");
-                    console.log(err);
-                } else {
-                    console.log("session destroyed");
-                    res.redirect('/player/login');
-                }
-            });
-        }*/
     app
         .get('/player/select-game.html', function(req,res) {
             console.log("I'm here");
@@ -306,7 +280,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 currentStep = {
                     "name": "Step #2",
                     "type" : 2,
-                    "explanation": "Tu dois faire quelque chose !...",
+                    "explanation": "Tu dois faire quelque chose 2 !...",
                     "move": false
                 };
 
