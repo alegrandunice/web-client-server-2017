@@ -121,71 +121,9 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         });
     });
 
-    //
-    // app.put("/data/step/pic/:id",upload.array('file'), function(req, res) {
-    //     var updateDoc = req.body;
-    //     //delete updateDoc.id;
-    //
-    //
-    //
-    //     console.log("received " + req.files.length + " files");// form files
-    //     for(var i=0; i < req.files.length; i++) {
-    //         console.log("### " + req.files[i].path);
-    //         // read binary data
-    //         var encode = fs.readFileSync(req.files[i].path);
-    //
-    //         // convert binary data to base64 encoded string
-    //         var ress = new Buffer(encode).toString('base64');
-    //
-    //         encoded = ress.toString();
-    //
-    //     }
-    //
-    //     db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },
-    //         {
-    //             $set :
-    //                 {
-    //                     media : [{ "nom": "", "url" : encoded}]
-    //                 }
-    //         }, updateDoc, function(err, doc) {
-    //             if (err) {
-    //                 handleError(res, err.message, "Failed to update step pic");
-    //             } else {
-    //                 res.status(204).end();
-    //             }
-    //         });
-    // });
-    //
-
     app.put("/data/steps/:id", function(req, res) {
-        var updateDoc = req.body;
-        //delete updateDoc.id;
         console.log(JSON.stringify(req.body));
-        db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },
-            {
-                $set :
-                    { name : updateDoc.name,
-                        explanation : updateDoc.explanation,
-                        total_points: updateDoc.total_points,
-                        explanationType : updateDoc.explanationType,
-                        move : updateDoc.move,
-                        type : updateDoc.type,
-                        coordinate : {  "longitude" : updateDoc.coordinate.longitude, "latitude" : updateDoc.coordinate.latitude  },
-
-
-                        answers : [ {"reponse": updateDoc.answers[0].reponse},
-                            {"reponse":updateDoc.answers[1].reponse},
-                            {"reponse":updateDoc.answers[2].reponse},
-                            {"reponse":updateDoc.answers[3].reponse},
-                            {"reponse":updateDoc.answers[4].reponse}
-                        ],
-                        media : [
-                            { "nom": "", "url" : encoded}
-                        ]
-
-
-                    }
-            }, updateDoc, function(err, doc) {
+        db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) }, { $set : req.body }, function(err, doc) {
                 if (err) {
                     handleError(res, err.message, "Failed to update step");
                 } else {
@@ -279,7 +217,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                     { name : updateDoc.name,
                         localisation : updateDoc.localisation,
                         status: updateDoc.status,
-                        game_type : updateDoc.game_type
+                        game_type : updateDoc.game_type,
+                        accesskey: updateDoc.accesskey
                     }
             },
             function(err, doc) {
@@ -415,7 +354,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 //console.log(game);
                 if(game.steps){
                     for (i = 0; i < game.steps.length; i++) {
-                        ids.push( new ObjectID(game.steps[i].id)  ) ;
+                        ids.push(new ObjectID(game.steps[i].stepid)) ;
                     }
                 }
 
@@ -425,6 +364,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                     } else {
                         var simple = {
                             name: game.name,
+                            accesskey: game.accesskey,
                             status: game.status,
                             localisation : game.localisation,
                             game_type : game.game_type,
@@ -491,15 +431,11 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
 
 
     app.get("/data/steps/:id/simple", function(req, res) {
-
         var ids = [];
-
-
 
         console.log('get step id information: ' + req.params.id );
 
         db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.params.id)   }, function(err, step) {
-
             if (err) {
                 handleError(res, err.message, "Failed to get step");
             } else {
@@ -517,14 +453,15 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                     } else {
                         var simple = {
                             name: step.name,
+                            order_number: step.order_number,
                             explanation: step.explanation,
                             total_points : step.total_points,
                             explanationType : step.explanationType,
                             answers : step.answers,
                             type : step.type,
-                            move : step.move,
                             coordinate : step.coordinate,
-                            media : step.media,
+                            qcm: step.qcm,
+                            picture : step.picture,
                             clues : clues
                         };
                         res.status(200).json(simple);

@@ -25,7 +25,7 @@
                 <h3>Step #1</h3>
             </div>
             <div class="col-xs-4" style="text-align: right;">
-                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="window.location='select-game.html';return false;"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
+                <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="closeDialog()"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
             </div>
         </div>
         
@@ -38,50 +38,51 @@
         
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
-                <form onsubmit="updateStep()" action="select-game.html" style="margin: 10px">
-                    <div class="form-group">
-                        <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">                  
+                <form onsubmit="updateStep()" style="margin: 10px">
+                    <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">
+                    <div style="margin-top: 10px;">
+                        <input id="move" type="radio" name="stepType" onchange="toMove()"> <label for="move">Move</label>
+                        <input id="action" type="radio" name="stepType" onchange="toAction()" style="margin-left: 20px"><label for="action">Action</label>
                     </div>
-                    <div>
-                        <label for="move">Move</label><input id="move" type="radio" name="stepType" value="move" onchange="toMove()">
-                        <label for="action">Action</label><input id="action" type="radio" name="stepType" value="action" onchange="toAction()"><br>
-                    </div>
-                    <div class = "form-group" id="destParent">
-                        <div id="destination" action = toMove()>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="stepName">Step name</label><input id="stepName" type="text" placeholder="Step name" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <div>
-                            <div>
-                                <label id="descriptionType">Description type</label><br>
-                            </div>
-                            <div class="form-group">
-                                <label for="question">Question</label><input id="question" type="radio" name="explanationType" value="question" onchange = "toQuestion()">
-                                <label for="picture">Picture</label><input id="picture" type="radio" name="explanationType" value="picture" onchange = "toPicture()">
-                                <label for="qcm">QCM</label><input id="qcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()">
-                            </div>
-                        </div>
+                    <div id="destination"  style="margin-top: 10px;">
                         <div class="form-group">
-                            <label for="description">Description</label><input id="description" type="text" placeholder="Description" class="form-control">
+                            <div>
+                                <label for="latTo" style="width: 80px">Latitude : </label><input id="latTo" type="text">
+                            </div>
+                            <div>
+                                <label for="longTo" style="width: 80px">Longitute : </label><input id="longTo" type="text">
+                            </div>
                         </div>
+                    </div>
+                    <label for="stepName">Step name</label><input id="stepName" type="text" placeholder="Step name" class="form-control">
 
-                        <div id = answers>
-                        </div>
+                    <div style="margin-top: 10px; margin-bottom: 10px;">
+                        <input id="selectQuestion" type="radio" name="explanationType" value="question" onchange = "toQuestion()"><label for="selectQuestion" style="margin-left: 10px;">Question</label>
+                        <input id="selectPicture" type="radio" name="explanationType" value="picture" onchange = "toPicture()"  style="margin-left: 20px;"><label for="selectPicture" style="margin-left: 10px;">Picture</label>
+                        <input id="selectQcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()"  style="margin-left: 20px;"><label for="selectQcm" style="margin-left: 10px;">QCM</label>
                     </div>
-                    <div class="form-group">
-                        <label for="earnedPoints">Earned points</label><input id="earnedPoints" type="number" placeholder="Earned points" class="form-control">                  
-                    </div>
-                    <div class="form-group">
+
+                    <label for="description">Description</label><textarea id="description" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
+
+                    <div id="pictureQuestion" hidden  style="margin-top: 10px;">
                         <label>Pictures:</label>
-                        <input id="file" type="file" accept="image/*" capture="camera" multiple>
-                        <br/>
-                        Progress: <progress value = 0 id="progress"></progress>
+                        <input id="file" type="file" accept="image/*" capture="camera" onchange="fileSelected();" >
+                        <img src="" id="pictureImage" style="width: 250px; margin-top: 10px;"/>
                     </div>
-                                
-                    <button type="submit" class="btn btn-success">Update step</button>            
+                    <ul class="list-group" id="qcmQuestion"  style="margin-top: 10px;">
+                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer1" ><span style="margin-left: 10px;"><input id="textAnswer1" type="text" value="Answer 1" style="border: none;" /></span></li>
+                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer2" ><span style="margin-left: 10px;"><input id="textAnswer2" type="text" value="Answer 2" style="border: none;" /></span></li>
+                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer3" ><span style="margin-left: 10px;"><input id="textAnswer3" type="text" value="Answer 3" style="border: none;" /></span></li>
+                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer4" ><span style="margin-left: 10px;"><input id="textAnswer4" type="text" value="Answer 4" style="border: none;" /></span></li>
+                    </ul>
+
+                    <div id="pnlAnswerText"  style="margin-top: 10px;">
+                        <label for="answers">Answer</label><textarea id="answers" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
+                    </div>
+
+                    <label for="earnedPoints">Earned points</label><input id="earnedPoints" type="number" placeholder="Earned points" class="form-control">
+
+                    <button type="submit" class="btn btn-success" style="margin-top: 20px">Update step</button>
                 </form>
             
             </div>
@@ -112,23 +113,14 @@
     
     <script type="text/javascript">
 
-
-        var fileInput = document.querySelector('#file'),
-         progress = document.querySelector('#progress');
-
-
-
-    var  idStep ;
-    
-	function actionUrl() {
-		
-		return "./select-game.html";
-		
-	}
+    var idStep ;
+    var idGame;
+    var totalclues = 0;
 		
     function onLoad() {
-       idStep = getUrlParameter("idstep");
-        //alert(idStep);
+        idStep = getUrlParameter("idstep");
+        idGame = getUrlParameter("idgame");
+
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {
@@ -144,10 +136,28 @@
             getRequest('/data/steps/'+ idStep +'/simple').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
-                
-                //orderNumber                   <==
-                
-                //type="radio" Move / Action    <==
+
+                var orderNumber = document.getElementById("orderNumber");
+                orderNumber.value = jsonReceived.order_number;
+
+                var move = document.getElementById("move");
+                var action = document.getElementById("action");
+                if( jsonReceived.type == "move") {
+                    move.checked = true;
+
+                    if (jsonReceived.coordinate) {
+                        var latTo = document.getElementById("latTo");
+                        var longTo = document.getElementById("longTo");
+                        latTo.value = jsonReceived.coordinate.latitude;
+                        longTo.value = jsonReceived.coordinate.longitude;
+                    }
+
+                    toMove();
+                }
+                else{
+                    action.checked = true;
+                    toAction();
+                }
 
                 var stepName = document.getElementById("stepName");
                 stepName.value = jsonReceived.name;
@@ -155,20 +165,57 @@
                 var description = document.getElementById("description");
                 description.value = jsonReceived.explanation;
 
-                var descriptionType = document.getElementById("descriptionType");
-                descriptionType.value = jsonReceived.explanationType;
+                var selectQuestion = document.getElementById("selectQuestion");
+                var selectPicture = document.getElementById("selectPicture");
+                var selectQcm = document.getElementById("selectQcm");
 
-                var question = document.getElementById("question");
-                //question.value = jsonReceived.explanationType;
+                if(jsonReceived.explanationType == "question"){
+                    selectQuestion.checked = true;
+                    toQuestion();
+                }
+                else if(jsonReceived.explanationType == "picture"){
+                    selectPicture.checked = true;
 
-                var picture = document.getElementById("picture");
-                //picture.value = jsonReceived.explanationType;
+                    var pictureImage = document.getElementById("pictureImage");
+                    pictureImage.src = jsonReceived.picture;
 
-                var qcm = document.getElementById("qcm");
-                //qcm.value = jsonReceived.explanationType;
+                    toPicture();
+                }
+                else if(jsonReceived.explanationType == "qcm") {
+                    selectQcm.checked = true;
 
-              //  var file = document.getElementById("file");
-               // file.value = jsonReceived.media;
+                    if (jsonReceived.qcm) {
+                        var textAnswer1 = document.getElementById("textAnswer1");
+                        var textAnswer2 = document.getElementById("textAnswer2");
+                        var textAnswer3 = document.getElementById("textAnswer3");
+                        var textAnswer4 = document.getElementById("textAnswer4");
+                        var checkAnswer1 = document.getElementById("checkAnswer1");
+                        var checkAnswer2 = document.getElementById("checkAnswer2");
+                        var checkAnswer3 = document.getElementById("checkAnswer3");
+                        var checkAnswer4 = document.getElementById("checkAnswer4");
+
+                        textAnswer1.value = jsonReceived.qcm.textAnswer1;
+                        textAnswer2.value = jsonReceived.qcm.textAnswer2;
+                        textAnswer3.value = jsonReceived.qcm.textAnswer3;
+                        textAnswer4.value = jsonReceived.qcm.textAnswer4;
+
+                        if (jsonReceived.qcm.answer !== undefined) {
+                            if (jsonReceived.qcm.answer === 0) {
+                                checkAnswer1.checked = true;
+                            }
+                            else if (jsonReceived.qcm.answer === 1) {
+                                checkAnswer2.checked = true;
+                            }
+                            else if (jsonReceived.qcm.answer === 2) {
+                                checkAnswer3.checked = true;
+                            }
+                            else if (jsonReceived.qcm.answer === 3) {
+                                checkAnswer4.checked = true;
+                            }
+                        }
+                    }
+                    toQcm();
+                }
 
                 var earnedPoints = document.getElementById("earnedPoints");
                 earnedPoints.value = jsonReceived.total_points;
@@ -176,69 +223,14 @@
                 var answers = document.getElementById("answers");
                 answers.value = jsonReceived.answers;
 
-                var move = document.getElementById("move");
-                //move.value = jsonReceived.move;
-
-                var destination = document.getElementById("destination");
-
-                var action = document.getElementById("action");
-
-
-                if( jsonReceived.type == "move"){
-
-                    action.checked = false;
-
-                    move.checked = true ;
-
-                    destination.value = jsonReceived.coordinate;
-
-                    if(move.checked){
-
-                        destination.innerHTML += ""
-                         +'<div class="form-group">'
-                         +'   <div>'
-                         +'   <label for="latTo">Latitude    :</label><input id="latTo" type="text">'
-                         +'  </div>'
-                         +'  <div>'
-                         +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
-                         +'   </div>'
-                         +'</div>';
+                if (jsonReceived.clues) {
+                    totalclues = jsonReceived.clues.length;
+                    jsonReceived.clues.sort(function (a, b) {
+                        return a.order_number > b.order_number
+                    });
+                    for (i = 0; i < jsonReceived.clues.length; i++) {
+                        htmlAppendClue(jsonReceived.clues[i]._id, i + 1, jsonReceived.clues[i].cost, jsonReceived.clues[i].description);
                     }
-
-                } else{
-                    action.checked = true;
-                }
-
-
-                if(jsonReceived.explanationType == "question"){
-
-                    question.checked = true;
-                    answers.innerHTML += ''
-                    +'<label for="reponse">put the right answer</label><input id="reponse" type="text">';
-                }
-                if(jsonReceived.explanationType == "picture"){
-
-                    picture.checked = true;
-                    answers.innerHTML = ''
-                        +'<label>Upload the picture described in the explenation</label>';
-                }
-                if(jsonReceived.explanationType == "qcm"){
-
-                    qcm.checked = true;
-                    answers.innerHTML = ''
-                        +'<div class="form-group">'
-                        +'<label>Answer:</label>'
-                        +'<input id="res1" type="text" name="res1" value="res1"><br>'
-                        +'<input id="res2" type="text" name="res1" value="res2"><br>'
-                        +'<input id="res3" type="text" name="res1" value="res3"><br>'
-                        +'<input id="res4" type="text" name="res1" value="res4"><br>'
-                        +'</div><br>';
-                }
-
-                //type="file" Pictures          <==
-                
-                for (i = 0; i < jsonReceived.clues.length; i++) { 
-                    htmlAppendClue(jsonReceived.clues[i]._id, i + 1, jsonReceived.clues[i].cost, jsonReceived.clues[i].description);
                 }
                             
             }, function(error) {
@@ -247,192 +239,100 @@
         }
     }
 
-//*********************************************************Controlling the DOM ************************************************************************************
-                                    function toMove(){
+    function closeDialog() {
+        window.location = './edit-game.html?idgame=' + idGame + '#tabSteps';
+    }
 
-                                       var destination = document.getElementById("destination");
-                                        var move = document.getElementById("move");
-                                        var action = document.getElementById("action");
+    function toMove(){
+        var destination = document.getElementById("destination");
 
-                                        if(move.checked == true){
+        destination.hidden = false;
+    }
 
-                                            destination.innerHTML = ''
-                                                +'<div class="form-group">'
-                                                +'   <div>'
-                                                +'   <label for="latTo">Latitude   :</label><input id="latTo" type="text">'
-                                                +'  </div>'
-                                                +'  <div>'
-                                                +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
-                                                +'   </div>'
-                                                +'</div>';
+    function toAction(){
+        var destination = document.getElementById("destination");
 
-                                        }else
-                                        {
+        destination.hidden = true;
+    }
 
-                                            destination.innerHTML  = '';
+    function toQuestion(){
+        var pnlAnswerText = document.getElementById("pnlAnswerText");
+        var pictureQuestion = document.getElementById("pictureQuestion");
+        var qcmQuestion = document.getElementById("qcmQuestion");
 
-                                        }
-                                    }
-                                    function toAction(){
-
-                                        var destination = document.getElementById("destination");
-                                        var move = document.getElementById("move");
-                                        var action = document.getElementById("action");
-
-                                        if(action.checked == true){
-
-                                            destination.innerHTML = '';
+        pnlAnswerText.hidden = false;
+        pictureQuestion.hidden = true;
+        qcmQuestion.hidden = true;
+    }
 
 
-                                        }else
-                                        {
+    function toPicture(){
+        var pnlAnswerText = document.getElementById("pnlAnswerText");
+        var pictureQuestion = document.getElementById("pictureQuestion");
+        var qcmQuestion = document.getElementById("qcmQuestion");
 
-                                            destination.innerHTML  = ''
-                                                +'<div class="form-group">'
-                                                +'   <div>'
-                                                +'   <label for="latTo">Latitude   :</label><input id="latTo" type="text">'
-                                                +'  </div>'
-                                                +'  <div>'
-                                                +'   <label for="longTo">Longitute  :</label><input id="longTo" type="text">'
-                                                +'   </div>'
-                                                +'</div>';
+        pnlAnswerText.hidden = false;
+        pictureQuestion.hidden = false;
+        qcmQuestion.hidden = true;
+    }
 
-                                        }
-                                    }
+    function toQcm(){
+        var pnlAnswerText = document.getElementById("pnlAnswerText");
+        var pictureQuestion = document.getElementById("pictureQuestion");
+        var qcmQuestion = document.getElementById("qcmQuestion");
 
+        pnlAnswerText.hidden = true;
+        pictureQuestion.hidden = true;
+        qcmQuestion.hidden = false;
+    }
 
-                                    function toQuestion(){
+    function fileSelected() {
+        var file = document.getElementById("file");
+        var pictureImage = document.getElementById("pictureImage");
+        var reader  = new FileReader();
 
-                                        var answers = document.getElementById("answers");
-                                        var question = document.getElementById("question");
+        reader.addEventListener("load", function () {
+            pictureImage.src = reader.result;
+        }, false);
 
-                                        if(question.checked == true){
-
-                                            answers.innerHTML = ''
-                                                +'<label for="reponse">put your answer here</label><input id="reponse" type="text">';
-
-                                        }
-
-                                    }
-
-
-                                    function toPicture(){
-
-                                        var answers = document.getElementById("answers");
-                                        var picture = document.getElementById("picture");
-
-                                        if(picture.checked == true){
-
-                                            answers.innerHTML = ''
-                                            +'<label>Upload the picture described in the explenation</label>';
-
-
-                                        }
-
-                                    }
-
-                                    function toQcm(){
-
-                                        var answers = document.getElementById("answers");
-                                        var qcm = document.getElementById("qcm");
-
-                                        if(qcm.checked == true){
-
-                                            answers.innerHTML = ''
-                                                +'<div class="form-group">'
-                                                +'<label> Answers:</label><br>'
-                                                +'<input id="res1" type="text" name="res1" value="res1"><br>'
-                                                +'<input id="res2" type="text" name="res1" value="res2"><br>'
-                                                +'<input id="res3" type="text" name="res1" value="res3"><br>'
-                                                +'<input id="res4" type="text" name="res1" value="res4"><br>'
-                                                +'</div><br>';
-
-                                        }
-
-                                    }
-        //********************************************END OF Controlling the DOM *********************************************************************************
-
-
-
-        //******************************************************** to load a picture *****************************************************************************
-        fileInput.onchange = function() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('PUT', '/data/step/pic/'+idStep);
-
-            xhr.upload.onprogress = function(e) {
-                progress.value = e.loaded;
-                progress.max = e.total;
-            };
-
-            xhr.onload = function() {
-                console.log('Upload complete!');
-
-            };
-
-            var form = new FormData();
-            for(var i=0; i < fileInput.files.length; i++)
-                form.append('file', fileInput.files[i]);
-
-            xhr.send(form);
-        };
-
-
-
-
-
-
-        //***************************************************************TO UPDATE A STEP *************************************************************************
-
-
-        function updateStep()
-        {
-
-		idStep = getUrlParameter("idstep"); 
-		
+        if (file.files[0]) {
+            reader.readAsDataURL(file.files[0]);
+        }
+    }
+    function updateStep()
+    {
         if (idStep !== undefined) {
             var jsonToSend = {
                 "name" : "",
+                "order_number": 0,
                 "type" : "",
-                "move" : "",
                 "total_points" : 1,
                 "explanation" : "",
                 "explanationType" : "",
-                "answers" : [
-                    {
-                        "reponse" : ""
-                    },
-                    {
-                        "reponse" : ""
-                    },
-                    {
-                        "reponse" : ""
-                    },
-                    {
-                        "reponse" : ""
-                    },
-                    {
-                        "reponse" : ""
-                    }
-                ],
+                "qcm": {
+                    "textAnswer1": "",
+                    "textAnswer2": "",
+                    "textAnswer3": "",
+                    "textAnswer4": "",
+                    "answer": 0
+                },
+                "picture": "",
+                "answers" : "",
                 "coordinate" : {
                     "longitude" : "",
                     "latitude" : ""
                 }
             };
-    
-            //orderNumber                   <==
-            
-            //type="radio" Move / Action    <==
+
+            var orderNumber = document.getElementById("orderNumber");
+            jsonToSend.order_number = parseInt(orderNumber.value);
 
             var move = document.getElementById("move");
-            var action = document.getElementById("action");
 
-            if(move.checked = true){
-                jsonToSend.move = "true";
+            if(move.checked){
                 jsonToSend.type = "move";
             }else{
                 jsonToSend.type = "action";
-                jsonToSend.move = "false";
              }
 
             var logitude = document.getElementById("latTo");
@@ -441,7 +341,6 @@
             jsonToSend.coordinate.latitude = logitude.value;
             jsonToSend.coordinate.longitude = lattude.value;
 
-
             var stepName = document.getElementById("stepName");
             jsonToSend.name = stepName.value;
             
@@ -449,39 +348,69 @@
             jsonToSend.explanation = description.value;
             
             var earnedPoints = document.getElementById("earnedPoints");
-            jsonToSend.total_points = earnedPoints.value;
+            jsonToSend.total_points = parseInt(earnedPoints.value);
 
-            var question = document.getElementById("question");
-            var picture = document.getElementById("picture");
-            var qcm = document.getElementById("qcm");
-            var descriptionType = document.getElementById("descriptionType");
+            var selectQuestion = document.getElementById("selectQuestion");
+            var selectPicture = document.getElementById("selectPicture");
+            var selectQcm = document.getElementById("selectQcm");
 
-            var answers = document.getElementById("answers");
-            var res1 = document.getElementById("res1");
-            var res2 = document.getElementById("res2");
-            var res3 = document.getElementById("res3");
-            var res4 = document.getElementById("res4");
-            var res5 = document.getElementById("reponse");
-
-            jsonToSend.answers[0].reponse = res1.value;
-            jsonToSend.answers[1].reponse = res2.value;
-            jsonToSend.answers[2].reponse = res3.value;
-            jsonToSend.answers[3].reponse = res4.value;
-            jsonToSend.answers[4].reponse = res5.value;
-
-            if(question.checked == true) {
+            if(selectQuestion.checked == true) {
                 jsonToSend.explanationType = "question";
-            }else if(picture.checked == true){
+
+                jsonToSend.qcm = {};
+                jsonToSend.picture = "";
+
+            }else if(selectPicture.checked == true){
                 jsonToSend.explanationType = "picture";
-            }else if(qcm.checked == true){
+
+                jsonToSend.qcm = {};
+
+                var pictureImage = document.getElementById("pictureImage");
+
+                if (pictureImage.src.startsWith("http:"))
+                    jsonToSend.picture = "";
+                else
+                    jsonToSend.picture = pictureImage.src;
+
+            }else if(selectQcm.checked == true){
                 jsonToSend.explanationType = "qcm";
+
+                jsonToSend.picture = "";
+
+                var textAnswer1 = document.getElementById("textAnswer1");
+                var textAnswer2 = document.getElementById("textAnswer2");
+                var textAnswer3 = document.getElementById("textAnswer3");
+                var textAnswer4 = document.getElementById("textAnswer4");
+                var checkAnswer1 = document.getElementById("checkAnswer1");
+                var checkAnswer2 = document.getElementById("checkAnswer2");
+                var checkAnswer3 = document.getElementById("checkAnswer3");
+                var checkAnswer4 = document.getElementById("checkAnswer4");
+
+                jsonToSend.qcm.textAnswer1 = textAnswer1.value;
+                jsonToSend.qcm.textAnswer2 = textAnswer2.value ;
+                jsonToSend.qcm.textAnswer3 = textAnswer3.value;
+                jsonToSend.qcm.textAnswer4 = textAnswer4.value;
+
+                if (checkAnswer1.checked) {
+                    jsonToSend.qcm.answer = 0;
+                }
+                else if (checkAnswer2.checked) {
+                    jsonToSend.qcm.answer = 1;
+                }
+                else if (checkAnswer3.checked) {
+                    jsonToSend.qcm.answer = 2;
+                }
+                else if (checkAnswer4.checked) {
+                    jsonToSend.qcm.answer = 3;
+                }
             }
 
-			
-            //type="file" Pictures          <==
-            
+            var answers = document.getElementById("answers");
+            jsonToSend.answers = answers.value;
+
             putRequest('/data/steps/'+ idStep, jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
+                closeDialog();
             }, function(error) {
                 console.error("Put Failed!", error);
             });
@@ -490,21 +419,19 @@
     
     function htmlAppendClue(idClue, orderNumber, points, description) {
         var cluesList = document.getElementById("cluesList");
-              
-		var idStep = getUrlParameter("idstep");
-		
+
         cluesList.innerHTML += ''
                 + '<div class="container">'                    
                 + '    <div class="panel panel-warning">'
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                                    
                 + '                <div class="col-xs-4" >'
-                + '' + idStep + '                    <a href="edit-clue.html?idstep' + idStep + '=&idclue=' + idClue + '" style="text-decoration: none; ">' + idClue + ''
-                + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
+                + '                    <a href="edit-clue.html?idclue=' + idClue + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
+                + '                        <h3  class="panel-title">#' + orderNumber + '</h3>'
                 + '                    </a>'
                 + '                </div>'
                 + '                <div class="col-xs-4">'
-                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points.toString() + ' point' + ((points > 1) ? 's' : '') + '</h3>'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points + ' point' + ((points > 1) ? 's' : '') + '</h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
                 + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + idClue + '\');" style="margin-left: 0px;">Delete</button>'
@@ -512,7 +439,7 @@
                 + '            </div>'
                 + '        </div>'
                 + '        <div class="panel-body">'
-                + '' + idStep + '            <a href="edit-clue.html?idstep=' + idStep + '=&idclue=' + idClue + '" style="text-decoration: none; ">' + idClue + ''
+                + '            <a href="edit-clue.html?idclue=' + idClue + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
                 + '                ' + description
                 + '            </a>'
                 + '        </div>'
@@ -521,21 +448,20 @@
     }
 
     function createNewClue(event) {
-		
-		idStep = getUrlParameter("idstep");
         if (idStep !== undefined) {
-			
+            totalclues = totalclues +1;
+
             var jsonToSend = {
                 "description": "(new clue)",
-                "cost": 1
-				
+                "cost": 1,
+                "order_number": totalclues
             }
 			
         
             postRequest('/data/steps/' + idStep + '/clues/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendClue(jsonReceived._id, 1, jsonReceived.move, jsonReceived.name, jsonReceived.total_points);
+                htmlAppendClue(jsonReceived._id, 1, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
                 console.error("Post Failed!", error);
             });
@@ -543,7 +469,6 @@
     }
     
     function deleteClue(event, idClue) {
-		idStep = getUrlParameter("idstep");
         if (idStep !== undefined) {
             var result = confirm("Delete this clue?");
             if (result) {

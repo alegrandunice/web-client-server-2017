@@ -46,6 +46,9 @@
                       <label for="name">Name</label><input id="name" type="text" placeholder="Name" class="form-control">
                     </div>
                     <div class="form-group">
+                        <label for="accesskey">Access Key</label><input id="accesskey" type="text" placeholder="Access Key" class="form-control">
+                    </div>
+                    <div class="form-group">
                       <label for="state">Status</label><label id="state" class="form-control"></label>
                     </div>                                      
                     <div class="form-group">
@@ -95,6 +98,7 @@
     <script type="text/javascript">
     
     var idGame;
+    var totalsteps = 0;
     
     function onLoad() {
         idGame = getUrlParameter("idgame");
@@ -119,6 +123,8 @@
                 headerName.innerHTML = jsonReceived.name;
                 var name = document.getElementById("name");
                 name.value = jsonReceived.name;
+                var accesskey = document.getElementById("accesskey");
+                accesskey.value = jsonReceived.accesskey;
                 var state = document.getElementById("state");
                 state.innerHTML = jsonReceived.status;
                 if(jsonReceived.localisation){
@@ -131,10 +137,15 @@
                 }
                 var gameType = document.getElementById("gameType");
                 gameType.value = jsonReceived.game_type;
-                
-                for (i = 0; i < jsonReceived.steps.length; i++) { 
-		       
-                    htmlAppendStep(jsonReceived.steps[i]._id, i + 1, jsonReceived.steps[i].move, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
+
+                if (jsonReceived.steps !== undefined) {
+                    totalsteps = jsonReceived.steps.length;
+                    jsonReceived.steps.sort(function(a, b) {
+                        return a.order_number > b.order_number
+                    });
+                    for (i = 0; i < jsonReceived.steps.length; i++) {
+                        htmlAppendStep(jsonReceived.steps[i]._id, jsonReceived.steps[i].order_number, jsonReceived.steps[i].type, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
+                    }
                 }
                             
             }, function(error) {
@@ -154,6 +165,8 @@
             
             var name = document.getElementById("name");
             jsonToSend.name = name.value;
+            var accesskey = document.getElementById("accesskey");
+            jsonToSend.accesskey = accesskey.value;
             jsonToSend.localisation = {
                 country : document.getElementById("country").value,
                 region : document.getElementById("region").value,
@@ -172,7 +185,7 @@
         }
     }
     
-    function htmlAppendStep(idStep, orderNumber, move, name, points) {
+    function htmlAppendStep(idStep, orderNumber, type, name, points) {
         var stepsList = document.getElementById("stepsList");
               
         stepsList.innerHTML += ''
@@ -181,12 +194,12 @@
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                              
                 + '                <div class="col-xs-4" >'
-                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
-                + '                        <h3  class="panel-title">#' + orderNumber.toString() + '</h3>'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '&idgame=' + idGame + '" style="text-decoration: none; ">'
+                + '                        <h3  class="panel-title">#' + orderNumber + '</h3>'
                 + '                    </a>'
                 + '                </div>'
                 + '                <div class="col-xs-4">'
-                + '                    <h3 class="panel-title" style=" font-style: italic;">' + ((move == "move") ? 'Move' : 'Action') + ' </h3>'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">' + ((type == "move") ? 'Move' : 'Action') + ' </h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
                 + '                    <button class="btn btn-danger" onclick="deleteStep(event, \'' + idStep + '\');" style="margin-left: 0px;">Delete</button>'
@@ -196,7 +209,7 @@
                 + '        <div class="panel-body">'
                 + '            <div class="row">'
                 + '                <div class="col-xs-8">'
-                + '                    <a href="./edit-step.html?idstep=' + idStep + '" style="text-decoration: none; ">'
+                + '                    <a href="./edit-step.html?idstep=' + idStep + '&idgame=' + idGame + '" style="text-decoration: none; ">'
                 + '                        ' + name
                 + '                    </a>'
                 + '                </div>'
@@ -212,55 +225,26 @@
     }
     
     function createNewStep(event) {
-        alert("create new step");
-        alert(idGame);
 		if (idGame !== undefined) {
+            totalsteps = totalsteps + 1;
+
             var jsonToSend = {
-                "name" : "new step",
+                "name" : "(new step)",
+                "order_number": totalsteps,
                 "type" : "move",
-                "move" : "true",
                 "total_points" : 1,
-                "explanation" : "put what the team must do here ",
+                "explanation" : "(put what the team must do here)",
                 "explanationType" : "question",
-                "answers" : [
-                    {
-                        "reponse" : "first answer"
-                    },
-                    {
-                        "reponse" : "second answer"
-                    },
-                    {
-                        "reponse" : "third answer"
-                    },
-                    {
-                        "reponse" : "correct answer"
-                    },
-                    {
-                        "reponse" : "correct answer"
-                    }
-                ],
                 "coordinate" : {
                     "longitude" : "",
                     "latitude" : ""
                 },
-                "media" : [
-                    {
-                        "nom" : "",
-                        "url" : ""
-                    }
-                ],
-                "clues" : [
-                    {
-                        "cost" : "",
-                        "description" : ""
-                    }
-                ]
             }
         
             postRequest('/data/games/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendStep(jsonReceived._id, 1, jsonReceived.type, jsonReceived.name, jsonReceived.total_points);
+                htmlAppendStep(jsonReceived._id, jsonReceived.order_number, jsonReceived.type, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
                 console.error("Post Failed!", error);
             });
