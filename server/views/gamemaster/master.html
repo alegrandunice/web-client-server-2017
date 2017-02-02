@@ -255,13 +255,13 @@
         if(event.keyCode == 13) {
             console.log(event);
             this.blur();
-            sendMessageToRoom(event.srcElement.id.substring(4));
+            sendMessageToRoom(event.target.id.substring(4));
         }
     }
     
     function clic(event) {
-    console.log(event.srcElement.id);
-        sendMessageToRoom(event.srcElement.id.substring(4));
+    console.log(event.target.id);
+        sendMessageToRoom(event.target.id.substring(4));
     }
     
     

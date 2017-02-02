@@ -336,7 +336,7 @@ var connectSocketFunction = function connectSocket(socket) {
         //on envoie les rooms que l'utilisateur doit rejoindre
         socket.emit('joinRooms', listOfPlayers[username].roomsList);
 		// echo to all client except current, that a new person has connected
-		socket.broadcast.emit('updatechat', username + ' has connected');
+		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
 		// tell all clients to update the list of users on the GUI
 		io.sockets.emit("updateusers", usernames);
 	});
