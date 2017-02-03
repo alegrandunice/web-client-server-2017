@@ -354,7 +354,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 //console.log(game);
                 if(game.steps){
                     for (i = 0; i < game.steps.length; i++) {
-                        ids.push(new ObjectID(game.steps[i].stepid)) ;
+                        ids.push(new ObjectID(game.steps[i])) ;
                     }
                 }
 
@@ -453,7 +453,6 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                     } else {
                         var simple = {
                             name: step.name,
-                            order_number: step.order_number,
                             explanation: step.explanation,
                             total_points : step.total_points,
                             explanationType : step.explanationType,
