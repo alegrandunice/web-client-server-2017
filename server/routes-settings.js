@@ -18,7 +18,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
 
         .get('/settings/edit-account.html', function(req,res) {
             sess = req.session;
-            if(sess.username && sess.type == "gamemaster"){
+            if(sess.username){
                 res.sendFile(views + '/settings/edit-account.html');
             }
             else{
