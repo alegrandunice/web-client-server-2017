@@ -53,7 +53,7 @@
             var jsonReceived = JSON.parse(response);
             
             jsonReceived.forEach((j) => {
-                htmlAppendGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
+                htmlAppendGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0), j.game_type);
             });
                         
         }, function(error) {
@@ -61,7 +61,7 @@
         });
     }   
     
-    function htmlAppendGame(idGame, name, status, steps) {
+    function htmlAppendGame(idGame, name, status, steps, gameType) {
         var gamesList = document.getElementById("gamesList");
               
         gamesList.innerHTML += ''
@@ -86,7 +86,7 @@
                     + '            <div class="row">'
                     + '                <div class="col-xs-8">'
                     + '                    <a href="./edit-game.html?idgame=' + idGame + '" style="text-decoration: none; ">'
-                    + '                        Game type'
+                    + '                        ' + (gameType === undefined ? "" : gameType)
                     + '                    </a>'
                     + '                </div>'
                     + '                <div class="col-xs-4">'
@@ -112,7 +112,9 @@
     function createNewGame(event) {
         var jsonToSend = {
             "name": "(new game)",
-            "status": "WAITING"
+            "accesskey" : "",
+            "status": "WAITING",
+            "game_type": ""
         }
     
         postRequest('/data/games', jsonToSend).then(function(response) {
