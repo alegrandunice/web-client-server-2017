@@ -52,7 +52,7 @@
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
             
-            jsonReceived.forEach((j) => {
+            jsonReceived.forEach(function(j){
                 htmlAppendGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0), j.game_type);
             });
                         

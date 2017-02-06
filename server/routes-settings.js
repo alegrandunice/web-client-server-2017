@@ -199,6 +199,50 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         });
     });
 
+    /*  "/data/games/:id/start"
+     *    PUT : Start a game
+     */
+    app.put("/data/games/:id/start", function(req, res) {
+        console.log("start game");
+        db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
+            {
+                $set :
+                {
+                    status: "IN PROGRESS"
+                }
+            },
+            function(err, doc) {
+                if (err) {
+                    handleError(res, err.message, "Failed to start game");
+                } else {
+                    console.log("game started : " + doc.name );
+                    res.status(204).end();
+                }
+            });
+    });
+
+    /*  "/data/games/:id/start"
+     *    PUT : Start a game
+     */
+    app.put("/data/games/:id/end", function(req, res) {
+        console.log("start game");
+        db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
+            {
+                $set :
+                {
+                    status: "FINISHED"
+                }
+            },
+            function(err, doc) {
+                if (err) {
+                    handleError(res, err.message, "Failed to end game");
+                } else {
+                    console.log("game finished : " + doc.name );
+                    res.status(204).end();
+                }
+            });
+    });
+
 
 //***************************************************** STEPS ********************************************************/
 
