@@ -185,7 +185,9 @@
   		data = document.querySelector("#data");
   		datasend = document.querySelector("#datasend");
   		users = document.querySelector("#users");
-
+        
+        idGame = getUrlParameter('idgame');
+        
   		/*// Listener for send button
 		datasend.addEventListener("click", function(evt) {
       		sendMessage();
@@ -239,7 +241,7 @@
         
         rooms[roomName] = new RoomBB(roomName);
         var teamName = roomName.substring(6);
-        socket.emit('getTeamStep', "589878ae2e15d01a846921c7", teamName);
+        socket.emit('getTeamStep', idGame, teamName);
         
         var icone = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
         if(typeof(teams[teamName]) !== "undefined")
@@ -366,7 +368,7 @@
             {
                 if(destination[team] != null)
                 {
-                    destination[team].setMap(map);
+                    destination[team].setVisible(true);
                 }
             }
             
@@ -394,10 +396,10 @@
             {
                 if(destination[team] != null)
                 {
-                    destination[team].setMap(null);
+                    destination[team].setVisible(false);
                 }
             }
-            destination[teamName].setMap(map);
+            destination[teamName].setVisible(true);
             
         }
         
@@ -541,6 +543,10 @@ socket.on('deleteUser', function(player){
         teams[player.team] = null;
         delete teams[player.team]
         $("#Room_"+player.team).remove();
+        if(destination[player.team] != null)
+        {
+            destination[player.team].setMap(null);
+        }
         delete destination[player.team];
     }
     
@@ -584,11 +590,14 @@ socket.on('currentStep', function(teamName, idStep, step, coordinate){
             var circle = new google.maps.Circle({
               map: map,
               radius: 10,  
-              fillColor: '#AA0000'
+              fillColor: '#AA0000',
+              fillOpacity:0.2,
+              strokeColor: '#AA0000',
+              strokeWeight: 1
             });
             circle.bindTo('center', marker, 'position');
             
-            marker.setMap(null);
+            marker.setVisible(false);
             destination[teamName] = circle;
             
         }

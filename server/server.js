@@ -394,7 +394,6 @@ var connectSocketFunction = function connectSocket(socket) {
     });
     
     socket.on("getTeamStep", function(gameid, teamName){
-        gameid = "589878ae2e15d01a846921c7";
         
         db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
             if (err) {
