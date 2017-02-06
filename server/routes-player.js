@@ -264,28 +264,113 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             if(sess.username && sess.type == "player"){
                 console.log('Player: Get current step with consumed clues');
 
+                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.params.idgame)}, { steps: 1, teams: 1 }, function(err, doc) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get current step.");
+                    } else {
+                        let team;
+                        let indexTeam;
+                        for (t = 0; t < doc.teams.length; t++) {
+                            if (doc.teams[t].players !== undefined) {
+                                for (p = 0; p < doc.teams[t].players.length; p++) {
+                                    if (doc.teams[t].players[p].userid == sess.userid) {
+                                        team = doc.teams[t];
+                                        indexTeam = t;
+                                    }
+                                }
+                            }
+                        }
 
-                //TODO: Remove
+                        if (team !== undefined) {
+                            let teamstep = {};
+                            let newstep = false;
 
-//        currentStep = {
-//            "name": "Step #1",
-//            "explanation": "Goto BU...",
-//            "move": true,
-//            "coordonates" : {
-//                "latitude" : 43.760854,
-//                "longitude" : 7.202076
-//            }
-//        };
+                            var liststeps = [];
 
-                currentStep = {
-                    "name": "Step #2",
-                    "type" : 2,
-                    "explanation": "Tu dois faire quelque chose 2 !...",
-                    "move": false
-                };
+                            if (team.steps !== undefined) {
+                                for (p = 0; p < team.steps.length; p++)
+                                    liststeps.push(team.steps[p]);
+                            }
 
-                res.status(200).json(currentStep);
+                            if (team.steps === undefined) {
+                                if (doc.steps.length >= 1) {
+                                    teamstep = {
+                                        "stepid": doc.steps[0],
+                                        "time_began": new Date(),
+                                        "used_clues": []
+                                    };
+                                    liststeps.push(teamstep);
 
+                                    newstep = true;
+                                }
+                            }
+                            else if (team.steps[team.steps.length - 1].time_ended !== undefined) {
+                                if (doc.steps.length >= team.steps.length + 1) {
+                                    teamstep = {
+                                        "stepid": doc.steps[team.steps.length],
+                                        "time_began": new Date(),
+                                        "used_clues": []
+                                    };
+                                    liststeps.push(teamstep);
+
+                                    newstep = true;
+                                }
+                            }
+                            else {
+                                teamstep = team.steps[team.steps.length - 1]
+                            }
+
+                            if (newstep && (indexTeam !== undefined)) {
+                                let teamt = {};
+                                teamt["teams." + indexTeam + ".steps"] = liststeps;
+                                db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.params.idgame)}, {$set: teamt}, undefined, function (err, doc) {
+                                    if (err) {
+
+                                    } else {
+
+                                    }
+                                });
+                            }
+
+                            if (teamstep.stepid !== undefined) {
+                                db.collection(STEPS_COLLECTION).findOne({ _id : teamstep.stepid }, function(err, doc) {
+                                    if (err) {
+                                        handleError(res, err.message, "Failed to get step");
+                                    } else {
+                                        if (doc == null) {
+                                            handleError(res, "Unknown step", "Failed to get step");
+                                        }
+                                        else {
+                                            let stepgame = {
+                                                "stepid": doc._id.toString(),
+                                                "explanation": doc.explanation,
+                                                "total_points": doc.total_points,
+                                                "type": doc.type,
+                                                "explanationType": doc.explanationType,
+                                                "coordinate": doc.coordinate,
+                                                "clues": [],
+                                                "qcm": doc.qcm,
+                                                "has_picture": ((doc.picture === undefined || doc.picture == "") ? false : true)
+                                            };
+
+                                            for (c = 0; c < teamstep.used_clues.length; t++) {
+                                                if ((doc.clues !== undefined) && (doc.clues.length >= c + 1))
+                                                    stepgame.clues.push(doc.clues[c]);
+                                            }
+
+                                            res.status(200).json(stepgame);
+                                        }
+                                    }
+                                });
+                            }
+                            else
+                                res.status(200).json({});
+                        }
+                        else{
+                            handleError(res, err.message, "Failed to get current step.");
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");
@@ -296,7 +381,52 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Send an answer for validation');
+                db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.body.stepid) }, function(err, doc) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get step");
+                    } else {
+                        if (doc == null) {
+                            handleError(res, "Unknown step", "Failed to get step");
+                        }
+                        else {
+                            if (doc.type === "action") {
 
+                                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.body.gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
+                                    if (err) {
+                                        handleError(res, err.message, "Failed to get current step.");
+                                    } else {
+                                        let team;
+                                        let indexTeam;
+                                        for (t = 0; t < doc.teams.length; t++) {
+                                            if (doc.teams[t].players !== undefined) {
+                                                for (p = 0; p < doc.teams[t].players.length; p++) {
+                                                    if (doc.teams[t].players[p].userid == sess.userid) {
+                                                        team = doc.teams[t];
+                                                        indexTeam = t;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if ((team !== undefined) &&(team.steps !== undefined)) {
+                                            team.steps[team.steps.length - 1].time_ended = new Date();
+
+                                            let teamt = {};
+                                            teamt["teams." + indexTeam + ".steps"] = team.steps;
+                                            db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.body.gameid)}, {$set: teamt}, undefined, function (err, doc) {
+                                                if (err) {
+                                                    handleError(res, err.message, "Failed to update step");
+                                                } else {
+                                                    res.status(204).end();
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");
@@ -307,7 +437,52 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
             sess = req.session;
             if(sess.username && sess.type == "player"){
                 console.log('Player: Send an answer for validation');
+                db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.body.stepid) }, function(err, doc) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get step");
+                    } else {
+                        if (doc == null) {
+                            handleError(res, "Unknown step", "Failed to get step");
+                        }
+                        else {
+                            if (doc.type === "move") {
 
+                                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.body.gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
+                                    if (err) {
+                                        handleError(res, err.message, "Failed to get current step.");
+                                    } else {
+                                        let team;
+                                        let indexTeam;
+                                        for (t = 0; t < doc.teams.length; t++) {
+                                            if (doc.teams[t].players !== undefined) {
+                                                for (p = 0; p < doc.teams[t].players.length; p++) {
+                                                    if (doc.teams[t].players[p].userid == sess.userid) {
+                                                        team = doc.teams[t];
+                                                        indexTeam = t;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if ((team !== undefined) &&(team.steps !== undefined)) {
+                                            team.steps[team.steps.length - 1].time_ended = new Date();
+
+                                            let teamt = {};
+                                            teamt["teams." + indexTeam + ".steps"] = team.steps;
+                                            db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.body.gameid)}, {$set: teamt}, undefined, function (err, doc) {
+                                                if (err) {
+                                                    handleError(res, err.message, "Failed to update step");
+                                                } else {
+                                                    res.status(204).end();
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");

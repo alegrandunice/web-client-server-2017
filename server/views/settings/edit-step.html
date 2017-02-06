@@ -22,7 +22,7 @@
         
         <div class="row">
             <div class="col-xs-8" >
-                <h3>Step #1</h3>
+                <h3 id="stepHeader"></h3>
             </div>
             <div class="col-xs-4" style="text-align: right;">
                 <button class="btn btn-default" data-toggle="tooltip" title="Close" style="margin-top: 15px; padding: 5px" onclick="closeDialog()"><span class="glyphicon glyphicon-remove" aria-hidden="true" style="font-size: 1.5em;" ></span></button>
@@ -39,7 +39,6 @@
             <div id="tabGeneral" class="tab-pane fade in active">                    
 
                 <form onsubmit="updateStep()" style="margin: 10px">
-                    <label for="orderNumber">Order Number</label><input id="orderNumber" type="number" placeholder="Order Number" class="form-control">
                     <div style="margin-top: 10px;">
                         <input id="move" type="radio" name="stepType" onchange="toMove()"> <label for="move">Move</label>
                         <input id="action" type="radio" name="stepType" onchange="toAction()" style="margin-left: 20px"><label for="action">Action</label>
@@ -137,8 +136,8 @@
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
 
-                var orderNumber = document.getElementById("orderNumber");
-                orderNumber.value = jsonReceived.order_number;
+                var stepHeader = document.getElementById("stepHeader");
+                stepHeader.innerHTML = jsonReceived.name;
 
                 var move = document.getElementById("move");
                 var action = document.getElementById("action");
@@ -299,12 +298,12 @@
             reader.readAsDataURL(file.files[0]);
         }
     }
+
     function updateStep()
     {
         if (idStep !== undefined) {
             var jsonToSend = {
                 "name" : "",
-                "order_number": 0,
                 "type" : "",
                 "total_points" : 1,
                 "explanation" : "",
@@ -323,9 +322,6 @@
                     "latitude" : ""
                 }
             };
-
-            var orderNumber = document.getElementById("orderNumber");
-            jsonToSend.order_number = parseInt(orderNumber.value);
 
             var move = document.getElementById("move");
 
@@ -461,7 +457,7 @@
             postRequest('/data/steps/' + idStep + '/clues/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendClue(jsonReceived._id, 1, jsonReceived.name, jsonReceived.total_points);
+                htmlAppendClue(jsonReceived._id, totalclues, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
                 console.error("Post Failed!", error);
             });

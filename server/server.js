@@ -168,9 +168,9 @@ app.get('/login', function(req,res) {
     sess = req.session;
     if(sess.username){
         if(sess.type == "gamemaster")
-            res.sendFile(views + '/gamemaster/select-game.html');
+            res.redirect('/gamemaster/select-game.html');
         else if(sess.type == "player")
-            res.sendFile(views + '/player/select-game.html');
+            res.redirect('/player/select-game.html');
     }
     else
         res.sendFile( views + '/settings/login.html');
@@ -190,6 +190,24 @@ app.get('/login', function(req,res) {
                 res.redirect('/login');
             }
         });
+    })
+
+    .get('/data/user/get/', function(req,res) {
+        sess = req.session;
+        console.log("GET USER !");
+        if(sess.username){
+            db.collection(USERS_COLLECTION).findOne( { username : sess.username }, function(err, doc) {
+                if (err) {
+                    handleError(res, err.message, "Failed to get user to update account");
+                } else {
+                    console.log("GOT USER !");
+                    res.status(200).json(doc);
+                }
+            });
+        }
+        else{
+            res.redirect('/login');
+        }
     })
 
     .post("/data/users/create/", function(req, res) {
@@ -220,6 +238,24 @@ app.get('/login', function(req,res) {
                     });
                 }
 
+            }
+        });
+    })
+
+    .post("/data/users/update/", function(req, res) {
+
+        sess = req.session;
+
+        var newUser = req.body;
+        newUser.type = sess.type;
+        console.log("updated user :" + JSON.stringify(newUser));
+
+        db.collection(USERS_COLLECTION).updateOne({ username : sess.username }, newUser, function(err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to update account");
+            } else {
+                sess.username = newUser.username;
+                res.status(201).end("account successfully updated !");
             }
         });
     });

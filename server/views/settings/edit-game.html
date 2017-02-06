@@ -140,11 +140,8 @@
 
                 if (jsonReceived.steps !== undefined) {
                     totalsteps = jsonReceived.steps.length;
-                    jsonReceived.steps.sort(function(a, b) {
-                        return a.order_number > b.order_number
-                    });
                     for (i = 0; i < jsonReceived.steps.length; i++) {
-                        htmlAppendStep(jsonReceived.steps[i]._id, jsonReceived.steps[i].order_number, jsonReceived.steps[i].type, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
+                        htmlAppendStep(jsonReceived.steps[i]._id, i + 1, jsonReceived.steps[i].type, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
                     }
                 }
                             
@@ -230,7 +227,6 @@
 
             var jsonToSend = {
                 "name" : "(new step)",
-                "order_number": totalsteps,
                 "type" : "move",
                 "total_points" : 1,
                 "explanation" : "(put what the team must do here)",
@@ -238,13 +234,13 @@
                 "coordinate" : {
                     "longitude" : "",
                     "latitude" : ""
-                },
+                }
             }
         
             postRequest('/data/games/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendStep(jsonReceived._id, jsonReceived.order_number, jsonReceived.type, jsonReceived.name, jsonReceived.total_points);
+                htmlAppendStep(jsonReceived._id, totalsteps, jsonReceived.type, jsonReceived.name, jsonReceived.total_points);
             }, function(error) {
                 console.error("Post Failed!", error);
             });

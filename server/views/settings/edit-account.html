@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Game Settings - New account</title>
+    <title>Game Settings - Update account</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -20,25 +20,26 @@
 <body  onload="onLoad()">
     <div class="container">
         <div class="jumbotron"  style="margin-top: 10px;">
-            <h3>Game Master account</h3>
-            <form onsubmit="formOnSubmit(); return false;" >
+            <h3>Update account</h3>
+            <form onsubmit="formOnSubmit(event); return false;" id="loginForm" >
                 <div class="form-group">
-                  <label for="user">User</label><input id="user" type="text" placeholder="User" class="form-control">
+                  <label for="username">User</label><input required id="username" name="username" type="text" placeholder="User" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="password">Password</label><input id="password" type="password" placeholder="Password" class="form-control">
+                  <label for="password">Password</label><input required id="password" name="password" type="password" placeholder="Password" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="firstName">First name</label><input type="firstName" placeholder="First name" class="form-control">
+                  <label for="firstName">First name</label><input required id="firstName" name="first_name" type="firstName" placeholder="First name" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="lastName">Last name</label><input id="lastName" type="text" placeholder="Last name" class="form-control">                  
+                  <label for="lastName">Last name</label><input required id="lastName" name="last_name" type="text" placeholder="Last name" class="form-control">
                 </div>
                 <div class="form-group">
-                  <label for="email">Email</label><input id="email" type="email" placeholder="Email" class="form-control">                  
+                  <label for="email">Email</label><input required id="email" name="email" type="email" placeholder="Email" class="form-control">
                 </div>
                 <button type="submit" class="btn btn-success">Update account</button>            
                 <button class="btn" onclick="gotoPreviousUrl(); return false;">Cancel</button>
+                <span id="responseMessage"></span>
             </form>
         </div>
     </div>
@@ -54,27 +55,66 @@
     var ac;
     
     function onLoad() {
-        ac = getUrlParameter('ac');
+        getRequest('/data/user/get/').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
+            console.log(jsonReceived);
+
+            var username = document.getElementById("username");
+
+            if(jsonReceived.username){
+                console.log("username : " + jsonReceived.username);
+                username.value = jsonReceived.username;
+            }
+
+            var password = document.getElementById("password");
+            if(jsonReceived.password)
+                password.value = jsonReceived.password;
+
+            var firstName = document.getElementById("firstName");
+            if(jsonReceived.first_name)
+                firstName.value = jsonReceived.first_name;
+
+            var lastName = document.getElementById("lastName");
+            if(jsonReceived.last_name)
+                lastName.value = jsonReceived.last_name;
+
+            var email = document.getElementById("email");
+            if(jsonReceived.email)
+                email.value = jsonReceived.email;
+
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
     }
     
-    function formOnSubmit()
+    function formOnSubmit(event)
     {
-        gotoPreviousUrl();
+        console.log("update account");
+        event.preventDefault();
+        var $inputs = $('#loginForm :input');
+
+        // not sure if you wanted this, but I thought I'd add it.
+        // get an associative array of just the values.
+        var jsonToSend = {};
+        $inputs.each(function() {
+            if(this.name != "")
+                jsonToSend[this.name] = $(this).val();
+        });
+
+        postRequest('/data/users/update/', jsonToSend).then(function(response) {
+            console.log("Post Success!", response);
+            $("#responseMessage").text(response);
+
+            //var jsonReceived = JSON.parse(response);
+            //console.log(jsonReceived);
+        }, function(error) {
+            console.error("Post Failed!", error);
+        });
     }
-    
+
     function gotoPreviousUrl() {
-        var ac = getUrlParameter("ac");
-        
-        if (ac == "1") {
-            window.location='select-game.html';
-        }
-        else if (ac == "2") {
-            window.location='../player/select-game.html';
-        }
-        else if (ac == "3") {
-            window.location='../gamemaster/select-game.html';
-        }
-        
+        window.location='../login';
         return false;
     }
     </script>
