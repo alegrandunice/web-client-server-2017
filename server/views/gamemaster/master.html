@@ -236,8 +236,10 @@
         chat = document.querySelector("#chat");
         socket.emit('subscribe', roomName);
         
+        
         rooms[roomName] = new RoomBB(roomName);
         var teamName = roomName.substring(6);
+        socket.emit('getTeamStep', "589878ae2e15d01a846921c7", teamName);
         
         var icone = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
         if(typeof(teams[teamName]) !== "undefined")
@@ -254,7 +256,7 @@
                        "        </h4>"+
                        "    </div>"+
                        "    <div id=\"collapse-"+roomName+"\" class=\"panel-collapse collapse card-block\">"+
-                       "        <div>Step 3 : Tuer un ours</div>"+
+                       "        <div id=\"step_"+teamName+"\">Step 0 : initialisation</div>"+
                        "        <div class=\"divider\"></div>"+
                        "        <div id=\""+rooms[roomName].id_room+"\" class=\"panel-body\" style=\"max-height:200px; overflow-y:auto; word-warp:break-word;\"></div>"+
                        "        <div class=\"panel-footer\">"+
@@ -360,6 +362,14 @@
             $(".hide-icon").removeClass("hide hide-icon");
             $(".collapse").collapse("hide");
             
+            for(team in destination)
+            {
+                if(destination[team] != null)
+                {
+                    destination[team].setMap(map);
+                }
+            }
+            
         }
         else {
             $(".show-all").removeClass("hide");
@@ -379,6 +389,16 @@
                 }
                 bounds.extend(markersList[marker].getPosition());
             }
+            
+            for(team in destination)
+            {
+                if(destination[team] != null)
+                {
+                    destination[team].setMap(null);
+                }
+            }
+            destination[teamName].setMap(map);
+            
         }
         
         
@@ -470,6 +490,7 @@ var map = new google.maps.Map(document.getElementById("map"), optionsGmaps);
 
 var markersList = {};
 var teams = [];
+var destination = [];
 var listIcones = [
     "http://maps.google.com/mapfiles/ms/micons/campground.png",
     "http://maps.google.com/mapfiles/ms/micons/bar.png",
@@ -520,6 +541,7 @@ socket.on('deleteUser', function(player){
         teams[player.team] = null;
         delete teams[player.team]
         $("#Room_"+player.team).remove();
+        delete destination[player.team];
     }
     
 });
@@ -542,6 +564,39 @@ socket.on('updateusers', function(listOfUsers) {
         users.innerHTML += userLineOfHTML;
     }
 });
+socket.on('currentStep', function(teamName, idStep, step, coordinate){
+
+    $("#step_"+teamName).text("Step "+idStep+" : " + step);
+    
+    //vérification si l'on a des coordonnées pour les afficher sur la map
+    if(typeof(coordinate) !== "undefined")
+    {
+        if(coordinate.latitude != "")
+        {
+            // Create marker 
+            var marker = new google.maps.Marker({
+              map: map,
+              position: new google.maps.LatLng(coordinate.latitude, coordinate.longitude),
+              title: 'Objectif de l\'équipe '+teamName
+            });
+
+            // Add circle overlay and bind to marker
+            var circle = new google.maps.Circle({
+              map: map,
+              radius: 10,  
+              fillColor: '#AA0000'
+            });
+            circle.bindTo('center', marker, 'position');
+            
+            marker.setMap(null);
+            destination[teamName] = circle;
+            
+        }
+    }
+
+    
+});
+
 
 socket.on('validate', function(team, message){
     var modal = $("#myModal");
