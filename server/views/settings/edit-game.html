@@ -113,12 +113,15 @@
         $('.nav-tabs a').on('shown.bs.tab', function (e) {
             window.location.hash = e.target.hash;
         });
-        
-        if (idGame !== undefined) {
+
+        console.log("Identifiant de la game : "+idGame);
+        console.log("Identifiant de la game : "+ typeof idGame);
+
+        if (idGame !== "undefined") {
             getRequest('/data/games/' + idGame + '/simple/').then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
-                
+
                 var headerName = document.getElementById("headerName");
                 headerName.innerHTML = jsonReceived.name;
                 var name = document.getElementById("name");
@@ -144,15 +147,20 @@
                         htmlAppendStep(jsonReceived.steps[i]._id, i + 1, jsonReceived.steps[i].type, jsonReceived.steps[i].name, jsonReceived.steps[i].total_points);
                     }
                 }
-                            
+
             }, function(error) {
                 console.error("Get Failed!", error);
             });
+
+        }else{
+
+            window.location='/settings/select-game.html';
+
         }
     }
     
     function updateGame() {
-        if (idGame !== undefined) {
+        if (idGame !== "undefined") {
             var jsonToSend = {
                 "name": "",
                 "status": "",
@@ -179,6 +187,10 @@
             }, function(error) {
                 console.error("Put Failed!", error);
             });
+        }else{
+
+            window.location='/settings/select-game.html';
+
         }
     }
     
@@ -222,7 +234,7 @@
     }
     
     function createNewStep(event) {
-		if (idGame !== undefined) {
+		if (idGame !== "undefined") {
             totalsteps = totalsteps + 1;
 
             var jsonToSend = {
@@ -244,12 +256,16 @@
             }, function(error) {
                 console.error("Post Failed!", error);
             });
+        }else{
+
+            window.location='/settings/select-game.html';
+
         }
 	
     }
     
     function deleteStep(event, idStep) {
-        if (idGame !== undefined) {
+        if (idGame !== "undefined") {
             var result = confirm("Delete this step?");
             if (result) {
                 deleteRequest('/data/games/' + idGame + '/step/' + idStep).then(function(response) {
@@ -259,6 +275,10 @@
                     console.error("Delete Failed!", error);
                 });
             }
+        }else{
+
+            window.location='/settings/select-game.html';
+
         }
     }
             
