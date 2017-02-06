@@ -20,8 +20,7 @@
 <body  onload="onLoad()">
     <div class="container" style="margin-top:10px; ">
         <div class="row" >                                    
-            <div class="col-xs-8" >
-                <button class="btn btn-success" onclick="createNewGame(event)">Create a new game</button>
+            <div class="col-xs-8">
                 <button class="btn" onclick="document.location.href = '/settings/select-game.html'; return false;">Settings</button>
                 <button class="btn" onclick="logout(); return false;">Logout</button>
             </div>
@@ -32,7 +31,6 @@
     </div>
     <div class="container" style="margin-bottom:10px">
         <h3>Select a game</h3>
-        <input type="checkbox"> View finished games<br>
     </div>
     
     <div id="gamesList">
@@ -51,9 +49,12 @@
         getRequest('../data/games').then(function(response) {
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
-            
-            jsonReceived.forEach((j) => {
-                htmlAppendGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0));
+
+            jsonReceived.forEach(function(j){
+                if(j.status == "WAITING")
+                    htmlAppendWaitingGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0), j.game_type);
+                if(j.status == "IN PROGRESS")
+                    htmlAppendInProgressGame(j._id, j.name, j.status, (j.steps ? j.steps.length : 0), j.game_type);
             });
                         
         }, function(error) {
@@ -70,7 +71,7 @@
             console.error("Get Failed!", error);
         });
     }
-    function htmlAppendGame(idGame, name, status, steps) {
+    function htmlAppendWaitingGame(idGame, name, status, steps, gameType) {
         var gamesList = document.getElementById("gamesList");
               
         gamesList.innerHTML += ''
@@ -87,7 +88,7 @@
                     + '                    <h3 class="panel-title" style=" font-style: italic;">' + status + '</h3>'
                     + '                </div>'
                     + '                <div class="col-xs-4" style="text-align: right;">'
-                    + '                    <button class="btn btn-danger" onclick="deleteGame(event, \'' + idGame + '\');" style="margin-left: 0px;">Delete</button>'
+                    + '                    <button class="btn btn-success" onclick="startGame(event, \'' + idGame + '\');" style="margin-left: 0px;">Start</button>'
                     + '                </div>'
                     + '            </div>'
                     + '        </div>'
@@ -95,7 +96,7 @@
                     + '            <div class="row">'
                     + '                <div class="col-xs-8">'
                     + '                    <a href="/gamemaster/master.html" style="text-decoration: none; ">'
-                    + '                        Game type'
+                    +                           (gameType === undefined ? "" : gameType)
                     + '                    </a>'
                     + '                </div>'
                     + '                <div class="col-xs-4">'
@@ -106,30 +107,65 @@
                     + '    </div>'
                     + '</div>';
     }
-    
-    function createNewGame(event) {
-        var jsonToSend = {
-            "name": "(new game)",
-            "status": "WAITING"
-        }
-    
-        postRequest('../data/games', jsonToSend).then(function(response) {
-            console.log("Post Success!", response);
-            var jsonReceived = JSON.parse(response);
-            htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
-        }, function(error) {
-            console.error("Post Failed!", error);
-        });
+
+    function htmlAppendInProgressGame(idGame, name, status, steps, gameType) {
+        var gamesList = document.getElementById("gamesList");
+
+        gamesList.innerHTML += ''
+                + '<div class="container">'
+                + '    <div class="panel panel-info">'
+                + '        <div class="panel-heading">'
+                + '            <div class="row" >'
+                + '                <div class="col-xs-4" >'
+                + '                    <a href="/gamemaster/master.html" style="text-decoration: none; ">'
+                + '                        <h3  class="panel-title">' + name + '</h3>'
+                + '                    </a>'
+                + '                </div>'
+                + '                <div class="col-xs-4">'
+                + '                    <h3 class="panel-title" style=" font-style: italic;">' + status + '</h3>'
+                + '                </div>'
+                + '                <div class="col-xs-4" style="text-align: right;">'
+                + '                    <button class="btn btn-success" onclick="startGame(event, \'' + idGame + '\');" style="margin-left: 0px;">Start</button>'
+                + '                    <button class="btn btn-danger" onclick="endGame(event, \'' + idGame + '\');" style="margin-left: 0px;">End</button>'
+                + '                </div>'
+                + '            </div>'
+                + '        </div>'
+                + '        <div class="panel-body">'
+                + '            <div class="row">'
+                + '                <div class="col-xs-8">'
+                + '                    <a href="/gamemaster/master.html" style="text-decoration: none; ">'
+                +                           (gameType === undefined ? "" : gameType)
+                + '                    </a>'
+                + '                </div>'
+                + '                <div class="col-xs-4">'
+                + '                    <span class="badge">' + steps.toString() + ' step' + ((steps > 1) ? 's' : '') + '</span>'
+                + '                </div>'
+                + '            </div>'
+                + '        </div>'
+                + '    </div>'
+                + '</div>';
     }
-    
-    function deleteGame(event, idGame) {
-        var result = confirm("Delete this game?");
+
+    function startGame(event, idGame) {
+        var result = confirm("Start this game?");
         if (result) {
-            deleteRequest('../data/game/' + idGame).then(function(response) {
-                console.log("Delete Success!", response);
+            putRequest('../data/games/' + idGame + '/start').then(function(response) {
+                console.log("Put Success!", response);
+                window.location='/gamemaster/master.html?idGame=' + idGame;
+            }, function(error) {
+                console.error("Put Failed!", error);
+            });
+        }
+    }
+
+    function endGame(event, idGame) {
+        var result = confirm("End this game?");
+        if (result) {
+            putRequest('../data/games/' + idGame + '/end').then(function(response) {
+                console.log("Put Success!", response);
                 location.reload();
             }, function(error) {
-                console.error("Delete Failed!", error);
+                console.error("Put Failed!", error);
             });
         }
     }

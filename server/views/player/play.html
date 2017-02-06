@@ -171,118 +171,127 @@
 
     function onLoad() {
 
+
         idGame = getUrlParameter('idgame');
 
-        // Change hash for page-reload
-        $('.tab-menu a').on('shown.bs.tab', function (e) {
-            window.location.hash = e.target.hash;
 
-            if (e.target.href.endsWith("#tabChat"))
-                dataRoom1.focus();
-        });
+        if (idGame !== null && idGame !== "undefined") {
 
-        retrieveCurrentStep();
+            // Change hash for page-reload
+            $('.tab-menu a').on('shown.bs.tab', function (e) {
+                window.location.hash = e.target.hash;
 
-        // Javascript to enable link to tab
-        var url = document.location.toString();
-        if (url.match('#')) {
-            $('.tab-menu a[href="#' + url.split('#')[1] + '"]').tab('show');
-        }
+                if (e.target.href.endsWith("#tabChat"))
+                    dataRoom1.focus();
+            });
 
-        if(navigator.geolocation) {
-            navigator.geolocation.watchPosition(positionChanged, positionChangedError);
-        }
+            retrieveCurrentStep();
 
-        // get handles on various GUI components
-        conversation = document.querySelector("#conversation");
-        room1 = document.querySelector("#room1");
-        room2 = document.querySelector("#room2");
-        data = document.querySelector("#data");
-        dataRoom1 = document.querySelector("#dataRoom1");
-        dataRoom2 = document.querySelector("#dataRoom2");
-        datasend = document.querySelector("#datasend");
-        datasendroom1 = document.querySelector("#datasendroom1");
-        datasendroom2 = document.querySelector("#datasendroom2");
-        users = document.querySelector("#users");
+            // Javascript to enable link to tab
+            var url = document.location.toString();
+            if (url.match('#')) {
+                $('.tab-menu a[href="#' + url.split('#')[1] + '"]').tab('show');
+            }
 
-        $('.tab-chat a').on('shown.bs.tab', function (e) {
-            if (e.target.href.endsWith("#tabChatTeam"))
-                dataRoom1.focus();
-            else if (e.target.href.endsWith("#tabChatTeamAndGM"))
-                dataRoom2.focus();
-            else if (e.target.href.endsWith("#tabChatEverybody"))
-                datasend.focus();
-        });
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(positionChanged, positionChangedError);
+            }
 
-        // Listener for send button
-        datasend.addEventListener("click", function(evt) {
-            sendMessage("all");
-        });
+            // get handles on various GUI components
+            conversation = document.querySelector("#conversation");
+            room1 = document.querySelector("#room1");
+            room2 = document.querySelector("#room2");
+            data = document.querySelector("#data");
+            dataRoom1 = document.querySelector("#dataRoom1");
+            dataRoom2 = document.querySelector("#dataRoom2");
+            datasend = document.querySelector("#datasend");
+            datasendroom1 = document.querySelector("#datasendroom1");
+            datasendroom2 = document.querySelector("#datasendroom2");
+            users = document.querySelector("#users");
 
-        // detect if enter key pressed in the input field
-        data.addEventListener("keypress", function(evt) {
-            // if pressed ENTER, then send
-            if(evt.keyCode == 13) {
-                this.blur();
+            $('.tab-chat a').on('shown.bs.tab', function (e) {
+                if (e.target.href.endsWith("#tabChatTeam"))
+                    dataRoom1.focus();
+                else if (e.target.href.endsWith("#tabChatTeamAndGM"))
+                    dataRoom2.focus();
+                else if (e.target.href.endsWith("#tabChatEverybody"))
+                    datasend.focus();
+            });
+
+            // Listener for send button
+            datasend.addEventListener("click", function (evt) {
                 sendMessage("all");
-            }
-        });
+            });
 
-        // Listener for send button
-        datasendroom1.addEventListener("click", function(evt) {
-            sendMessage("room1");
-        });
+            // detect if enter key pressed in the input field
+            data.addEventListener("keypress", function (evt) {
+                // if pressed ENTER, then send
+                if (evt.keyCode == 13) {
+                    this.blur();
+                    sendMessage("all");
+                }
+            });
 
-        // detect if enter key pressed in the input field
-        dataRoom1.addEventListener("keypress", function(evt) {
-            // if pressed ENTER, then send
-            if(evt.keyCode == 13) {
-                this.blur();
+            // Listener for send button
+            datasendroom1.addEventListener("click", function (evt) {
                 sendMessage("room1");
-            }
-        });
+            });
 
-        // Listener for send button
-        datasendroom2.addEventListener("click", function(evt) {
-            sendMessage("room2");
-        });
+            // detect if enter key pressed in the input field
+            dataRoom1.addEventListener("keypress", function (evt) {
+                // if pressed ENTER, then send
+                if (evt.keyCode == 13) {
+                    this.blur();
+                    sendMessage("room1");
+                }
+            });
 
-        // detect if enter key pressed in the input field
-        dataRoom2.addEventListener("keypress", function(evt) {
-            // if pressed ENTER, then send
-            if(evt.keyCode == 13) {
-                this.blur();
+            // Listener for send button
+            datasendroom2.addEventListener("click", function (evt) {
                 sendMessage("room2");
-            }
-        });
+            });
 
-        getRequest('../data/player/infos-user/' + idGame).then(function(response) {
-            console.log("Get Success!", response);
-            var jsonReceived = JSON.parse(response);
+            // detect if enter key pressed in the input field
+            dataRoom2.addEventListener("keypress", function (evt) {
+                // if pressed ENTER, then send
+                if (evt.keyCode == 13) {
+                    this.blur();
+                    sendMessage("room2");
+                }
+            });
 
-            var textHome1 = document.getElementById("textHome1");
-            var textHome2 = document.getElementById("textHome2");
-            var textHome2B = document.getElementById("textHome2B");
-            var textHome3 = document.getElementById("textHome3");
-            var textHome3B = document.getElementById("textHome3B");
+            getRequest('../data/player/infos-user/' + idGame).then(function (response) {
+                console.log("Get Success!", response);
+                var jsonReceived = JSON.parse(response);
 
-            textHome1.innerHTML = "Welcome to " + jsonReceived.gamename + " " + jsonReceived.username;
-            textHome2.innerHTML = "Your team is:"
-            textHome2B.innerHTML = jsonReceived.teamname;
-            textHome3.innerHTML = "The access key to your team:";
-            textHome3B.innerHTML = jsonReceived.team_accesskey;
+                var textHome1 = document.getElementById("textHome1");
+                var textHome2 = document.getElementById("textHome2");
+                var textHome2B = document.getElementById("textHome2B");
+                var textHome3 = document.getElementById("textHome3");
+                var textHome3B = document.getElementById("textHome3B");
 
-            username = jsonReceived.username;
-            team = jsonReceived.teamname;
+                textHome1.innerHTML = "Welcome to " + jsonReceived.gamename + " " + jsonReceived.username;
+                textHome2.innerHTML = "Your team is:"
+                textHome2B.innerHTML = jsonReceived.teamname;
+                textHome3.innerHTML = "The access key to your team:";
+                textHome3B.innerHTML = jsonReceived.team_accesskey;
 
-            //on se connect sur la socket
+                username = jsonReceived.username;
+                team = jsonReceived.teamname;
 
-            initSocket();
+                //on se connect sur la socket
+
+                initSocket();
 
 
-        }, function(error) {
-            console.error("Get Failed!", error);
-        });
+            }, function (error) {
+                console.error("Get Failed!", error);
+            });
+        }else{
+            window.location='/player/select-game.html';
+
+        }
+
     }
 
     function logout() {

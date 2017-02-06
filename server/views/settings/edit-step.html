@@ -41,10 +41,11 @@
                 <form onsubmit="updateStep()" style="margin: 10px">
                     <div style="margin-top: 10px;">
                         <input id="move" type="radio" name="stepType" onchange="toMove()"> <label for="move">Move</label>
-                        <input id="action" type="radio" name="stepType" onchange="toAction()" style="margin-left: 20px"><label for="action">Action</label>
+                        <input id="action" type="radio" name="stepType" onchange="toAction(); return false;" style="margin-left: 20px"><label for="action">Action</label>
                     </div>
                     <div id="destination"  style="margin-top: 10px;">
                         <div class="form-group">
+                            <button type="button" class="btn btn-default" onclick="setDestination();" style="margin-bottom: 10px">Set destination</button>
                             <div>
                                 <label for="latTo" style="width: 80px">Latitude : </label><input id="latTo" type="text">
                             </div>
@@ -53,33 +54,37 @@
                             </div>
                         </div>
                     </div>
-                    <label for="stepName">Step name</label><input id="stepName" type="text" placeholder="Step name" class="form-control">
 
-                    <div style="margin-top: 10px; margin-bottom: 10px;">
-                        <input id="selectQuestion" type="radio" name="explanationType" value="question" onchange = "toQuestion()"><label for="selectQuestion" style="margin-left: 10px;">Question</label>
-                        <input id="selectPicture" type="radio" name="explanationType" value="picture" onchange = "toPicture()"  style="margin-left: 20px;"><label for="selectPicture" style="margin-left: 10px;">Picture</label>
-                        <input id="selectQcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()"  style="margin-left: 20px;"><label for="selectQcm" style="margin-left: 10px;">QCM</label>
-                    </div>
+                    <label for="stepName">Step name</label><input id="stepName" type="text" placeholder="Step name" class="form-control">
 
                     <label for="description">Description</label><textarea id="description" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
 
-                    <div id="pictureQuestion" hidden  style="margin-top: 10px;">
-                        <label>Pictures:</label>
-                        <input id="file" type="file" accept="image/*" capture="camera" onchange="fileSelected();" >
-                        <img src="" id="pictureImage" style="width: 250px; margin-top: 10px;"/>
-                    </div>
-                    <ul class="list-group" id="qcmQuestion"  style="margin-top: 10px;">
-                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer1" ><span style="margin-left: 10px;"><input id="textAnswer1" type="text" value="Answer 1" style="border: none;" /></span></li>
-                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer2" ><span style="margin-left: 10px;"><input id="textAnswer2" type="text" value="Answer 2" style="border: none;" /></span></li>
-                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer3" ><span style="margin-left: 10px;"><input id="textAnswer3" type="text" value="Answer 3" style="border: none;" /></span></li>
-                        <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer4" ><span style="margin-left: 10px;"><input id="textAnswer4" type="text" value="Answer 4" style="border: none;" /></span></li>
-                    </ul>
+                    <div id="pnlAction">
+                        <div style="margin-top: 10px; margin-bottom: 10px;">
+                            <input id="selectQuestion" type="radio" name="explanationType" value="question" onchange = "toQuestion()"><label for="selectQuestion" style="margin-left: 10px;">Question</label>
+                            <input id="selectPicture" type="radio" name="explanationType" value="picture" onchange = "toPicture()"  style="margin-left: 20px;"><label for="selectPicture" style="margin-left: 10px;">Picture</label>
+                            <input id="selectQcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()"  style="margin-left: 20px;"><label for="selectQcm" style="margin-left: 10px;">QCM</label>
+                        </div>
 
-                    <div id="pnlAnswerText"  style="margin-top: 10px;">
-                        <label for="answers">Answer</label><textarea id="answers" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
-                    </div>
+                        <div id="pictureQuestion" hidden  style="margin-top: 10px;">
+                            <label>Pictures:</label>
+                            <input id="file" type="file" accept="image/*" capture="camera" onchange="fileSelected();" >
+                            <img src="" id="pictureImage" style="width: 250px; margin-top: 10px;"/>
+                        </div>
+                        <ul class="list-group" id="qcmQuestion"  style="margin-top: 10px;">
+                            <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer1" ><span style="margin-left: 10px;"><input id="textAnswer1" type="text" value="Answer 1" style="border: none;" /></span></li>
+                            <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer2" ><span style="margin-left: 10px;"><input id="textAnswer2" type="text" value="Answer 2" style="border: none;" /></span></li>
+                            <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer3" ><span style="margin-left: 10px;"><input id="textAnswer3" type="text" value="Answer 3" style="border: none;" /></span></li>
+                            <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer4" ><span style="margin-left: 10px;"><input id="textAnswer4" type="text" value="Answer 4" style="border: none;" /></span></li>
+                        </ul>
 
-                    <label for="earnedPoints">Earned points</label><input id="earnedPoints" type="number" placeholder="Earned points" class="form-control">
+                        <div id="pnlAnswerText"  style="margin-top: 10px;">
+                            <label for="answers">Answer</label><textarea id="answers" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
+                        </div>
+
+                        <label for="earnedPoints">Earned points</label><input id="earnedPoints" type="number" placeholder="Earned points" class="form-control">
+
+                    </div>
 
                     <button type="submit" class="btn btn-success" style="margin-top: 20px">Update step</button>
                 </form>
@@ -241,13 +246,17 @@
 
     function toMove(){
         var destination = document.getElementById("destination");
+        var pnlAction = document.getElementById("pnlAction");
 
+        pnlAction.hidden = true;
         destination.hidden = false;
     }
 
     function toAction(){
         var destination = document.getElementById("destination");
+        var pnlAction = document.getElementById("pnlAction");
 
+        pnlAction.hidden = false;
         destination.hidden = true;
     }
 
@@ -470,6 +479,19 @@
                 });
             }
         }
+    }
+
+    function setDestination() {
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(getCurrentPosition_success);
+        }
+    }
+
+    function getCurrentPosition_success(position){
+        var latTo = document.getElementById("latTo");
+        var longTo = document.getElementById("longTo");
+        latTo.value = position.coords.latitude;
+        longTo.value = position.coords.longitude;
     }
     
     </script>
