@@ -297,7 +297,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                     teamstep = {
                                         "stepid": doc.steps[0],
                                         "time_began": new Date(),
-                                        "used_clues": []
+                                        "used_clues": 0
                                     };
                                     liststeps.push(teamstep);
 
@@ -309,7 +309,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                     teamstep = {
                                         "stepid": doc.steps[team.steps.length],
                                         "time_began": new Date(),
-                                        "used_clues": []
+                                        "used_clues": 0
                                     };
                                     liststeps.push(teamstep);
 
@@ -349,14 +349,18 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                                 "explanationType": doc.explanationType,
                                                 "coordinate": doc.coordinate,
                                                 "clues": [],
+                                                "other_clue_available": false,
                                                 "qcm": doc.qcm,
                                                 "has_picture": ((doc.picture === undefined || doc.picture == "") ? false : true)
                                             };
 
-                                            for (c = 0; c < teamstep.used_clues.length; t++) {
+                                            for (c = 0; c < teamstep.used_clues; c++) {
                                                 if ((doc.clues !== undefined) && (doc.clues.length >= c + 1))
                                                     stepgame.clues.push(doc.clues[c]);
                                             }
+
+                                            if (teamstep.used_clues < doc.clues.length)
+                                                stepgame.other_clue_available = true;
 
                                             res.status(200).json(stepgame);
                                         }
@@ -489,11 +493,42 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.redirect('/login');
             }
         })
-        .get('/data/player/consume-clue', function(req,res) {
+        .put('/data/player/use-clue', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
-                console.log('Player: Consume a clue');
+                console.log('Player: Send an answer for validation');
+                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.body.gameid)}, { teams: 1 }, function(err, doc) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get current step.");
+                    } else {
+                        let team;
+                        let indexTeam;
+                        for (t = 0; t < doc.teams.length; t++) {
+                            if (doc.teams[t].players !== undefined) {
+                                for (p = 0; p < doc.teams[t].players.length; p++) {
+                                    if (doc.teams[t].players[p].userid == sess.userid) {
+                                        team = doc.teams[t];
+                                        indexTeam = t;
+                                    }
+                                }
+                            }
+                        }
 
+                        if ((team !== undefined) &&(team.steps !== undefined)) {
+                            team.steps[team.steps.length - 1].used_clues++;
+
+                            let teamt = {};
+                            teamt["teams." + indexTeam + ".steps"] = team.steps;
+                            db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.body.gameid)}, {$set: teamt}, undefined, function (err, doc) {
+                                if (err) {
+                                    handleError(res, err.message, "Failed to update step");
+                                } else {
+                                    res.status(204).end();
+                                }
+                            });
+                        }
+                    }
+                });
             }
             else{
                 console.log("fail");

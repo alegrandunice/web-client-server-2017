@@ -70,9 +70,15 @@
                 <li class="list-group-item"><input type="radio" name="qcmAnswer" value="answer4" ><span id="labelAnswer4" style="margin-left: 10px;"></span></li>
             </ul>
 
-            <div style="text-align: center; margin-top: 10px;">
-                <button id="btnPlaySubmit" type="button" class="btn btn-primary" onclick="validation();">Submit!</button>
+            <div id="pnlClues" style="margin-top: 10px;">
+
             </div>
+
+            <div style="text-align: center; margin-top: 10px;">
+                <button id="btnHelpMe" type="button" class="btn btn-warning" onclick="useClue();">Help me!</button>
+                <button id="btnPlaySubmit" type="button" class="btn btn-primary" onclick="validation();">Submit</button>
+            </div>
+
         </div>
 
         <nav class="navbar-fixed-bottom">
@@ -577,6 +583,13 @@
             labelAnswer4.innerHTML = currentStep.qcm.textAnswer4;
         }
 
+        $("#pnlClues").innerHTML = "";
+        for (let i = 0; i < currentStep.clues.length; i++)
+            $("#pnlClues")[0].innerHTML += '<div><b>Clue #' + (i + 1).toString() + ': ' + currentStep.clues[i].description + '</b></div>';
+
+        if (!currentStep.other_clue_available)
+            $("#btnHelpMe").addClass("hide");
+
         //TODO: total_points
         //TODO: has_picture
     }
@@ -638,6 +651,19 @@
 
     function selectPlayTab() {
         $('.tab-menu a[href="#tabPlay"]').tab('show');
+    }
+
+    function useClue() {
+        if (currentStep !== undefined) {
+            putRequest('../data/player/use-clue', {"stepid": currentStep.stepid, "gameid": idGame}).then(function (response) {
+                console.log("useclue Success!", response);
+                location.reload();
+            }, function (error) {
+                console.error("useclue Failed!", error);
+            });
+
+            retrieveCurrentStep();
+        }
     }
 </script>
 </body>

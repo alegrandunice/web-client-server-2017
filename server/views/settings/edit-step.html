@@ -224,11 +224,8 @@
 
                 if (jsonReceived.clues) {
                     totalclues = jsonReceived.clues.length;
-                    jsonReceived.clues.sort(function (a, b) {
-                        return a.order_number > b.order_number
-                    });
                     for (i = 0; i < jsonReceived.clues.length; i++) {
-                        htmlAppendClue(jsonReceived.clues[i]._id, i + 1, jsonReceived.clues[i].cost, jsonReceived.clues[i].description);
+                        htmlAppendClue(i + 1, jsonReceived.clues[i].cost, jsonReceived.clues[i].description);
                     }
                 }
                             
@@ -413,7 +410,7 @@
         }
     }
     
-    function htmlAppendClue(idClue, orderNumber, points, description) {
+    function htmlAppendClue(orderNumber, points, description) {
         var cluesList = document.getElementById("cluesList");
 
         cluesList.innerHTML += ''
@@ -422,7 +419,7 @@
                 + '        <div class="panel-heading">'
                 + '            <div class="row" >'                                    
                 + '                <div class="col-xs-4" >'
-                + '                    <a href="edit-clue.html?idclue=' + idClue + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
+                + '                    <a href="edit-clue.html?ordernumber=' + orderNumber + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
                 + '                        <h3  class="panel-title">#' + orderNumber + '</h3>'
                 + '                    </a>'
                 + '                </div>'
@@ -430,12 +427,12 @@
                 + '                    <h3 class="panel-title" style=" font-style: italic;">Cost : ' + points + ' point' + ((points > 1) ? 's' : '') + '</h3>'
                 + '                </div>'
                 + '                <div class="col-xs-4" style="text-align: right;">'
-                + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + idClue + '\');" style="margin-left: 0px;">Delete</button>'
+                + '                    <button class="btn btn-danger" onclick="deleteClue(event, \'' + orderNumber + '\');" style="margin-left: 0px;">Delete</button>'
                 + '                </div>'
                 + '            </div>'
                 + '        </div>'
                 + '        <div class="panel-body">'
-                + '            <a href="edit-clue.html?idclue=' + idClue + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
+                + '            <a href="edit-clue.html?ordernumber=' + orderNumber + '&idstep=' + idStep + '&idgame=' + idGame+ '" style="text-decoration: none; ">'
                 + '                ' + description
                 + '            </a>'
                 + '        </div>'
@@ -449,26 +446,23 @@
 
             var jsonToSend = {
                 "description": "(new clue)",
-                "cost": 1,
-                "order_number": totalclues
+                "cost": 1
             }
-			
-        
+
             postRequest('/data/steps/' + idStep + '/clues/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
-                var jsonReceived = JSON.parse(response);
-                htmlAppendClue(jsonReceived._id, totalclues, jsonReceived.name, jsonReceived.total_points);
+                location.reload();
             }, function(error) {
                 console.error("Post Failed!", error);
             });
         }
     }
     
-    function deleteClue(event, idClue) {
+    function deleteClue(event, ordernumber) {
         if (idStep !== undefined) {
             var result = confirm("Delete this clue?");
-            if (result) {
-                deleteRequest('/data/steps/'+ idStep +'/clues/' + idClue).then(function(response) {
+            if (result && (ordernumber > 0)) {
+                deleteRequest('/data/steps/'+ idStep +'/clues/' + (ordernumber - 1)).then(function(response) {
                     console.log("Delete Success!", response);
                     location.reload();
                 }, function(error) {

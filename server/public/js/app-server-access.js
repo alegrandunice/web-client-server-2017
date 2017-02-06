@@ -90,7 +90,7 @@ function postRequest(url, jsonToSend) {
         req.onload = function() {
             // This is called even on 404 etc
             // so check the status
-            if (req.status == 201 || req.status == 200) {
+            if (req.status == 201 || req.status == 200 || req.status == 204) {
                 // Resolve the promise with the response
                 resolve(req.response);
             } else {

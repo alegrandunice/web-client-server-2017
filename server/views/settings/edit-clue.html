@@ -29,10 +29,6 @@
                 <div class="form-group">
                   <label for="description">Description</label><input id="description" type="text" placeholder="Description" class="form-control">
                 </div>
-                <div class="form-group">
-                    <label>Pictures:</label>
-                    <input type="file" accept="image/*" capture="camera" multiple>
-                </div>
                 
                 <button type="submit" class="btn btn-success">Update clue</button>
                 <button class="btn" onclick="closeDialog();">Cancel</button>
@@ -51,27 +47,24 @@
 
     var idGame;
     var idStep;
-    var idClue;
+    var ordernumber;
 
     function onLoad() {
         idGame = getUrlParameter("idgame");
         idStep = getUrlParameter("idstep");
-        idClue = getUrlParameter("idclue");
+        ordernumber = getUrlParameter("ordernumber");
     
-        if ((idStep !== undefined) && (idClue !== undefined)) {
-            getRequest('/data/clues/'+ idClue).then(function(response) {
+        if ((idStep !== undefined) && (ordernumber !== undefined)) {
+            getRequest('/data/step/' + idStep + '/clue/'+ (ordernumber - 1)).then(function(response) {
                 console.log("Get Success!", response);
                 var jsonReceived = JSON.parse(response);
-
                 
                 var description = document.getElementById("description");
-                description.value = jsonReceived.explanation;
+                description.value = jsonReceived.description;
                 
                 var cost = document.getElementById("cost");
                 cost.value = jsonReceived.cost;
-                
-                //type="file" Pictures          <==
-                
+
                             
             }, function(error) {
                 console.error("Get Failed!", error);
@@ -85,21 +78,19 @@
 
     function updateClue()
     {
-        if ((idStep !== undefined) && (idClue !== undefined)) {
+        if ((idStep !== undefined) && (ordernumber !== undefined)) {
             var jsonToSend = {
                 "cost": 0,
                 "description": ""
             }
 
             var description = document.getElementById("description");
-            jsonToSend.explanation = description.value;
+            jsonToSend.description = description.value;
             
             var cost = document.getElementById("cost");
             jsonToSend.cost = cost.value;
-            
-            //type="file" Pictures          <==
-            
-            putRequest('/data/clues/'+ idClue, jsonToSend).then(function(response) {
+
+            putRequest('/data/step/' + idStep + '/clue/'+ (ordernumber - 1), jsonToSend).then(function(response) {
                 console.log("Put Success!", response);
                 closeDialog();
             }, function(error) {
