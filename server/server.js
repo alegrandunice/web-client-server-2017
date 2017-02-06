@@ -394,7 +394,7 @@ var connectSocketFunction = function connectSocket(socket) {
     });
     
     socket.on("getTeamStep", function(gameid, teamName){
-        
+        console.log("gameId", gameid);
         db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
             if (err) {
                 handleError(res, err.message, "Failed to get current step.");
