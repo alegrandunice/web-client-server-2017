@@ -61,6 +61,8 @@
     function onLoad() {
         idGame = getUrlParameter('idgame');
 
+
+        if(idGame !== "undefined"){
         getRequest('../data/player/teams/' + idGame).then(function(response) {
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
@@ -78,6 +80,11 @@
         }, function(error) {
             console.error("Get Failed!", error);
         });
+        }else{
+
+            window.location='/settings/select-game.html';
+
+        }
 
     }   
     
