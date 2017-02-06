@@ -52,21 +52,21 @@
       <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
       <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Launch demo modal</button></li>
     </ul>
-
+<!--
     <div class="tab-content container-fluid" style="width:100%; height:100%">
         
         <div id="tabHome" class="row tab-pane fade in active" style="width:100%; height:100%">  
             <div class="col-xs-8" style="width:67%; height:100%">
-            <!--style="width:1050px;height:750px"-->
                 <div id="map"  style="width:100%; height:100%" ></div>
             </div>
             <div class="col-xs-4" style="width:33%; height:100%">
                 <div id="chat">
-                    <div class="panel-group">
+                    <div class="panel-group room-all">
                         <div class="panel panle-default">
                             <div class="panel-heading"  style="background-color: darkgrey;">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapse-all" style="display:block; heigth:100%;">Tout le monde</a>
+                                    <a data-toggle="collapse" href="#collapse-all" style="display:block; width:100%;">Tout le monde
+                                    <span  style="float:right; margin:-10px 0;" class="show-all hide" onclick="showTeam('all');"><img src="https://maps.gstatic.com/mapfiles/ms2/micons/POI.png"></span></a>
                                 </h4>
                             </div>
                             <div id="collapse-all" class="panel-collapse collapse">
@@ -74,10 +74,36 @@
                                 <div class="panel-footer">
                                     <!--<input id="data" style="width:80%;" />
                                     <input type="button" id="datasend" value="send" />-->
-                                    <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
+                                <!--    <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
                                     <input type="button" id="datasend" onclick="clicAll();" value="send" />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    
+    
+    <div style="display: flex; flex-direction: row; height:95%;" id="main">
+        <div id="map"  style="display: flex; flex-direction: column; flex: 8; height:100%;" ></div>
+        <div id="chat" style="display: flex; flex-direction: column; flex: 4; max-width:400px; overflow:hidden;">
+            <div class="panel-group room-all" style="margin:0;">
+                <div class="panel panle-default">
+                    <div class="panel-heading"  style="background-color: darkgrey;">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#collapse-all" style="display:block; width:100%;">Tout le monde
+                            <span  style="float:right; margin:-8px 0;" class="show-all hide" onclick="showTeam('all');"><img src="https://maps.gstatic.com/mapfiles/ms2/micons/POI.png"></span></a>
+                        </h4>
+                    </div>
+                    <div id="collapse-all" class="panel-collapse collapse">
+                        <div id="conversation" class="panel-body"  style="max-height:200px; overflow-y:auto;  word-warp:break-word;"></div>
+                        <div class="panel-footer">
+                            <!--<input id="data" style="width:80%;" />
+                            <input type="button" id="datasend" value="send" />-->
+                            <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
+                            <input type="button" id="datasend" onclick="clicAll();" value="send" />
                         </div>
                     </div>
                 </div>
@@ -132,6 +158,7 @@
     var idGame, latitudeTo, longitudeTo;
     var checkEverySecond;
     var currentStep, currentGame;
+    var teamShow = "all";
     
     function logout() {
         var jsonToSend = {
@@ -210,12 +237,20 @@
         socket.emit('subscribe', roomName);
         
         rooms[roomName] = new RoomBB(roomName);
+        var teamName = roomName.substring(6);
+        
+        var icone = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+        if(typeof(teams[teamName]) !== "undefined")
+        {
+            icone = teams[teamName].icon;
+        }
                         
-        var chatRoom = "<div class=\"panel-group\" id=\"Room_"+roomName.substring(6)+"\">"+
+        var chatRoom = "<div class=\"panel-group rooms\" style=\"margin:0;\" id=\"Room_"+teamName+"\">"+
                        "<div class=\"panel panle-default\">"+
                        "    <div class=\"panel-heading\" style=\"background-color: darkgrey;\">"+
                        "        <h4 class=\"panel-title\">"+
-                       "            <a data-toggle=\"collapse\" href=\"#collapse-"+roomName+"\" style=\"display:block; heigth:100%;\">Equipe : "+roomName.substring(6)+"</a>"+
+                       "            <a data-toggle=\"collapse\" href=\"#collapse-"+roomName+"\" style=\"display:inline-block; width:100%;\">Equipe : "+teamName+" "+
+                       "            <span  style=\"float:right; margin:-8px 0;\" onclick=\"showTeam('"+teamName+"');\"><img src=\""+icone+"\"></span></a>"+
                        "        </h4>"+
                        "    </div>"+
                        "    <div id=\"collapse-"+roomName+"\" class=\"panel-collapse collapse card-block\">"+
@@ -249,6 +284,10 @@
         		sendMessageToRoom(roomName);
     		}
   		});   */     
+        if(teamShow != "all")
+        {
+            showTeam(teamShow);
+        }
     }
     
     function keypressEnter(event) {
@@ -265,14 +304,17 @@
     }
     
     
+    
+    
     function addPlayer(player) {
 
         if(typeof(teams[player.team]) == "undefined")
         {
             var taille = 0;
             for (o in teams) ++taille;         
-            addRoom(player.roomsList["withMaster"]);         
             teams[player.team] = new TeamBB(player.team, listIcones[taille]);
+            addRoom(player.roomsList["withMaster"]);         
+            
             
         } 
         console.log(teams);
@@ -288,19 +330,57 @@
         });
         markersList[player.name] = marker; 
         
-        resizeMap();
-
-        
+        if(teamShow != "all")
+        {
+            showTeam(teamShow);
+        }
+                
     }
     
-    function resizeMap(){
+    function showTeam(teamName){
+    
         var bounds = new google.maps.LatLngBounds();
         var nb_marker = 0;
-        for (marker in markersList)
+        
+        teamShow = teamName;
+        
+        if(teamName == "all")
         {
-            nb_marker++;
-            bounds.extend(markersList[marker].getPosition());
+            for (marker in markersList)
+            {
+                nb_marker++;
+                markersList[marker].setMap(map);
+                bounds.extend(markersList[marker].getPosition());
+               
+            }
+            //on affiche toutes les rooms
+            $(".rooms").removeClass("hide");
+            //on cache le bouton
+            $(".show-all").addClass("hide");
+            $(".hide-icon").removeClass("hide hide-icon");
+            $(".collapse").collapse("hide");
+            
         }
+        else {
+            $(".show-all").removeClass("hide");
+            $(".rooms").addClass("hide");
+            $("#Room_"+teamName).removeClass("hide");
+            for (marker in markersList)
+            {
+                nb_marker++;
+                markersList[marker].setMap(null);
+                
+                for(name in teams[teamName].listPlayers)
+                {
+                    if(marker == name)
+                    {
+                        markersList[marker].setMap(map);
+                    }
+                }
+                bounds.extend(markersList[marker].getPosition());
+            }
+        }
+        
         
         if(nb_marker != 0)
         {
@@ -308,20 +388,15 @@
         
             google.maps.event.addListenerOnce(map, 'bounds_changed', function(event){
                 map.setZoom(map.getZoom()-1);
-                
-                /*if(map.getZoom()> ){
-                    map.setZoom(16);
+                /*
+                if(map.getZoom()> 18){
+                    map.setZoom(18);
                 }*/
             });
         }
-        else {
-            //Quand le dernier joueur est parti
-        }
-        
+    
     }
-    
-    
-    
+       
     username = "Game Master";
 	var socket = io.connect();
     
@@ -434,8 +509,6 @@ socket.on('deleteUser', function(player){
     markersList[player.name] = null;
     delete markersList[player.name];
     
-    resizeMap();
-    
     //on supprime le joueur de la team
     delete teams[player.team].listPlayers[player.name];
     console.log(teams);
@@ -457,8 +530,6 @@ socket.on('updatePlayersPosition', function(data){
         var playersMarker = markersList[data.name];
         var latlng = new google.maps.LatLng(data.lat, data.long);
         playersMarker.setPosition(latlng);
-        
-        resizeMap();
     }
 });
 
