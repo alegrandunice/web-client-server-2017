@@ -393,6 +393,110 @@ var connectSocketFunction = function connectSocket(socket) {
         
     });
     
+    socket.on("getTeamStep", function(gameid, teamName){
+        gameid = "589878ae2e15d01a846921c7";
+        
+        db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to get current step.");
+            } else {
+                let team;
+                let indexTeam;
+                
+                for (t = 0; t < doc.teams.length; t++) {
+                    if (doc.teams[t].name !== undefined) {
+                        if (doc.teams[t].name == teamName) {
+                            team = doc.teams[t];
+                            indexTeam = t;
+                        }
+                    }
+                }
+
+                if ((team !== undefined) && (doc.steps !== undefined)) {
+                    let teamstep = {};
+                    let newstep = false;
+
+                    var liststeps = [];
+
+                    if (team.steps !== undefined) {
+                        for (p = 0; p < team.steps.length; p++)
+                            liststeps.push(team.steps[p]);
+                    }
+
+                    if (team.steps === undefined) {
+                        if (doc.steps.length >= 1) {
+                            teamstep = {
+                                "stepid": doc.steps[0],
+                                "time_began": new Date(),
+                                "used_clues": 0
+                            };
+                            liststeps.push(teamstep);
+
+                            newstep = true;
+                        }
+                    }
+                    else if (team.steps[team.steps.length - 1].time_ended !== undefined) {
+                        if (doc.steps.length >= team.steps.length + 1) {
+                            teamstep = {
+                                "stepid": doc.steps[team.steps.length],
+                                "time_began": new Date(),
+                                "used_clues": 0
+                            };
+                            liststeps.push(teamstep);
+
+                            newstep = true;
+                        }
+                    }
+                    else {
+                        teamstep = team.steps[team.steps.length - 1]
+                    }
+
+                    if (newstep && (indexTeam !== undefined)) {
+                        let teamt = {};
+                        teamt["teams." + indexTeam + ".steps"] = liststeps;
+                        db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(gameid)}, {$set: teamt}, undefined, function (err, doc) {
+                            if (err) {
+
+                            } else {
+
+                            }
+                        });
+                    }
+
+                    if (teamstep.stepid !== undefined) {
+                        db.collection(STEPS_COLLECTION).findOne({ _id : teamstep.stepid }, function(err, doc) {
+                            if (err) {
+                                io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get step");
+                            } else {
+                                if (doc == null) {
+                                    io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get step");
+                                }
+                                else {
+                                    console.log(doc);
+                                    let stepgame = doc.name;
+                                    let idStep = team.steps.length;
+                                    let coordinate = doc.coordinate;
+                                    
+                                    
+                                    io.sockets.in("master").emit("currentStep", teamName, idStep, stepgame, coordinate);
+                                }
+                            }
+                        });
+                    }
+                    else
+                        io.sockets.in("master").emit("currentStep", teamName, "erreur", "");
+                }
+                else{
+                    io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get current step.");
+                }
+                
+            }
+                
+        });
+        
+        
+    });
+    
     socket.on("validationStep", function(team, message){
         io.sockets.in("master").emit("validate", team, message);
     });
