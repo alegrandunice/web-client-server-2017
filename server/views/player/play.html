@@ -175,7 +175,7 @@
         idGame = getUrlParameter('idgame');
 
 
-        if (idGame !== "undefined") {
+        if (idGame !== null && idGame !== "undefined") {
 
             // Change hash for page-reload
             $('.tab-menu a').on('shown.bs.tab', function (e) {
@@ -288,7 +288,7 @@
                 console.error("Get Failed!", error);
             });
         }else{
-            window.location='/settings/select-game.html';
+            window.location='/player/select-game.html';
 
         }
 
