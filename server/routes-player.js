@@ -281,7 +281,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                             }
                         }
 
-                        if (team !== undefined) {
+                        if ((team !== undefined) && (doc.steps !== undefined)) {
                             let teamstep = {};
                             let newstep = false;
 
@@ -359,7 +359,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                                     stepgame.clues.push(doc.clues[c]);
                                             }
 
-                                            if (teamstep.used_clues < doc.clues.length)
+                                            if ((doc.clues !== undefined) && (teamstep.used_clues < doc.clues.length))
                                                 stepgame.other_clue_available = true;
 
                                             res.status(200).json(stepgame);
