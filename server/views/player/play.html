@@ -174,8 +174,12 @@
 
         idGame = getUrlParameter('idgame');
 
+        if ((idGame !== null) && (idGame !== undefined))
+            sessionStorage.setItem('idGame', idGame);
+        else
+            idGame = sessionStorage.getItem('idGame');
 
-        if (idGame !== null && idGame !== "undefined") {
+        if ((idGame !== null) && (idGame !== undefined)) {
 
             // Change hash for page-reload
             $('.tab-menu a').on('shown.bs.tab', function (e) {

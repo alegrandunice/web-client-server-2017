@@ -53,6 +53,17 @@
         idGame = getUrlParameter("idgame");
         idStep = getUrlParameter("idstep");
         ordernumber = getUrlParameter("ordernumber");
+
+        if ((idGame == null) || (idGame === undefined))
+            idGame = sessionStorage.getItem('idGame');
+
+        if ((idStep == null) || (idStep === undefined))
+            idStep = sessionStorage.getItem('idStep');
+
+        if ((ordernumber !== null) && (ordernumber !== undefined))
+            sessionStorage.setItem('ordernumberClue', ordernumber);
+        else
+            ordernumber = sessionStorage.getItem('ordernumberClue');
     
         if ((idStep !== undefined) && (ordernumber !== undefined)) {
             getRequest('/data/step/' + idStep + '/clue/'+ (ordernumber - 1)).then(function(response) {

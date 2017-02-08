@@ -125,6 +125,14 @@
         idStep = getUrlParameter("idstep");
         idGame = getUrlParameter("idgame");
 
+        if ((idGame == null) || (idGame === undefined))
+            idGame = sessionStorage.getItem('idGame');
+
+        if ((idStep !== null) && (idStep !== undefined))
+            sessionStorage.setItem('idStep', idStep);
+        else
+            idStep = sessionStorage.getItem('idStep');
+
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {

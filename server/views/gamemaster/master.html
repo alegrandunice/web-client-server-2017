@@ -209,6 +209,12 @@
   		users = document.querySelector("#users");
         
         idGame = getUrlParameter('idGame');
+
+        if ((idGame !== null) && (idGame !== undefined))
+            sessionStorage.setItem('idGame', idGame);
+        else
+            idGame = sessionStorage.getItem('idGame');
+
         console.log(idGame);
         
   		/*// Listener for send button

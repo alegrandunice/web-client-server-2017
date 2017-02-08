@@ -103,6 +103,14 @@
     function onLoad() {
         idGame = getUrlParameter("idgame");
 
+        if ((idGame !== null) && (idGame !== undefined))
+            sessionStorage.setItem('idGame', idGame);
+        else
+            idGame = sessionStorage.getItem('idGame');
+
+        sessionStorage.setItem('idStep', null)
+        sessionStorage.setItem('ordernumberClue', null);;
+
         // Javascript to enable link to tab
         var url = document.location.toString();
         if (url.match('#')) {
