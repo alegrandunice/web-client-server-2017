@@ -22,7 +22,7 @@
 <ul class="nav navbar-default nav-pills tab-menu">
     <li class="active"><a data-toggle="tab" href="#tabHome">Home</a></li>
     <li><a data-toggle="tab" href="#tabPlay">Play</a></li>
-    <li><a data-toggle="tab" href="#tabChat">Chat</a></li>
+    <li><a id="menuChat" onclick="removeWarning();" data-toggle="tab" href="#tabChat">Chat</a></li>
     <li><a data-toggle="tab" href="#tabMore" class="hide">More...</a></li>
     <li class="pull-right"><a class="btn" onclick="logout(); return false;">Logout</a></li>
 </ul>
@@ -49,6 +49,12 @@
 
     <div id="tabPlay" class="tab-pane fade">
         <div class="container" >
+        <div id="alertGoodAnwser" class="alert alert-success collapse">
+            <strong>&Eacute;tape r&eacute;ussi ! </strong>
+        </div>
+        <div id="alertBadAnwser" class="alert alert-danger collapse">
+            <strong>Mauvaise r&eacute;ponse ! </strong>
+        </div>
             <h3 id="headerStep"></h3>
             <p id="description"></p>
 
@@ -349,6 +355,10 @@
         var chatMessage = "<b>" + username + ":</b> " + data + "<br>";
         conversation.innerHTML += chatMessage;
         conversation.scrollTop = conversation.scrollHeight;
+        if($("#tabChat :visible").length == 0)
+        {
+            $("#menuChat").addClass("btn-danger")
+        }
     };
 
     //fonction permettant de modifier le texte d'une room . Associé à 'message'
@@ -367,6 +377,11 @@
                 conversation.innerHTML += chatMessage;
                 conversation.scrollTop = conversation.scrollHeight;
 
+        }
+        
+        if($("#tabChat :visible").length == 0)
+        {
+            $("#menuChat").addClass("btn-danger")
         }
 
     };
@@ -408,6 +423,21 @@
         console.log("resultValidationStep", isValid);
 
         //Arnaud met ton code ici stp :D
+        
+        if(isValid){
+            $("#alertBadAnwser").collapse("hide");
+            $("#alertGoodAnwser").collapse("show");
+            window.setTimeout(function(){
+                $("#alertGoodAnwser").collapse("hide");
+            }, 20000);
+        }
+        else{
+            $("#alertGoodAnwser").collapse("hide");
+            $("#alertBadAnwser").collapse("show");
+            window.setTimeout(function(){
+                $("#alertBadAnwser").collapse("hide");
+            }, 20000);
+        }
 
         //TODO: Remove! Implement correct protocole
 
@@ -665,6 +695,11 @@
     function selectPlayTab() {
         $('.tab-menu a[href="#tabPlay"]').tab('show');
     }
+    
+    function removeWarning(){
+    $("#menuChat").removeClass("btn-danger");
+}   
+
 
     function useClue() {
         if (currentStep !== undefined) {
