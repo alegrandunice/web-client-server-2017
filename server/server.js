@@ -436,7 +436,8 @@ var connectSocketFunction = function connectSocket(socket) {
         
     });
     
-    socket.on("getTeamStep", function(gameid, teamName){
+    function getCurrentStep(gameid, teamName);
+    {
         db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
             if (err) {
                 handleError(res, err.message, "Failed to get current step.");
@@ -534,7 +535,11 @@ var connectSocketFunction = function connectSocket(socket) {
             }
                 
         });
+    }
+    
+    socket.on("getTeamStep", function(gameid, teamName){
         
+        getCurrentStep(gameid, teamName);
         
     });
     
@@ -546,6 +551,12 @@ var connectSocketFunction = function connectSocket(socket) {
         if(typeof(startedGames[idgame]) != "undefined")
         {
             io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
+            
+            if(isValid)
+            {
+                getCurrentStep(idgame, team);
+            }
+                
         }
     });
     
