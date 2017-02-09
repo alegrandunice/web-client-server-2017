@@ -333,7 +333,6 @@ var connectSocketFunction = function connectSocket(socket) {
         console.log('leaving room', room);
         socket.leave(room); 
     })
-    
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
