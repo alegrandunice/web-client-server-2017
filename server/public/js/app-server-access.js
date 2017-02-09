@@ -121,3 +121,33 @@ function getUrlParameter(parameterName) {
     });
     return result;
 }
+
+function sendFile(url, file) {
+    // Return a new promise.
+    return new Promise(function(resolve, reject) {
+        // Do the usual XHR stuff
+        var req = new XMLHttpRequest();
+        req.open('POST', url);
+        req.onload = function() {
+            // This is called even on 404 etc
+            // so check the status
+            if (req.status == 204) {
+                // Resolve the promise with the response
+                resolve(req.response);
+            } else {
+                // Otherwise reject with the status text
+                // which will be a meaningful error
+                reject(Error(req.statusText));
+            }
+        };
+        // Handle network errors
+        req.onerror = function() {
+            reject(Error("Network Error"));
+        };
+
+        var fd = new FormData();
+        fd.append('file', file.files[0]);
+
+        req.send(fd);
+    });
+}
