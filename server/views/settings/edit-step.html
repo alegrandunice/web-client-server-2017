@@ -189,7 +189,7 @@
                     selectPicture.checked = true;
 
                     var pictureImage = document.getElementById("pictureImage");
-                    pictureImage.src = jsonReceived.picture;
+                    pictureImage.src = "../uploads/" + jsonReceived.picture;
 
                     toPicture();
                 }
@@ -375,12 +375,19 @@
 
                 jsonToSend.qcm = {};
 
-                var pictureImage = document.getElementById("pictureImage");
+                var image = document.getElementById("file");
+
+                sendFile('/data/img/steps/'+ idStep, image).then(function(response) {
+                    console.log("Post Success!", response);
+                }, function(error) {
+                    console.error("Put Failed!", error);
+                });
+                /*var pictureImage = document.getElementById("pictureImage");
 
                 if (pictureImage.src.startsWith("http:"))
                     jsonToSend.picture = "";
                 else
-                    jsonToSend.picture = pictureImage.src;
+                    jsonToSend.picture = pictureImage.src;*/
 
             }else if(selectQcm.checked == true){
                 jsonToSend.explanationType = "qcm";
