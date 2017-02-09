@@ -383,62 +383,6 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.redirect('/login');
             }
         })
-        .put('/data/player/send-answer', function(req,res) {
-            sess = req.session;
-            if(sess.username && sess.type == "player"){
-                console.log('Player: Send an answer for validation');
-                db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(req.body.stepid) }, function(err, doc) {
-                    if (err) {
-                        handleError(res, err.message, "Failed to get step");
-                    } else {
-                        if (doc == null) {
-                            handleError(res, "Unknown step", "Failed to get step");
-                        }
-                        else {
-                            if (doc.type === "action") {
-
-                                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.body.gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
-                                    if (err) {
-                                        handleError(res, err.message, "Failed to get current step.");
-                                    } else {
-                                        let team;
-                                        let indexTeam;
-                                        for (t = 0; t < doc.teams.length; t++) {
-                                            if (doc.teams[t].players !== undefined) {
-                                                for (p = 0; p < doc.teams[t].players.length; p++) {
-                                                    if (doc.teams[t].players[p].userid == sess.userid) {
-                                                        team = doc.teams[t];
-                                                        indexTeam = t;
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        if ((team !== undefined) &&(team.steps !== undefined)) {
-                                            team.steps[team.steps.length - 1].time_ended = new Date();
-
-                                            let teamt = {};
-                                            teamt["teams." + indexTeam + ".steps"] = team.steps;
-                                            db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.body.gameid)}, {$set: teamt}, undefined, function (err, doc) {
-                                                if (err) {
-                                                    handleError(res, err.message, "Failed to update step");
-                                                } else {
-                                                    res.status(204).end();
-                                                }
-                                            });
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-            else{
-                console.log("fail");
-                res.redirect('/login');
-            }
-        })
         .put('/data/player/endpoint-reached', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){

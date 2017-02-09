@@ -515,12 +515,10 @@ var connectSocketFunction = function connectSocket(socket) {
                                 }
                                 else {
                                     console.log(doc);
-                                    let stepgame = doc.name;
+
                                     let idStep = team.steps.length;
-                                    let coordinate = doc.coordinate;
                                     
-                                    
-                                    io.sockets.in(gameid+"_master").emit("currentStep", teamName, idStep, stepgame, coordinate);
+                                    io.sockets.in(gameid+"_master").emit("currentStep", teamName, idStep, doc);
                                 }
                             }
                         });
@@ -547,19 +545,67 @@ var connectSocketFunction = function connectSocket(socket) {
         io.sockets.in(idgame+"_master").emit("validate", team, message);
     });
     
-    socket.on("ValidateStep", function(idgame, team, isValid){
+    socket.on("ValidateStep", function(idgame, idstep, team, isValid){
         if(typeof(startedGames[idgame]) != "undefined")
         {
             io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
             
             if(isValid)
             {
+                recordAnswer(idgame, idstep, team);
                 getCurrentStep(idgame, team);
             }
                 
         }
     });
-    
+
+    function recordAnswer(gameid, stepid, teamname) {
+
+            console.log('Player: Send an answer for validation');
+            db.collection(STEPS_COLLECTION).findOne({ _id : new ObjectID(stepid) }, function(err, doc) {
+                if (err) {
+                    console.log('recordAnswer error: ' + err.message);
+                } else {
+                    if (doc == null) {
+                        console.log('recordAnswer error: unkwown');
+                    }
+                    else {
+                        if (doc.type === "action") {
+
+                            db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
+                                if (err) {
+                                    console.log('recordAnswer error: ' + err.message);
+                                } else {
+                                    let team;
+                                    let indexTeam;
+                                    for (t = 0; t < doc.teams.length; t++) {
+                                        if (doc.teams[t].name == teamname) {
+                                            team = doc.teams[t];
+                                            indexTeam = t;
+                                        }
+                                    }
+
+                                    if ((team !== undefined) &&(team.steps !== undefined)) {
+                                        team.steps[team.steps.length - 1].time_ended = new Date();
+
+                                        let teamt = {};
+                                        teamt["teams." + indexTeam + ".steps"] = team.steps;
+                                        db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(gameid)}, {$set: teamt}, undefined, function (err, doc) {
+                                            if (err) {
+                                                console.log('recordAnswer error: ' + err.message);
+                                            } else {
+                                                //OK
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+
+    }
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){

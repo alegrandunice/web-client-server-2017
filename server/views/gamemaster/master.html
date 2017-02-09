@@ -327,19 +327,23 @@
             users.innerHTML += userLineOfHTML;
         }
     }
+
+    var currentStepTeam = {};
     
-    function onCurrentStep(teamName, idStep, step, coordinate){
-        $("#step_"+teamName).text("Step "+idStep+" : " + step);
+    function onCurrentStep(teamName, numStep, step){
+        $("#step_"+teamName).text("Step " + numStep + " : " + step.name);
+
+        currentStepTeam[teamName] =  step;
         
         //vérification si l'on a des coordonnées pour les afficher sur la map
-        if(typeof(coordinate) !== "undefined")
+        if(typeof(step.coordinate) !== "undefined")
         {
-            if(coordinate.latitude != "")
+            if(step.coordinate.latitude != "")
             {
                 // Create marker 
                 var marker = new google.maps.Marker({
                   map: map,
-                  position: new google.maps.LatLng(coordinate.latitude, coordinate.longitude),
+                  position: new google.maps.LatLng(step.coordinate.latitude, step.coordinate.longitude),
                   title: 'Objectif de l\'équipe '+teamName
                 });
 
@@ -373,20 +377,68 @@
                 active_list = "active";
                 active_content = " in active";
             }
-            
-            
+
             var titreOnglet = "<li class=\""+active_list+"\"><a data-team=\""+team+"\" data-toggle=\"tab\" href=\"#"+team+"\">"+team+"</a></li>";
             modal.append(titreOnglet);
             
             var modalContent = $("#modal_content");
-            content = "<div id=\""+team+"\" class=\"tab-pane fade"+active_content+"\">"+  
-                      "   <div class=\"panel panel-default\" style=\"margin: 10px;\">"+
-                      "      <div class=\"panel-body\">"+
-                      "          <p>"+message+"</p>"+                              
-                      "      </div>"+
-                      "  </div> "+   
-                      "</div>";
-                      
+
+            if (currentStepTeam[team].explanationType == "question") {
+                content = "<div id=\""+team+"\" class=\"tab-pane fade"+active_content+"\">"+
+                    "   <div class=\"panel panel-default\" style=\"margin: 10px;\">"+
+                    "      <div class=\"panel-body\">"+
+                    "          <p>"+message+"</p><br/>"+
+                    "          <p>Correct answer: </p>"+
+                    "          <p>"+currentStepTeam[team].answers+"</p>"+
+                    "      </div>"+
+                    "  </div> "+
+                    "</div>";
+            }
+            else if (currentStepTeam[team].explanationType == "picture") {
+                content = "<div id=\""+team+"\" class=\"tab-pane fade"+active_content+"\">"+
+                    "   <div class=\"panel panel-default\" style=\"margin: 10px;\">"+
+                    "      <div class=\"panel-body\">"+
+                    '          <img src="' + window.location.origin + '/uploads/' + message+ '" height="300px" /><br/>'+
+                    "          <p>Correct answer: </p>"+
+                    "          <p>"+currentStepTeam[team].answers+"</p>"+
+                    "      </div>"+
+                    "  </div> "+
+                    "</div>";
+            }
+            else if (currentStepTeam[team].explanationType == "qcm") {
+
+                let textAnswer = "";
+                let textCorrectAnswer = "";
+
+                if (message == 0)
+                    textAnswer = currentStepTeam[team].qcm.textAnswer1;
+                else if (message == 1)
+                    textAnswer = currentStepTeam[team].qcm.textAnswer2;
+                else if (message == 2)
+                    textAnswer = currentStepTeam[team].qcm.textAnswer3;
+                else if (message == 3)
+                    textAnswer = currentStepTeam[team].qcm.textAnswer4;
+
+                if (currentStepTeam[team].qcm.answer == 0)
+                    textCorrectAnswer = currentStepTeam[team].qcm.textAnswer1;
+                else if (currentStepTeam[team].qcm.answer == 1)
+                    textCorrectAnswer = currentStepTeam[team].qcm.textAnswer2;
+                else if (currentStepTeam[team].qcm.answer == 2)
+                    textCorrectAnswer = currentStepTeam[team].qcm.textAnswer3;
+                else if (currentStepTeam[team].qcm.answer == 3)
+                    textCorrectAnswer = currentStepTeam[team].qcm.textAnswer4;
+
+                content = "<div id=\""+team+"\" class=\"tab-pane fade"+active_content+"\">"+
+                    "   <div class=\"panel panel-default\" style=\"margin: 10px;\">"+
+                    "      <div class=\"panel-body\">"+
+                    "          <p>"+ textAnswer +"</p><br/>"+
+                    "          <p>Correct answer: </p>"+
+                    "          <p>"+textCorrectAnswer+"</p>"+
+                    "      </div>"+
+                    "  </div> "+
+                    "</div>";
+            }
+
             modalContent.append(content);
         }
         
@@ -676,9 +728,8 @@ function validStep(isValid){
         var team = $("#modal_list").find(".active").children().eq(0).data("team");
         $("#modal_list").find(".active").remove();
         $("#modal_content").find(".active").remove();
-        
-        //on envoie un evenement pour que le serveur soit au courant
-        socket.emit('ValidateStep', idGame, team, isValid);
+
+        socket.emit('ValidateStep', idGame, currentStepTeam[team]._id, team, isValid);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)
