@@ -371,18 +371,18 @@ var connectSocketFunction = function connectSocket(socket) {
     socket.on('send', function(data) {
         io.sockets.in(data.room).emit('message', socket.username, data);
         console.log('la');
-        var splitTab = data.room.split("_");
-        var idgame = splitTab[0];
-        var destinationRoom = '';
+       // var splitTab = data.room.split("_");
+       // var idgame = splitTab[0];
+       // var destinationRoom = '';
 
-        for(t=1;t<splitTab.lengh; t++)
-        {
-            destinationRoom += splitTab[t];
-        }
+        //for(t=1;t<splitTab.lengh; t++)
+        //{
+          //  destinationRoom += splitTab[t];
+       // }
 
         db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID("58987898fd55ad11f9c9df53") }, {
             $push: {
-                "trace":{ "user_name": socket.username, "destination_room":destinationRoom, "text" : data }
+                "trace":{ "user_name": socket.username, "destination_room":data.room, "text" : data.message }
             }
         }, undefined, function (err, doc) {
             if (err) {
