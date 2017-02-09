@@ -139,7 +139,6 @@
     }
 
     function startGame(event, idGame) {
-        var result = confirm("Start this game?");
         if (result) {
             putRequest('../data/games/' + idGame + '/start').then(function(response) {
                 console.log("Put Success!", response);
