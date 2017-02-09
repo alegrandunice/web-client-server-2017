@@ -1,7 +1,7 @@
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 
-module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION){
+module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload){
 
     app
         .get('/player/select-game.html', function(req,res) {
@@ -537,14 +537,56 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.redirect('/login');
             }
         })
+        .post('/data/player/addImage/:gameid', upload.array('file'), function(req,res) {
+            console.log('add image');
+            sess = req.session;
+            if(sess.username && sess.type == "player"){
+                db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(req.params.gameid)}, { teams: 1 }, function(err, doc) {
+                    if (err) {
+                        handleError(res, err.message, "Failed to get current step.");
+                    } else {
+                        let team;
+                        let indexTeam;
+                        for (t = 0; t < doc.teams.length; t++) {
+                            if (doc.teams[t].players !== undefined) {
+                                for (p = 0; p < doc.teams[t].players.length; p++) {
+                                    if (doc.teams[t].players[p].userid == sess.userid) {
+                                        team = doc.teams[t];
+                                        indexTeam = t;
+                                    }
+                                }
+                            }
+                        }
 
+                        if ((team !== undefined) &&(team.steps !== undefined)) {
+                            console.log('add image in steps' + req.files[0].filename);
+                            team.steps[team.steps.length - 1].image = req.files[0].filename;
 
+                            let teamt = {};
+                            console.log("indexTeam" + indexTeam );
+                            teamt["teams." + indexTeam + ".steps"] = team.steps;
+                            console.log("teamT " + JSON.stringify(teamt) );
 
-
-
-
-
-
+                            db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(req.params.gameid)}, {
+                                $set: teamt
+                            },undefined, function (err, doc) {
+                                if (err) {
+                                    console.log("error");
+                                    handleError(res, err.message, "Failed to update step");
+                                } else {
+                                    console.log("ça marche ! " + req.files[0].filename);
+                                    res.status(201).end(req.files[0].filename);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+            else{
+                console.log("fail");
+                res.redirect('/login');
+            }
+        })
 }
 
 

@@ -202,6 +202,15 @@
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
 
+
+            for(t=0;t < jsonReceived.length ; t++){
+                var chatMessage = "<b>" + jsonReceived[t].user_name + ":</b> " + jsonReceived[t].text + "<br>";
+                var conversation = document.querySelector("#conversation");
+                conversation.innerHTML += chatMessage;
+                $("#collapse-all").collapse("show");
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+
         //   var headerName = document.getElementById("headerName");
         //    headerName.innerHTML = jsonReceived.name;
 

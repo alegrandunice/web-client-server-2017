@@ -462,7 +462,23 @@
 
     //permet d'envoyer une demande de validation au GM
     function validation(){
-        socket.emit("validationStep", idGame, team, "Valide moi !! je suis de la team : "+team);
+        var url;
+        var image = document.getElementById("valuePictureQuestion");
+        if(image){
+            sendFile('/data/player/addImage/' + idGame, image).then(function(response) {
+                url = response;
+                console.log("URL : " + url);
+                // TODO url contains the image sent, send the url to master and print it using "../uploads/" + url
+                socket.emit("validationStep", idGame, team, "Valide moi !! je suis de la team : "+team);
+                console.log("Post Success! ", response);
+            }, function(error) {
+                console.error("Put Failed!", error);
+            });
+        }
+        else {
+            socket.emit("validationStep", idGame, team, "Valide moi !! je suis de la team : "+team);
+        }
+
     }
 
     // sends the chat message to the server
