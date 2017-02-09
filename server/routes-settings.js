@@ -221,6 +221,25 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         });
     });
 
+    app.get("/data/games/:id/trace", function(req, res) {
+
+        var ids = [];
+
+        db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID( req.params.id ) }, function(err, game) {
+
+            if (err) {
+                handleError(res, err.message, "Failed to get trace");
+            } else {
+
+                trace = game.trace;
+                console.log(trace);
+                res.status(200).json(trace);
+            }
+        });
+    });
+
+
+
     /*  "/data/games/:id/start"
      *    PUT : Start a game
      */
