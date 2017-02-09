@@ -1,4 +1,5 @@
 var express = require("express");
+
 var session = require('express-session');
 var path = require("path");
 var bodyParser = require("body-parser");
@@ -36,6 +37,31 @@ var sess = undefined;
 // Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
 var db = undefined;
 var io = undefined;
+
+//*********************** UPLOADS IMAGES ***************************
+var fs = require("fs");
+var multer  = require("multer");
+var storage = multer.diskStorage({
+    destination: dirApp + "/uploads",
+    filename: function (req, file, cb) {
+        cb(null, file.originalname + '-' + Date.now());
+    }
+});
+
+var upload = multer({ storage: storage });
+
+app.post('/api/file', upload.array('file'), function (req, res) {
+
+    console.log("received " + req.files.length + " files");// form files
+    for(var i=0; i < req.files.length; i++) {
+        console.log("### " + req.files[i].path);
+    }
+    //console.log("The URL for the file is:" + "localhost:3000\\"+req.file.path);
+
+    res.status(204).end();
+
+});
+
 
  //******************* DATA ***************************
  //****************************************************
@@ -91,8 +117,8 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, datab
   init();
 
   //required routes files
-  require('./routes-settings')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION);
-  require('./routes-player')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION);
+  require('./routes-settings')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload);
+  require('./routes-player')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload);
 
 });
 
@@ -334,7 +360,6 @@ var connectSocketFunction = function connectSocket(socket) {
         console.log('leaving room', room);
         socket.leave(room); 
     })
-    
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
@@ -346,6 +371,26 @@ var connectSocketFunction = function connectSocket(socket) {
     socket.on('send', function(data) {
         io.sockets.in(data.room).emit('message', socket.username, data);
         console.log('la');
+        var splitTab = data.room.split("_");
+        var idgame = splitTab[0];
+        var destinationRoom = '';
+
+        for(t=1;t<splitTab.lengh; t++)
+        {
+            destinationRoom += splitTab[t];
+        }
+
+        db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID("58987898fd55ad11f9c9df53") }, {
+            $push: {
+                "trace":{ "user_name": socket.username, "destination_room":destinationRoom, "text" : data }
+            }
+        }, undefined, function (err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to store chat message");
+            } else {
+                console.log("done !");
+            }
+        });
     });
 
 	// when the client emits 'adduser', this listens and executes

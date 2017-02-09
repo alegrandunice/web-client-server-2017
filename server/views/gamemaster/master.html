@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Play</title>
+    <title>Game Master</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -46,46 +46,17 @@
     <![endif]-->
 </head>
 <body style="width:100%; height:100%">
-
-    <ul class="nav navbar-default nav-pills">
-      <li class="active"><a href="/gamemaster/select-game.html">Home</a></li>
-      <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
-      <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Validation demands</button></li>
-    </ul>
-<!--
-    <div class="tab-content container-fluid" style="width:100%; height:100%">
-        
-        <div id="tabHome" class="row tab-pane fade in active" style="width:100%; height:100%">  
-            <div class="col-xs-8" style="width:67%; height:100%">
-                <div id="map"  style="width:100%; height:100%" ></div>
-            </div>
-            <div class="col-xs-4" style="width:33%; height:100%">
-                <div id="chat">
-                    <div class="panel-group room-all">
-                        <div class="panel panle-default">
-                            <div class="panel-heading"  style="background-color: darkgrey;">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapse-all" style="display:block; width:100%;">Tout le monde
-                                    <span  style="float:right; margin:-10px 0;" class="show-all hide" onclick="showTeam('all');"><img src="https://maps.gstatic.com/mapfiles/ms2/micons/POI.png"></span></a>
-                                </h4>
-                            </div>
-                            <div id="collapse-all" class="panel-collapse collapse">
-                                <div id="conversation" class="panel-body"  style="max-height:200px; overflow-y:auto;  word-warp:break-word;"></div>
-                                <div class="panel-footer">
-                                    <!--<input id="data" style="width:80%;" />
-                                    <input type="button" id="datasend" value="send" />-->
-                                <!--    <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
-                                    <input type="button" id="datasend" onclick="clicAll();" value="send" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div style="margin: 10px; width: 100%; height: 100%" >
+    <div class="row">
+        <div class="col-sm-6" style="margin-top: 10px; margin-bottom: 10px;">
+            <button class="btn btn-default" onclick="logout(); return false;">Logout</button>
+            <button id="modalButton" type="button" class="btn btn-default" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Validation demands</button>
         </div>
-    </div> -->
-    
-    
+        <div class="col-sm-6" style="text-align: right">
+            <h4 id="headerName"></h4>
+        </div>
+    </div>
+
     <div style="display: flex; flex-direction: row; height:95%;" id="main">
         <div id="map"  style="display: flex; flex-direction: column; flex: 8; height:100%;" ></div>
         <div id="chat" style="display: flex; flex-direction: column; flex: 4; max-width:400px; overflow:hidden;">
@@ -109,6 +80,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
     <!-- MODAL -->
     <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -137,11 +109,7 @@
         </div>
       </div>
     </div>
-    <!--
-    <div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
-        <b>Players</b>
-        <div id="users"></div>
-    </div> -->
+
     
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

@@ -1,7 +1,7 @@
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 
-module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION) {
+module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload) {
 
     app
         .get('/settings/select-game.html', function(req,res) {
@@ -337,12 +337,37 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         });
     });
 
+    app.post("/data/img/steps/:id", upload.array('file'), function(req, res) {
+        console.log("update step");
+        console.log("file not received");
+        if(req.files){
+            console.log("### " + req.files[0].filename);
+            req.body.picture = req.files[0].filename;
+        }
+
+        db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) },
+            {
+                $set :
+                {
+                    picture: req.files[0].filename
+                }
+            }, function(err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to update step");
+            } else {
+
+                res.status(204).end();
+            }
+        });
+    });
+
     app.put("/data/steps/:id", function(req, res) {
-        console.log(JSON.stringify(req.body));
+
         db.collection(STEPS_COLLECTION).updateOne({ _id : new ObjectID( req.params.id ) }, { $set : req.body }, function(err, doc) {
             if (err) {
                 handleError(res, err.message, "Failed to update step");
             } else {
+
                 res.status(204).end();
             }
         });
