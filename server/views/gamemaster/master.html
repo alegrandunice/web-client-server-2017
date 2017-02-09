@@ -31,7 +31,8 @@
             var message = data.value;
             data.value = "";
             // tell server to execute 'sendchat' and send along one parameter
-            socket.emit('sendchat', message);
+            //socket.emit('sendchat', message);
+            socket.emit('send', { room: idGame, message: message });
             data.focus();
         };
         
@@ -255,11 +256,14 @@
     }
     
     function onMessage(username, data) {
-
+        var room = $("#conversation");
+        if(typeof(rooms[data.room]) != "undefined")
+        {
+            room = $("#"+rooms[data.room].id_room);
+        }
         var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
-        var room = document.querySelector("#"+rooms[data.room].id_room);
-        room.innerHTML += chatMessage;
-        room.scrollTop = room.scrollHeight;
+        room.append(chatMessage);
+        room.scrollTop(room.prop("scrollHeight"));
         $("#collapse-"+data.room).collapse("show");        
     }
     
@@ -270,7 +274,7 @@
 	}
     
     function onNewPlayer(idGame, player){
-        addPlayer(idGame, player);
+        addPlayer(player);
     }
     
     function onDeleteUser(player){
@@ -533,6 +537,7 @@
     
     
     function addPlayer(player) {
+        console.log(player);
         if(typeof(teams[player.team]) == "undefined")
         {
             var taille = 0;
@@ -601,8 +606,10 @@
                 nb_marker++;
                 markersList[marker].setMap(null);
                 
+                console.log(teams[teamName]);
                 for(name in teams[teamName].listPlayers)
                 {
+                    console.log(name);
                     if(marker == name)
                     {
                         markersList[marker].setMap(map);
@@ -618,7 +625,10 @@
                     destination[team].setVisible(false);
                 }
             }
-            destination[teamName].setVisible(true);
+            if(destination[teamName] != null)
+            {
+                destination[teamName].setVisible(true);
+            }
             
         }
         

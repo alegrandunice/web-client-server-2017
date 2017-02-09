@@ -365,16 +365,17 @@ var connectSocketFunction = function connectSocket(socket) {
     
     //permet de gere les messages dans les rooms spécifiques
     socket.on('send', function(data) {
+        console.log(data.room);
         io.sockets.in(data.room).emit('message', socket.username, data);
         console.log('la');
-       // var splitTab = data.room.split("_");
-       // var idgame = splitTab[0];
-       // var destinationRoom = '';
+        var splitTab = data.room.split("_");
+        var idgame = splitTab[0];
+        var destinationRoom = '';
 
-        //for(t=1;t<splitTab.lengh; t++)
-        //{
-          //  destinationRoom += splitTab[t];
-       // }
+        for(t=1;t<splitTab.lengh; t++)
+        {
+            destinationRoom += splitTab[t];
+        }
 
         db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(idgame) }, {
             $push: {
@@ -391,40 +392,46 @@ var connectSocketFunction = function connectSocket(socket) {
 
 	// when the client emits 'adduser', this listens and executes
 	socket.on('adduser', function(idgame, userdata){
-            console.log(idgame, userdata);
-	       console.log("Hello " + userdata['username']);
-        username = userdata['username'];
-        
-        startedGames[idgame].listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], idgame);
-
-        if(typeof(startedGames[idgame].listOfTeams[userdata['team']]) === "undefined")
+        if(typeof(startedGames[idgame]) != "undefined")
         {
-            startedGames[idgame].listOfTeams[userdata['team']]= startedGames[idgame].listOfPlayers[username].roomsList;
-           
+            console.log("Hello " + userdata['username']);
+            username = userdata['username'];
+            
+            startedGames[idgame].listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], idgame);
+
+            if(typeof(startedGames[idgame].listOfTeams[userdata['team']]) === "undefined")
+            {
+                startedGames[idgame].listOfTeams[userdata['team']]= startedGames[idgame].listOfPlayers[username].roomsList;
+               
+            }
+            
+            //On envoie la liste des joueurs sur la room master
+            io.sockets.in(idgame + "_master").emit('newPlayer', idgame, startedGames[idgame].listOfPlayers[username]);
+
+            socket.username = username;
+            socket.idGame = idgame;
+            // add the client's username to the global list
+            startedGames[idgame].usernames[username] = username;
+
+            //on envoie les rooms que l'utilisateur doit rejoindre
+            socket.emit('joinRooms', startedGames[idgame].listOfPlayers[username].roomsList);
+
+            // tell all clients to update the list of users on the GUI
+            io.sockets.in(idgame).emit("updateusers", startedGames[idgame].usernames);
         }
-        
-        //On envoie la liste des joueurs sur la room master
-        io.sockets.in(idgame + "_master").emit('newPlayer', idgame, startedGames[idgame].listOfPlayers[username]);
-
-		socket.username = username;
-		// add the client's username to the global list
-		startedGames[idgame].usernames[username] = username;
-
-        //on envoie les rooms que l'utilisateur doit rejoindre
-        socket.emit('joinRooms', startedGames[idgame].listOfPlayers[username].roomsList);
-
-		// tell all clients to update the list of users on the GUI
-		io.sockets.in(idgame).emit("updateusers", startedGames[idgame].usernames);
 	});
     
     socket.on('addAdmin', function(idGame, username){
-        socket.username = username;
-        startedGames[idGame].usernames[username] = username;
-        io.sockets.in(idGame+'_master').emit('players', startedGames[idGame].listOfPlayers);
+        if(typeof(idgame) != "undefined" && typeof(startedGames[idgame]) != "undefined")
+        {
+            socket.username = username;
+            startedGames[idGame].usernames[username] = username;
+            io.sockets.in(idGame+'_master').emit('players', startedGames[idGame].listOfPlayers);
+        }
     });
     
     socket.on("updatePlayerPosition", function(idgame, data){ 
-        if(typeof(startedGames[idgame].listOfPlayers[data.username]) !== "undefined")
+        if(typeof(idgame) != "undefined" && typeof(startedGames[idgame]) !== "undefined" && typeof(startedGames[idgame].listOfPlayers[data.username]) !== "undefined")
         {
             startedGames[idgame].listOfPlayers[data.username].lat = data.lat;
             startedGames[idgame].listOfPlayers[data.username].long = data.lng;
@@ -505,10 +512,10 @@ var connectSocketFunction = function connectSocket(socket) {
                     if (teamstep.stepid !== undefined) {
                         db.collection(STEPS_COLLECTION).findOne({ _id : teamstep.stepid }, function(err, doc) {
                             if (err) {
-                                io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get step");
+                                io.sockets.in(gameid+"_master").emit("currentStep", teamName, "erreur", "Failed to get step");
                             } else {
                                 if (doc == null) {
-                                    io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get step");
+                                    io.sockets.in(gameid+"_master").emit("currentStep", teamName, "erreur", "Failed to get step");
                                 }
                                 else {
                                     console.log(doc);
@@ -517,16 +524,16 @@ var connectSocketFunction = function connectSocket(socket) {
                                     let coordinate = doc.coordinate;
                                     
                                     
-                                    io.sockets.in("master").emit("currentStep", teamName, idStep, stepgame, coordinate);
+                                    io.sockets.in(gameid+"_master").emit("currentStep", teamName, idStep, stepgame, coordinate);
                                 }
                             }
                         });
                     }
                     else
-                        io.sockets.in("master").emit("currentStep", teamName, "erreur", "");
+                        io.sockets.in(gameid+"_master").emit("currentStep", teamName, "erreur", "");
                 }
                 else{
-                    io.sockets.in("master").emit("currentStep", teamName, "erreur", "Failed to get current step.");
+                    io.sockets.in(gameid+"_master").emit("currentStep", teamName, "erreur", "Failed to get current step.");
                 }
                 
             }
@@ -541,25 +548,30 @@ var connectSocketFunction = function connectSocket(socket) {
     });
     
     socket.on("ValidateStep", function(idgame, team, isValid){
-        console.log(startedGames[idgame].listOfTeams[team]['only']);
-        io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
+        if(typeof(startedGames[idgame]) != "undefined")
+        {
+            console.log(startedGames[idgame].listOfTeams[team]['only']);
+            io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
+        }
     });
     
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
-		/*
-        // remove the username from global usernames list
-		delete startedGames[idgame].usernames[socket.username];
-				// update list of users in chat, client-side
-		io.sockets.emit('updateusers', startedGames[idgame].usernames);
-        
-        io.sockets.in("master").emit('deleteUser', startedGames[idgame].listOfPlayers[socket.username]);
+		if(typeof(startedGames[socket.idGame]) != "undefined")
+        {
+            // remove the username from global usernames list
+            delete startedGames[socket.idGame].usernames[socket.username];
+                    // update list of users in chat, client-side
+            io.sockets.emit('updateusers', startedGames[socket.idGame].usernames);
+            
+            io.sockets.in(socket.idGame+"_master").emit('deleteUser', startedGames[socket.idGame].listOfPlayers[socket.username]);
 
-		// Remove the player too
-		delete startedGames[idgame].listOfPlayers[socket.username];		
-		io.sockets.emit('updatePlayers',startedGames[idgame].listOfPlayers);
-		*/
+            // Remove the player too
+            delete startedGames[socket.idGame].listOfPlayers[socket.username];		
+            io.sockets.emit('updatePlayers',startedGames[socket.idGame].listOfPlayers);
+        }
+		
 	});
 };
 
