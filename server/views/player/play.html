@@ -425,12 +425,14 @@
         //Arnaud met ton code ici stp :D
         
         if(isValid){
+            $("#alertBadAnwser").collapse("hide");
             $("#alertGoodAnwser").collapse("show");
             window.setTimeout(function(){
                 $("#alertGoodAnwser").collapse("hide");
             }, 20000);
         }
         else{
+            $("#alertGoodAnwser").collapse("hide");
             $("#alertBadAnwser").collapse("show");
             window.setTimeout(function(){
                 $("#alertBadAnwser").collapse("hide");
