@@ -131,7 +131,7 @@ function sendFile(url, file) {
         req.onload = function() {
             // This is called even on 404 etc
             // so check the status
-            if (req.status == 204) {
+            if (req.status == 204 || req.status == 201) {
                 // Resolve the promise with the response
                 resolve(req.response);
             } else {
