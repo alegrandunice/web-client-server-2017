@@ -290,9 +290,9 @@
                 team = jsonReceived.teamname;
 
                 //on se connect sur la socket
-
+console.log("initSocket");
                 initSocket();
-
+console.log("end initSocket");
 
             }, function (error) {
                 console.error("Get Failed!", error);
@@ -345,8 +345,8 @@
         // call the server-side function 'adduser' and send one parameter (value of prompt)
         navigator.geolocation.getCurrentPosition(function(pos) {
 
-            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude, "game":idGame};
-            socket.emit('adduser', userdata);
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            socket.emit('adduser',idGame, userdata);
         });
     };
 
@@ -397,7 +397,7 @@
                 roomName1 = groupRooms[room];
                 i++;
             }
-            elseif(i == 2){
+            else if(i == 2){
                 roomName2 = groupRooms[room];
             }
         }

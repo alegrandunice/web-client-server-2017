@@ -349,11 +349,12 @@ var connectSocketFunction = function connectSocket(socket) {
     });
 
 	// when the client emits 'adduser', this listens and executes
-	socket.on('adduser', function(userdata){
+	socket.on('adduser', function(idgame, userdata){
+            console.log(idgame, userdata);
 	       console.log("Hello " + userdata['username']);
         username = userdata['username'];
         
-        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], userdata['game']);
+        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], idgame);
 
         if(typeof(listOfTeams[userdata['team']]) === "undefined")
         {
@@ -362,20 +363,17 @@ var connectSocketFunction = function connectSocket(socket) {
         }
         
         //On envoie la liste des joueurs sur la room master
-        io.sockets.in("master").emit('newPlayer', listOfPlayers[username]);
+        io.sockets.in(idgame + "_master").emit('newPlayer', listOfPlayers[username]);
 
 		socket.username = username;
 		// add the client's username to the global list
 		usernames[username] = username;
-		// echo to the current client that he is connecter
-		socket.emit('updatechat', 'SERVER', 'you have connected');
 
         //on envoie les rooms que l'utilisateur doit rejoindre
         socket.emit('joinRooms', listOfPlayers[username].roomsList);
-		// echo to all client except current, that a new person has connected
-		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
+
 		// tell all clients to update the list of users on the GUI
-		io.sockets.emit("updateusers", usernames);
+		io.sockets.in(idgame).emit("updateusers", usernames);
 	});
     
     socket.on('addAdmin', function(username){
@@ -520,8 +518,6 @@ var connectSocketFunction = function connectSocket(socket) {
 		delete listOfPlayers[socket.username];		
 		io.sockets.emit('updatePlayers',listOfPlayers);
 		
-		// echo globally that this client has left
-		socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
 	});
 };
 

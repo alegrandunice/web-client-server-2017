@@ -459,7 +459,9 @@
         
         
         rooms[roomName] = new RoomBB(roomName);
-        var teamName = roomName.substring(6);
+        var teamName = roomName.split("_");
+        teamName = teamName[1];
+        teamName = roomName.substring(6);
         console.log("gameId", idGame);
         socket.emit('getTeamStep', idGame, teamName);
         
