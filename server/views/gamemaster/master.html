@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Play</title>
+    <title>Game Master</title>
 
     <!-- Bootstrap -->
     <link href="../css/bootstrap.min.css" rel="stylesheet">
@@ -45,48 +45,19 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body style="width:100%; height:100%">
-
-    <ul class="nav navbar-default nav-pills">
-      <li class="active"><a href="/gamemaster/select-game.html">Home</a></li>
-      <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
-      <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Validation demands</button></li>
-    </ul>
-<!--
-    <div class="tab-content container-fluid" style="width:100%; height:100%">
-        
-        <div id="tabHome" class="row tab-pane fade in active" style="width:100%; height:100%">  
-            <div class="col-xs-8" style="width:67%; height:100%">
-                <div id="map"  style="width:100%; height:100%" ></div>
-            </div>
-            <div class="col-xs-4" style="width:33%; height:100%">
-                <div id="chat">
-                    <div class="panel-group room-all">
-                        <div class="panel panle-default">
-                            <div class="panel-heading"  style="background-color: darkgrey;">
-                                <h4 class="panel-title">
-                                    <a data-toggle="collapse" href="#collapse-all" style="display:block; width:100%;">Tout le monde
-                                    <span  style="float:right; margin:-10px 0;" class="show-all hide" onclick="showTeam('all');"><img src="https://maps.gstatic.com/mapfiles/ms2/micons/POI.png"></span></a>
-                                </h4>
-                            </div>
-                            <div id="collapse-all" class="panel-collapse collapse">
-                                <div id="conversation" class="panel-body"  style="max-height:200px; overflow-y:auto;  word-warp:break-word;"></div>
-                                <div class="panel-footer">
-                                    <!--<input id="data" style="width:80%;" />
-                                    <input type="button" id="datasend" value="send" />-->
-                                <!--    <input id="data" onkeypress="keypressEnterAll(event);" style="width:80%;" />
-                                    <input type="button" id="datasend" onclick="clicAll();" value="send" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<body style="width:100%; height:100%; overflow-x: hidden; overflow-y: hidden;">
+<div style="width:100%; height:100%; padding: 10px;">
+    <div class="row">
+        <div class="col-sm-6" style="margin-top: 10px; margin-bottom: 10px;">
+            <button class="btn btn-default" onclick="logout(); return false;">Logout</button>
+            <button id="modalButton" type="button" class="btn btn-default" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Validation demands</button>
         </div>
-    </div> -->
-    
-    
-    <div style="display: flex; flex-direction: row; height:95%;" id="main">
+        <div class="col-sm-6" style="text-align: right">
+            <h4 id="headerName" style="font-weight: bold;"></h4>
+        </div>
+    </div>
+
+    <div style="display: flex; flex-direction: row; height:90%;" id="main">
         <div id="map"  style="display: flex; flex-direction: column; flex: 8; height:100%;" ></div>
         <div id="chat" style="display: flex; flex-direction: column; flex: 4; max-width:400px; overflow:hidden;">
             <div class="panel-group room-all" style="margin:0;">
@@ -110,6 +81,9 @@
             </div>
         </div>
     </div>
+
+</div>
+
     <!-- MODAL -->
     <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -137,11 +111,7 @@
         </div>
       </div>
     </div>
-    <!--
-    <div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
-        <b>Players</b>
-        <div id="users"></div>
-    </div> -->
+
     
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -227,6 +197,26 @@
             console.error("Get Failed!", error);
         });
 
+        getRequest('/data/games/' + idGame + '/trace/').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
+
+
+            for(t=0;t < jsonReceived.length ; t++){
+                var chatMessage = "<b>" + jsonReceived[t].user_name + ":</b> " + jsonReceived[t].text + "<br>";
+                var conversation = document.querySelector("#conversation");
+                conversation.innerHTML += chatMessage;
+                $("#collapse-all").collapse("show");
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+
+        //   var headerName = document.getElementById("headerName");
+        //    headerName.innerHTML = jsonReceived.name;
+
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
+
         initSocket();
   		
 	});
@@ -235,6 +225,7 @@
     
     function initSocket(){
         socket = io.connect();
+        socket.emit('subscribe', idGame);
 
         // on connection to server, ask for user's name with an anonymous callback
         socket.on('connect', onConnect);
@@ -260,8 +251,8 @@
 
     function onConnect(){
         //on souscrit à la room master qui permet de gérer les données des joueurs
-        socket.emit('subscribe', 'master');
-        socket.emit('addAdmin', username);
+        socket.emit('subscribe', idGame+'_master');
+        socket.emit('addAdmin', idGame, username);
 	}
      
     function onUpdateChat(username, data) {
@@ -287,8 +278,8 @@
   		}
 	}
     
-    function onNewPlayer(player){
-        addPlayer(player);
+    function onNewPlayer(idGame, player){
+        addPlayer(idGame, player);
     }
     
     function onDeleteUser(player){
@@ -458,7 +449,12 @@
         
         
         rooms[roomName] = new RoomBB(roomName);
-        var teamName = roomName.substring(6);
+        var teamName = roomName.split("_");
+        console.log(teamName);
+        teamName = teamName[1];
+        console.log(teamName);
+        teamName = teamName.substring(6);
+        console.log(teamName);
         console.log("gameId", idGame);
         socket.emit('getTeamStep', idGame, teamName);
         
@@ -546,15 +542,12 @@
     
     
     function addPlayer(player) {
-
         if(typeof(teams[player.team]) == "undefined")
         {
             var taille = 0;
             for (o in teams) ++taille;         
             teams[player.team] = new TeamBB(player.team, listIcones[taille]);
             addRoom(player.roomsList["withMaster"]);         
-            
-            
         } 
         console.log(teams);
         teams[player.team].listPlayers[player.name] = player.name;
@@ -692,7 +685,7 @@ function validStep(isValid){
         $("#modal_content").find(".active").remove();
         
         //on envoie un evenement pour que le serveur soit au courant
-        socket.emit('ValidateStep', team, isValid);
+        socket.emit('ValidateStep', idGame, team, isValid);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)

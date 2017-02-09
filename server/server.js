@@ -37,6 +37,11 @@ var sess = undefined;
 // Create a database variable outside of the database and socketIO connection callback to reuse the connection pool in your app.
 var db = undefined;
 var io = undefined;
+var startedGames = {};
+
+
+
+
 
 //*********************** UPLOADS IMAGES ***************************
 var fs = require("fs");
@@ -117,7 +122,7 @@ mongodb.MongoClient.connect(process.env.MONGODB_URI || url, function (err, datab
   init();
 
   //required routes files
-  require('./routes-settings')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload);
+  require('./routes-settings')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload, startedGames);
   require('./routes-player')(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload);
 
 });
@@ -315,7 +320,7 @@ app.post('/send/:room/', function(req, res) {
 *   Definition classe player
 */
 
-function PlayerBB(n, t, lat, long) {
+function PlayerBB(n, t, lat, long, game) {
   var name = n;
   var team = t;
   
@@ -323,8 +328,9 @@ function PlayerBB(n, t, lat, long) {
   var long = long;
   
   var roomsList = {};
-  roomsList['only'] = "only"+t;
-  roomsList['withMaster'] = "Master"+t;
+  roomsList['only'] = game+"_only"+t;
+  roomsList['withMaster'] = game+"_Master"+t;
+  roomsList['all'] = game;
   
   // ----- API -----
   return {
@@ -335,15 +341,6 @@ function PlayerBB(n, t, lat, long) {
     roomsList:roomsList
   }
 }
-
-
-
-// usernames which are currently connected to the chat
-var usernames = {};
-//list of players currently in the game (username, team and position)
-var listOfPlayers = {};
-//list of teams
-var listOfTeams = {};
 
 
 var connectSocketFunction = function connectSocket(socket) {
@@ -359,7 +356,6 @@ var connectSocketFunction = function connectSocket(socket) {
         console.log('leaving room', room);
         socket.leave(room); 
     })
-    
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
@@ -371,50 +367,68 @@ var connectSocketFunction = function connectSocket(socket) {
     socket.on('send', function(data) {
         io.sockets.in(data.room).emit('message', socket.username, data);
         console.log('la');
+       // var splitTab = data.room.split("_");
+       // var idgame = splitTab[0];
+       // var destinationRoom = '';
+
+        //for(t=1;t<splitTab.lengh; t++)
+        //{
+          //  destinationRoom += splitTab[t];
+       // }
+
+        db.collection(GAMES_COLLECTION).updateOne({_id: new ObjectID(idgame) }, {
+            $push: {
+                "trace":{ "user_name": socket.username, "destination_room":data.room, "text" : data.message }
+            }
+        }, undefined, function (err, doc) {
+            if (err) {
+                handleError(res, err.message, "Failed to store chat message");
+            } else {
+                console.log("done !");
+            }
+        });
     });
 
 	// when the client emits 'adduser', this listens and executes
-	socket.on('adduser', function(userdata){
+	socket.on('adduser', function(idgame, userdata){
+            console.log(idgame, userdata);
 	       console.log("Hello " + userdata['username']);
         username = userdata['username'];
         
-        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long']);
+        startedGames[idgame].listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], idgame);
 
-        if(typeof(listOfTeams[userdata['team']]) === "undefined")
+        if(typeof(startedGames[idgame].listOfTeams[userdata['team']]) === "undefined")
         {
-            listOfTeams[userdata['team']]= listOfPlayers[username].roomsList;
+            startedGames[idgame].listOfTeams[userdata['team']]= startedGames[idgame].listOfPlayers[username].roomsList;
            
         }
         
         //On envoie la liste des joueurs sur la room master
-        io.sockets.in("master").emit('newPlayer', listOfPlayers[username]);
+        io.sockets.in(idgame + "_master").emit('newPlayer', idgame, startedGames[idgame].listOfPlayers[username]);
 
 		socket.username = username;
 		// add the client's username to the global list
-		usernames[username] = username;
-		// echo to the current client that he is connecter
-		socket.emit('updatechat', 'SERVER', 'you have connected');
+		startedGames[idgame].usernames[username] = username;
 
         //on envoie les rooms que l'utilisateur doit rejoindre
-        socket.emit('joinRooms', listOfPlayers[username].roomsList);
-		// echo to all client except current, that a new person has connected
-		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
+        socket.emit('joinRooms', startedGames[idgame].listOfPlayers[username].roomsList);
+
 		// tell all clients to update the list of users on the GUI
-		io.sockets.emit("updateusers", usernames);
+		io.sockets.in(idgame).emit("updateusers", startedGames[idgame].usernames);
 	});
     
-    socket.on('addAdmin', function(username){
+    socket.on('addAdmin', function(idGame, username){
         socket.username = username;
-        usernames[username] = username;
-        io.sockets.in('master').emit('players', listOfPlayers);
+        startedGames[idGame].usernames[username] = username;
+        io.sockets.in(idGame+'_master').emit('players', startedGames[idGame].listOfPlayers);
     });
     
-    socket.on("updatePlayerPosition", function(data){ 
-        if(typeof(listOfPlayers[data.username]) !== "undefined")
+    socket.on("updatePlayerPosition", function(idgame, data){ 
+        if(typeof(startedGames[idgame].listOfPlayers[data.username]) !== "undefined")
         {
-            listOfPlayers[data.username].lat = data.lat;
-            listOfPlayers[data.username].long = data.lng;
-            io.sockets.in("master").emit("updatePlayersPosition", listOfPlayers[data.username]);
+            startedGames[idgame].listOfPlayers[data.username].lat = data.lat;
+            startedGames[idgame].listOfPlayers[data.username].long = data.lng;
+            io.sockets.in(idgame+"_master").emit("updatePlayersPosition", startedGames[idgame].listOfPlayers[data.username]);
         }
         
     });
@@ -522,31 +536,30 @@ var connectSocketFunction = function connectSocket(socket) {
         
     });
     
-    socket.on("validationStep", function(team, message){
-        io.sockets.in("master").emit("validate", team, message);
+    socket.on("validationStep", function(idgame, team, message){
+        io.sockets.in(idgame+"_master").emit("validate", team, message);
     });
     
-    socket.on("ValidateStep", function(team, isValid){
-        console.log(listOfTeams[team]['only']);
-        io.sockets.in(listOfTeams[team]['only']).emit("resultValidationStep", isValid);
+    socket.on("ValidateStep", function(idgame, team, isValid){
+        console.log(startedGames[idgame].listOfTeams[team]['only']);
+        io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
     });
     
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
-		// remove the username from global usernames list
-		delete usernames[socket.username];
+		/*
+        // remove the username from global usernames list
+		delete startedGames[idgame].usernames[socket.username];
 				// update list of users in chat, client-side
-		io.sockets.emit('updateusers', usernames);
+		io.sockets.emit('updateusers', startedGames[idgame].usernames);
         
-        io.sockets.in("master").emit('deleteUser', listOfPlayers[socket.username]);
+        io.sockets.in("master").emit('deleteUser', startedGames[idgame].listOfPlayers[socket.username]);
 
 		// Remove the player too
-		delete listOfPlayers[socket.username];		
-		io.sockets.emit('updatePlayers',listOfPlayers);
-		
-		// echo globally that this client has left
-		socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
+		delete startedGames[idgame].listOfPlayers[socket.username];		
+		io.sockets.emit('updatePlayers',startedGames[idgame].listOfPlayers);
+		*/
 	});
 };
 

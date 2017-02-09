@@ -1,7 +1,29 @@
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 
-module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload) {
+/**
+*   Definition classe player
+*/
+
+function GameBB(game) {
+  var id = game;
+  // usernames which are currently connected to the chat
+  var usernames = {};
+  //list of players currently in the game (username, team and position)
+  var listOfPlayers = {};
+  //list of teams
+  var listOfTeams = {};
+  
+  // ----- API -----
+  return {
+    id:id,
+    usernames:usernames,
+    listOfPlayers:listOfPlayers,
+    listOfTeams:listOfTeams
+  }
+}
+
+module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLLECTION, GAMES_COLLECTION, USERS_COLLECTION, CLUES_COLLECTION, fs, multer, storage, upload, startedGames) {
 
     app
         .get('/settings/select-game.html', function(req,res) {
@@ -199,11 +221,31 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
         });
     });
 
+    app.get("/data/games/:id/trace", function(req, res) {
+
+        var ids = [];
+
+        db.collection(GAMES_COLLECTION).findOne({ _id: new ObjectID( req.params.id ) }, function(err, game) {
+
+            if (err) {
+                handleError(res, err.message, "Failed to get trace");
+            } else {
+
+                trace = game.trace;
+                console.log(trace);
+                res.status(200).json(trace);
+            }
+        });
+    });
+
+
+
     /*  "/data/games/:id/start"
      *    PUT : Start a game
      */
     app.put("/data/games/:id/start", function(req, res) {
         console.log("start game");
+        startedGames[req.params.id] = new GameBB(req.params.id);
         db.collection(GAMES_COLLECTION).updateOne({ _id : new ObjectID(req.params.id) },
             {
                 $set :

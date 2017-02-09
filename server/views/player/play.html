@@ -290,9 +290,9 @@
                 team = jsonReceived.teamname;
 
                 //on se connect sur la socket
-
+console.log("initSocket");
                 initSocket();
-
+console.log("end initSocket");
 
             }, function (error) {
                 console.error("Get Failed!", error);
@@ -346,7 +346,7 @@
         navigator.geolocation.getCurrentPosition(function(pos) {
 
             var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
-            socket.emit('adduser', userdata);
+            socket.emit('adduser',idGame, userdata);
         });
     };
 
@@ -397,7 +397,7 @@
                 roomName1 = groupRooms[room];
                 i++;
             }
-            else{
+            else if(i == 2){
                 roomName2 = groupRooms[room];
             }
         }
@@ -469,16 +469,15 @@
                 url = response;
                 console.log("URL : " + url);
                 // TODO url contains the image sent, send the url to master and print it using "../uploads/" + url
+                socket.emit("validationStep", idGame, team, "Valide moi !! je suis de la team : "+team);
                 console.log("Post Success! ", response);
             }, function(error) {
                 console.error("Put Failed!", error);
             });
         }
         else {
-            socket.emit("validationStep", team, "Valide moi !! je suis de la team : "+team);
+            socket.emit("validationStep", idGame, team, "Valide moi !! je suis de la team : "+team);
         }
-
-
 
     }
 
@@ -512,7 +511,7 @@
     function positionChanged(position){
         if (socket !== undefined) {
             var data = {username:username, lat:position.coords.latitude, lng:position.coords.longitude};
-            socket.emit('updatePlayerPosition', data);
+            socket.emit('updatePlayerPosition', idGame, data);
         }
 
         checkArea(position);
