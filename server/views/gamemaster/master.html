@@ -198,17 +198,17 @@
         });
 
         getRequest('/data/games/' + idGame + '/trace/').then(function(response) {
-            console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
-
+            var conversation = document.querySelector("#conversation");
 
             for(t=0;t < jsonReceived.length ; t++){
                 var chatMessage = "<b>" + jsonReceived[t].user_name + ":</b> " + jsonReceived[t].text + "<br>";
-                var conversation = document.querySelector("#conversation");
+                
                 conversation.innerHTML += chatMessage;
-                $("#collapse-all").collapse("show");
-                conversation.scrollTop = conversation.scrollHeight;
             }
+            
+            $("#collapse-all").collapse("show");
+            conversation.scrollTop = conversation.scrollHeight;
 
         //   var headerName = document.getElementById("headerName");
         //    headerName.innerHTML = jsonReceived.name;
@@ -299,6 +299,13 @@
         
         if(nb_teamPlayers == 0)
         {
+            //on retire l'icone de la team pour la mettre à la fin
+            console.log(listIcones);
+            console.log(teams[player.team].icon);
+            listIcones.splice(listIcones.indexOf(teams[player.team].icon),1);
+            console.log(listIcones);
+            listIcones.push(teams[player.team].icon);
+            console.log(listIcones);
             teams[player.team] = null;
             delete teams[player.team]
             $("#Room_"+player.team).remove();
@@ -332,6 +339,12 @@
         $("#step_"+teamName).text("Step "+idStep+" : " + step);
         
         //vérification si l'on a des coordonnées pour les afficher sur la map
+        if(destination[teamName] != null)
+        {
+            destination[teamName].setVisible(false);
+            destination[teamName] = null;
+        }
+        
         if(typeof(coordinate) !== "undefined")
         {
             if(coordinate.latitude != "")
@@ -350,9 +363,17 @@
                   fillColor: '#AA0000',
                   fillOpacity:0.2,
                   strokeColor: '#AA0000',
-                  strokeWeight: 1
+                  strokeWeight: 1,
+                  title: 'Objectif de l\'étape '+step
                 });
                 circle.bindTo('center', marker, 'position');
+                
+                //circle is the google.maps.Circle-instance
+                google.maps.event.addListener(circle,'mouseover',function(){
+                this.getMap().getDiv().setAttribute('title',this.get('title'));});
+
+                google.maps.event.addListener(circle,'mouseout',function(){
+                    this.getMap().getDiv().removeAttribute('title');});
                 
                 marker.setVisible(false);
                 destination[teamName] = circle;
@@ -596,18 +617,19 @@
             $("#Room_"+teamName).removeClass("hide");
             for (marker in markersList)
             {
+
                 nb_marker++;
                 markersList[marker].setMap(null);
                 
                 for(name in teams[teamName].listPlayers)
                 {
- 
                     if(marker == name)
                     {
                         markersList[marker].setMap(map);
+                        bounds.extend(markersList[marker].getPosition());
                     }
                 }
-                bounds.extend(markersList[marker].getPosition());
+                
             }
             
             for(team in destination)
