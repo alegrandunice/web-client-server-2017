@@ -342,7 +342,7 @@
     function connectUser(){
         // call the server-side function 'adduser' and send one parameter (value of prompt)
         navigator.geolocation.getCurrentPosition(function(pos) {
-
+            socket.emit('subscribe', idGame);
             var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
             socket.emit('adduser',idGame, userdata);
         });
@@ -361,9 +361,8 @@
 
     //fonction permettant de modifier le texte d'une room . Associé à 'message'
     function updateRoomChat(username, data) {
-        console.log(data);
         var chatMessage = "<b>" + username + ":</b> " + data.message + "<br>";
-        console.log(roomName1, roomName2);
+        
         switch(data.room) {
             case roomName1:
                 room1.innerHTML += chatMessage;
@@ -374,7 +373,6 @@
                 room2.scrollTop = room2.scrollHeight;
                 break;
             default:
-                console.log("ici??");
                 conversation.innerHTML += chatMessage;
                 conversation.scrollTop = conversation.scrollHeight;
 
@@ -389,7 +387,6 @@
 
     //fonction permettant de rejoindre les rooms de l'équipe. Associé à 'joinRooms'
     function joinRooms(groupRooms){
-        console.log(groupRooms);
         for(var room in groupRooms)
         {
             socket.emit('subscribe', groupRooms[room]);
