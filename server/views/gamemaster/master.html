@@ -22,7 +22,6 @@
         }
         
         function clicAll(){
-            console.log("coucou");
             sendMessage();
         }
         
@@ -186,7 +185,7 @@
         else
             idGame = sessionStorage.getItem('idGame');
 
-        console.log(idGame);
+        
         getRequest('/data/games/' + idGame + '/simple/').then(function(response) {
             console.log("Get Success!", response);
             var jsonReceived = JSON.parse(response);
@@ -226,6 +225,7 @@
     
     function initSocket(){
         socket = io.connect();
+        socket.username = username;
         socket.emit('subscribe', idGame);
 
         // on connection to server, ask for user's name with an anonymous callback
@@ -288,14 +288,12 @@
     
     function onDeleteUser(player){
         //suppression du joueur sur la carte
-        console.log(teams);
         markersList[player.name].setMap(null);
         markersList[player.name] = null;
         delete markersList[player.name];
         
         //on supprime le joueur de la team
         delete teams[player.team].listPlayers[player.name];
-        console.log(teams);
         var nb_teamPlayers =0;
         for(key in teams[player.team].listPlayers) nb_teamPlayers++;
         
@@ -365,12 +363,8 @@
     function onValidate(team, message){
         var modal = $("#myModal");
         //la team a déjà un onglet
-        if(modal.find("#"+team).length != 0)
+        if(modal.find("#"+team).length == 0)
         {
-            console.log("coucou");
-        }
-        else{
-            console.log("hey");
             var modal = $("#modal_list");
             var active_list = "";
             var active_content = "";
@@ -447,19 +441,14 @@
      **************************************************/
     
     function addRoom(roomName){
-        console.log(rooms);
         chat = document.querySelector("#chat");
         socket.emit('subscribe', roomName);
         
         
         rooms[roomName] = new RoomBB(roomName);
         var teamName = roomName.split("_");
-        console.log(teamName);
         teamName = teamName[1];
-        console.log(teamName);
         teamName = teamName.substring(6);
-        console.log(teamName);
-        console.log("gameId", idGame);
         socket.emit('getTeamStep', idGame, teamName);
         
         var icone = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
@@ -515,20 +504,17 @@
     
     function keypressEnter(event) {
         if(event.keyCode == 13) {
-            console.log(event);
             this.blur();
             sendMessageToRoom(event.target.id.substring(4));
         }
     }
     
     function clic(event) {
-    console.log(event.target.id);
         sendMessageToRoom(event.target.id.substring(4));
     }
     
      // sends the chat message to the server
     function sendMessageToRoom(roomName) {
-    console.log(roomName, rooms);
     
         var dataRoom = document.querySelector("#"+rooms[roomName].id_data+"");
         var message = dataRoom.value;
@@ -546,7 +532,6 @@
     
     
     function addPlayer(player) {
-        console.log(player);
         if(typeof(teams[player.team]) == "undefined")
         {
             var taille = 0;
@@ -554,9 +539,8 @@
             teams[player.team] = new TeamBB(player.team, listIcones[taille]);
             addRoom(player.roomsList["withMaster"]);         
         } 
-        console.log(teams);
+
         teams[player.team].listPlayers[player.name] = player.name;
-        console.log(teams);
         
         var marker = new google.maps.Marker({
                          position: new google.maps.LatLng(player.lat, player.long),
@@ -615,10 +599,9 @@
                 nb_marker++;
                 markersList[marker].setMap(null);
                 
-                console.log(teams[teamName]);
                 for(name in teams[teamName].listPlayers)
                 {
-                    console.log(name);
+ 
                     if(marker == name)
                     {
                         markersList[marker].setMap(map);

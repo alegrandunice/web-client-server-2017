@@ -310,7 +310,6 @@ app.get('/master',function (req, res) {
 app.post('/send/:room/', function(req, res) {
     var room = req.params.room
         message = req.body;
-    console.log(room, message);
     io.sockets.in(room).emit('message', { room: room, message: message });
 
     res.end('message sent');
@@ -360,14 +359,11 @@ var connectSocketFunction = function connectSocket(socket) {
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('sendchat', function (data) {
 		io.sockets.emit('updatechat', socket.username, data);
-        console.log('ici');
 	});
     
     //permet de gere les messages dans les rooms spécifiques
     socket.on('send', function(data) {
-        console.log(data.room);
         io.sockets.in(data.room).emit('message', socket.username, data);
-        console.log('la');
         var splitTab = data.room.split("_");
         var idgame = splitTab[0];
         var destinationRoom = '';
@@ -422,7 +418,7 @@ var connectSocketFunction = function connectSocket(socket) {
 	});
     
     socket.on('addAdmin', function(idGame, username){
-        if(typeof(idgame) != "undefined" && typeof(startedGames[idgame]) != "undefined")
+        if(typeof(idGame) != "undefined" && typeof(startedGames[idGame]) != "undefined")
         {
             socket.username = username;
             startedGames[idGame].usernames[username] = username;
@@ -441,7 +437,6 @@ var connectSocketFunction = function connectSocket(socket) {
     });
     
     socket.on("getTeamStep", function(gameid, teamName){
-        console.log("gameId", gameid);
         db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
             if (err) {
                 handleError(res, err.message, "Failed to get current step.");
@@ -550,7 +545,6 @@ var connectSocketFunction = function connectSocket(socket) {
     socket.on("ValidateStep", function(idgame, team, isValid){
         if(typeof(startedGames[idgame]) != "undefined")
         {
-            console.log(startedGames[idgame].listOfTeams[team]['only']);
             io.sockets.in(startedGames[idgame].listOfTeams[team]['only']).emit("resultValidationStep", isValid);
         }
     });
