@@ -230,7 +230,7 @@
     function onConnect(){
         //on souscrit à la room master qui permet de gérer les données des joueurs
         socket.emit('subscribe', idGame+'_master');
-        socket.emit('addAdmin', username);
+        socket.emit('addAdmin', idGame, username);
 	}
      
     function onUpdateChat(username, data) {
@@ -256,8 +256,8 @@
   		}
 	}
     
-    function onNewPlayer(player){
-        addPlayer(player);
+    function onNewPlayer(idGame, player){
+        addPlayer(idGame, player);
     }
     
     function onDeleteUser(player){
@@ -428,8 +428,11 @@
         
         rooms[roomName] = new RoomBB(roomName);
         var teamName = roomName.split("_");
+        console.log(teamName);
         teamName = teamName[1];
-        teamName = roomName.substring(6);
+        console.log(teamName);
+        teamName = teamName.substring(6);
+        console.log(teamName);
         console.log("gameId", idGame);
         socket.emit('getTeamStep', idGame, teamName);
         
@@ -517,15 +520,12 @@
     
     
     function addPlayer(player) {
-
         if(typeof(teams[player.team]) == "undefined")
         {
             var taille = 0;
             for (o in teams) ++taille;         
             teams[player.team] = new TeamBB(player.team, listIcones[taille]);
             addRoom(player.roomsList["withMaster"]);         
-            
-            
         } 
         console.log(teams);
         teams[player.team].listPlayers[player.name] = player.name;
@@ -663,7 +663,7 @@ function validStep(isValid){
         $("#modal_content").find(".active").remove();
         
         //on envoie un evenement pour que le serveur soit au courant
-        socket.emit('ValidateStep', team, isValid);
+        socket.emit('ValidateStep', idGame, team, isValid);
     }
     //si il reste un element
     if($("#modal_list").children().length != 0)
