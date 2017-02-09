@@ -436,7 +436,7 @@ var connectSocketFunction = function connectSocket(socket) {
         
     });
     
-    function getCurrentStep(gameid, teamName);
+    function getCurrentStep(gameid, teamName)
     {
         db.collection(GAMES_COLLECTION).findOne({_id: new ObjectID(gameid)}, { steps: 1, teams: 1 }, function(err, doc) {
             if (err) {
