@@ -259,6 +259,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                 res.redirect('/login');
             }
         })
+
+
         .get('/data/player/current-step/:idgame', function(req,res) {
             sess = req.session;
             if(sess.username && sess.type == "player"){
