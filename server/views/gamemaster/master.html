@@ -50,7 +50,7 @@
     <ul class="nav navbar-default nav-pills">
       <li class="active"><a href="/gamemaster/select-game.html">Home</a></li>
       <li><button class="btn" onclick="logout(); return false;">Logout</button></li>
-      <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Launch demo modal</button></li>
+      <li><button id="modalButton" type="button" class="btn btn-primary" onclick="removeWarning();" data-toggle="modal" data-target="#myModal">Validation demands</button></li>
     </ul>
 <!--
     <div class="tab-content container-fluid" style="width:100%; height:100%">
@@ -216,29 +216,16 @@
             idGame = sessionStorage.getItem('idGame');
 
         console.log(idGame);
-        
-  		/*// Listener for send button
-		datasend.addEventListener("click", function(evt) {
-      		sendMessage();
-  		});
+        getRequest('/data/games/' + idGame + '/simple/').then(function(response) {
+            console.log("Get Success!", response);
+            var jsonReceived = JSON.parse(response);
 
-		// detect if enter key pressed in the input field
-  		data.addEventListener("keypress", function(evt) {
-    		// if pressed ENTER, then send
-    		if(evt.keyCode == 13) {
-				this.blur();
-        		sendMessage();
-    		}
-  		});*/
-        
-        // sends the chat message to the server
-        /*function sendMessage() {
-            var message = data.value;
-            data.value = "";
-            // tell server to execute 'sendchat' and send along one parameter
-            socket.emit('sendchat', message);
-            data.focus();
-        };*/
+            var headerName = document.getElementById("headerName");
+            headerName.innerHTML = jsonReceived.name;
+
+        }, function(error) {
+            console.error("Get Failed!", error);
+        });
 
         initSocket();
   		
