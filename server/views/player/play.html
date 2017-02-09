@@ -345,7 +345,7 @@
         // call the server-side function 'adduser' and send one parameter (value of prompt)
         navigator.geolocation.getCurrentPosition(function(pos) {
 
-            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude};
+            var userdata = {"username" : username, "team" :team, "lat":pos.coords.latitude, "long":pos.coords.longitude, "game":idGame};
             socket.emit('adduser', userdata);
         });
     };
@@ -397,7 +397,7 @@
                 roomName1 = groupRooms[room];
                 i++;
             }
-            else{
+            elseif(i == 2){
                 roomName2 = groupRooms[room];
             }
         }

@@ -289,7 +289,7 @@ app.post('/send/:room/', function(req, res) {
 *   Definition classe player
 */
 
-function PlayerBB(n, t, lat, long) {
+function PlayerBB(n, t, lat, long, game) {
   var name = n;
   var team = t;
   
@@ -297,8 +297,9 @@ function PlayerBB(n, t, lat, long) {
   var long = long;
   
   var roomsList = {};
-  roomsList['only'] = "only"+t;
-  roomsList['withMaster'] = "Master"+t;
+  roomsList['only'] = game+"_only"+t;
+  roomsList['withMaster'] = game+"_Master"+t;
+  roomsList['all'] = game;
   
   // ----- API -----
   return {
@@ -352,7 +353,7 @@ var connectSocketFunction = function connectSocket(socket) {
 	       console.log("Hello " + userdata['username']);
         username = userdata['username'];
         
-        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long']);
+        listOfPlayers[username] = new PlayerBB(userdata['username'], userdata['team'], userdata['lat'], userdata['long'], userdata['game']);
 
         if(typeof(listOfTeams[userdata['team']]) === "undefined")
         {

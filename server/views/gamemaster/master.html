@@ -248,6 +248,7 @@
     
     function initSocket(){
         socket = io.connect();
+        socket.emit('subscribe', idGame);
 
         // on connection to server, ask for user's name with an anonymous callback
         socket.on('connect', onConnect);
@@ -273,7 +274,7 @@
 
     function onConnect(){
         //on souscrit à la room master qui permet de gérer les données des joueurs
-        socket.emit('subscribe', 'master');
+        socket.emit('subscribe', idGame+'_master');
         socket.emit('addAdmin', username);
 	}
      
