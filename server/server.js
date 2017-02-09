@@ -47,7 +47,7 @@ var startedGames = {};
 var fs = require("fs");
 var multer  = require("multer");
 var storage = multer.diskStorage({
-    destination: dirApp + "/uploads",
+    destination: dirApp + "/server/public/uploads",
     filename: function (req, file, cb) {
         cb(null, file.originalname + '-' + Date.now());
     }
