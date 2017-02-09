@@ -139,14 +139,14 @@
     }
 
     function startGame(event, idGame) {
-        if (result) {
-            putRequest('../data/games/' + idGame + '/start').then(function(response) {
-                console.log("Put Success!", response);
-                window.location='/gamemaster/master.html?idGame=' + idGame;
-            }, function(error) {
-                console.error("Put Failed!", error);
-            });
-        }
+
+        putRequest('../data/games/' + idGame + '/start').then(function(response) {
+            console.log("Put Success!", response);
+            window.location='/gamemaster/master.html?idGame=' + idGame;
+        }, function(error) {
+            console.error("Put Failed!", error);
+        });
+
     }
 
     function endGame(event, idGame) {
