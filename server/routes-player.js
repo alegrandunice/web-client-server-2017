@@ -558,7 +558,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                             }
                         }
 
-                        if ((team !== undefined) &&(team.steps !== undefined)) {
+                        if ((team !== undefined) &&(team.steps !== undefined) && (req.files !== undefined) && (req.files[0] != undefined)) {
                             console.log('add image in steps' + req.files[0].filename);
                             team.steps[team.steps.length - 1].image = req.files[0].filename;
 

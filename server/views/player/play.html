@@ -464,7 +464,7 @@
     function validation(){
         var url;
         var image = document.getElementById("valuePictureQuestion");
-        if(image){
+        if((currentStep.explanationType == "picture") && (image.files[0] != undefined)) {
             sendFile('/data/player/addImage/' + idGame, image).then(function(response) {
                 url = response;
                 console.log("URL : " + url);
