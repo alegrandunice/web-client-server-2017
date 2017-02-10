@@ -120,7 +120,7 @@
         postRequest('/data/games', jsonToSend).then(function(response) {
             console.log("Post Success!", response);
             var jsonReceived = JSON.parse(response);
-            htmlAppendGame(jsonReceived._id, jsonReceived.name, jsonReceived.status, (jsonReceived.steps ? jsonReceived.steps.length : 0));
+            window.location = './edit-game.html?idgame=' + jsonReceived._id;
         }, function(error) {
             console.error("Post Failed!", error);
         });

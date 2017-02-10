@@ -260,7 +260,7 @@
             postRequest('/data/games/' + idGame + '/steps/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
                 var jsonReceived = JSON.parse(response);
-                htmlAppendStep(jsonReceived._id, totalsteps, jsonReceived.type, jsonReceived.name, jsonReceived.total_points);
+                window.location = './edit-step.html?idstep=' + jsonReceived._id;
             }, function(error) {
                 console.error("Post Failed!", error);
             });

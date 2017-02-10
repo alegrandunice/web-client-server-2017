@@ -59,6 +59,12 @@
 
                     <label for="description">Description</label><textarea id="description" rows="4" style="margin-top: 10px; width: 100%" class="form-control" ></textarea>
 
+                    <div id="pnlPicture"  style="margin-top: 10px;">
+                        <label>Pictures:</label>
+                        <input id="file" type="file" accept="image/*" capture="camera" onchange="fileSelected();" >
+                        <img src="" hidden id="pictureImage" style="width: 250px; margin-top: 10px;"/>
+                    </div>
+
                     <div id="pnlAction">
                         <div style="margin-top: 10px; margin-bottom: 10px;">
                             <input id="selectQuestion" type="radio" name="explanationType" value="question" onchange = "toQuestion()"><label for="selectQuestion" style="margin-left: 10px;">Question</label>
@@ -66,11 +72,6 @@
                             <input id="selectQcm" type="radio" name="explanationType" value="qcm" onchange = "toQcm()"  style="margin-left: 20px;"><label for="selectQcm" style="margin-left: 10px;">QCM</label>
                         </div>
 
-                        <div id="pictureQuestion" hidden  style="margin-top: 10px;">
-                            <label>Pictures:</label>
-                            <input id="file" type="file" accept="image/*" capture="camera" onchange="fileSelected();" >
-                            <img src="" id="pictureImage" style="width: 250px; margin-top: 10px;"/>
-                        </div>
                         <ul class="list-group" id="qcmQuestion"  style="margin-top: 10px;">
                             <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer1" ><span style="margin-left: 10px;"><input id="textAnswer1" type="text" value="Answer 1" style="border: none;" /></span></li>
                             <li class="list-group-item"><input type="radio" name="qcmAnswer" id="checkAnswer2" ><span style="margin-left: 10px;"><input id="textAnswer2" type="text" value="Answer 2" style="border: none;" /></span></li>
@@ -154,7 +155,7 @@
 
                 var move = document.getElementById("move");
                 var action = document.getElementById("action");
-                if( jsonReceived.type == "move") {
+                if (jsonReceived.type == "move") {
                     move.checked = true;
 
                     if (jsonReceived.coordinate) {
@@ -166,14 +167,14 @@
 
                     toMove();
                 }
-                else{
+                else {
                     action.checked = true;
                     toAction();
                 }
 
                 var stepName = document.getElementById("stepName");
                 stepName.value = jsonReceived.name;
-                
+
                 var description = document.getElementById("description");
                 description.value = jsonReceived.explanation;
 
@@ -181,15 +182,18 @@
                 var selectPicture = document.getElementById("selectPicture");
                 var selectQcm = document.getElementById("selectQcm");
 
+                if ((jsonReceived.picture !== undefined) && (jsonReceived.picture != "")) {
+                    var pictureImage = document.getElementById("pictureImage");
+                    pictureImage.src = "../uploads/" + jsonReceived.picture;
+                    pictureImage.hidden = false;
+                }
+
                 if(jsonReceived.explanationType == "question"){
                     selectQuestion.checked = true;
                     toQuestion();
                 }
                 else if(jsonReceived.explanationType == "picture"){
                     selectPicture.checked = true;
-
-                    var pictureImage = document.getElementById("pictureImage");
-                    pictureImage.src = "../uploads/" + jsonReceived.picture;
 
                     toPicture();
                 }
@@ -270,32 +274,26 @@
 
     function toQuestion(){
         var pnlAnswerText = document.getElementById("pnlAnswerText");
-        var pictureQuestion = document.getElementById("pictureQuestion");
         var qcmQuestion = document.getElementById("qcmQuestion");
 
         pnlAnswerText.hidden = false;
-        pictureQuestion.hidden = true;
         qcmQuestion.hidden = true;
     }
 
 
     function toPicture(){
         var pnlAnswerText = document.getElementById("pnlAnswerText");
-        var pictureQuestion = document.getElementById("pictureQuestion");
         var qcmQuestion = document.getElementById("qcmQuestion");
 
         pnlAnswerText.hidden = false;
-        pictureQuestion.hidden = false;
         qcmQuestion.hidden = true;
     }
 
     function toQcm(){
         var pnlAnswerText = document.getElementById("pnlAnswerText");
-        var pictureQuestion = document.getElementById("pictureQuestion");
         var qcmQuestion = document.getElementById("qcmQuestion");
 
         pnlAnswerText.hidden = true;
-        pictureQuestion.hidden = true;
         qcmQuestion.hidden = false;
     }
 
@@ -306,6 +304,7 @@
 
         reader.addEventListener("load", function () {
             pictureImage.src = reader.result;
+            pictureImage.hidden = false;
         }, false);
 
         if (file.files[0]) {
@@ -317,11 +316,11 @@
     {
         if (idStep !== undefined) {
             var jsonToSend = {
-                "name" : "",
-                "type" : "",
-                "total_points" : 1,
-                "explanation" : "",
-                "explanationType" : "",
+                "name": "",
+                "type": "",
+                "total_points": 1,
+                "explanation": "",
+                "explanationType": "",
                 "qcm": {
                     "textAnswer1": "",
                     "textAnswer2": "",
@@ -329,40 +328,48 @@
                     "textAnswer4": "",
                     "answer": 0
                 },
-                "picture": "",
-                "answers" : "",
-                "coordinate" : {
-                    "longitude" : "",
-                    "latitude" : ""
+                "answers": "",
+                "coordinate": {
+                    "longitude": "",
+                    "latitude": ""
                 }
             };
 
             var move = document.getElementById("move");
 
-            if(move.checked){
+            if (move.checked) {
                 jsonToSend.type = "move";
-            }else{
+            } else {
                 jsonToSend.type = "action";
-             }
+            }
 
             var logitude = document.getElementById("latTo");
-            var lattude  = document.getElementById(("longTo"));
+            var lattude = document.getElementById(("longTo"));
 
             jsonToSend.coordinate.latitude = logitude.value;
             jsonToSend.coordinate.longitude = lattude.value;
 
             var stepName = document.getElementById("stepName");
             jsonToSend.name = stepName.value;
-            
+
             var description = document.getElementById("description");
             jsonToSend.explanation = description.value;
-            
+
             var earnedPoints = document.getElementById("earnedPoints");
             jsonToSend.total_points = parseInt(earnedPoints.value);
 
             var selectQuestion = document.getElementById("selectQuestion");
             var selectPicture = document.getElementById("selectPicture");
             var selectQcm = document.getElementById("selectQcm");
+            var image = document.getElementById("file");
+
+            if ((image.files != undefined) && (image.files[0] != undefined)) {
+                sendFile('/data/img/steps/' + idStep, image).then(function (response) {
+                    console.log("Post Success!", response);
+                }, function (error) {
+                    console.error("Put Failed!", error);
+                });
+            }
 
             if(selectQuestion.checked == true) {
                 jsonToSend.explanationType = "question";
@@ -374,20 +381,6 @@
                 jsonToSend.explanationType = "picture";
 
                 jsonToSend.qcm = {};
-
-                var image = document.getElementById("file");
-
-                sendFile('/data/img/steps/'+ idStep, image).then(function(response) {
-                    console.log("Post Success!", response);
-                }, function(error) {
-                    console.error("Put Failed!", error);
-                });
-                /*var pictureImage = document.getElementById("pictureImage");
-
-                if (pictureImage.src.startsWith("http:"))
-                    jsonToSend.picture = "";
-                else
-                    jsonToSend.picture = pictureImage.src;*/
 
             }else if(selectQcm.checked == true){
                 jsonToSend.explanationType = "qcm";
@@ -475,7 +468,7 @@
 
             postRequest('/data/steps/' + idStep + '/clues/', jsonToSend).then(function(response) {
                 console.log("Post Success!", response);
-                location.reload();
+                window.location = './edit-clue.html?ordernumber=' + totalclues;
             }, function(error) {
                 console.error("Post Failed!", error);
             });
