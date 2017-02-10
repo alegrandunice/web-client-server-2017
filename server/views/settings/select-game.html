@@ -17,16 +17,17 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body  onload="onLoad()">
+<body  onload="onLoad()" style="background-color: lightgray">
     <div class="container" style="margin-top:10px; ">
         <div class="row" >                                    
             <div class="col-xs-8" >
                 <button class="btn btn-success" onclick="createNewGame(event)">Create a new game</button>
                 <button class="btn" onclick="document.location.href = '/gamemaster/select-game.html'; return false;">Master</button>
-                <button class="btn" onclick="logout(); return false;">Logout</button>
+                <span style="margin-left: 10px; font-size: 1.5em; font-weight: bold; vertical-align: middle;">SETTINGS</span><span class="glyphicon glyphicon-wrench" aria-hidden="true" style="font-size: 1.5em; margin-left: 10px; vertical-align: middle;"></span>
             </div>
-            <div class="col-xs-4" style="text-align: right;">
-                <a href="edit-account.html?ac=1"><span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 2em;" data-toggle="tooltip" title="Edit your account"></span></a>
+            <div class="col-xs-4" style="text-align: right; vertical-align: middle;">
+                <a href="edit-account.html?ac=1"><span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 2em; vertical-align: middle; margin-right: 10px;" data-toggle="tooltip" title="Edit your account"></span></a>
+                <button class="btn" onclick="logout(); return false;">Logout</button>
             </div>
         </div>              
     </div>

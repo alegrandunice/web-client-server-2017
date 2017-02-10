@@ -22,10 +22,12 @@
         <div class="row" >                                    
             <div class="col-xs-8">
                 <button class="btn" onclick="document.location.href = '/settings/select-game.html'; return false;">Settings</button>
-                <button class="btn" onclick="logout(); return false;">Logout</button>
+                <span style="margin-left: 10px; font-size: 1.5em; font-weight: bold; vertical-align: middle;">GAME MASTER</span><span class="glyphicon glyphicon-home" aria-hidden="true" style="font-size: 1.5em; margin-left: 10px; vertical-align: middle;"></span>
+
             </div>
             <div class="col-xs-4" style="text-align: right;">
-                <a href="../settings/edit-account.html?ac=3"><span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 2em;" data-toggle="tooltip" title="Edit your game master account"></span></a>
+                <a href="../settings/edit-account.html?ac=3"><span class="glyphicon glyphicon-user" aria-hidden="true" style="font-size: 2em; vertical-align: middle; margin-left: 10px;" data-toggle="tooltip" title="Edit your game master account"></span></a>
+                <button class="btn" style="vertical-align: middle;" onclick="logout(); return false;">Logout</button>
             </div>
         </div>              
     </div>
