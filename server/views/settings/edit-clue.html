@@ -22,7 +22,7 @@
         <div class="jumbotron" style="margin-top: 10px; background-color: #fcf8e3;">
             <h3>Clue description</h3>
 
-            <form onsubmit="updateClue()" >
+            <form onsubmit="updateClue(); return false;" >
                 <div class="form-group">
                   <label for="cost">Cost</label><input id="cost" type="number" placeholder="Cost" class="form-control">
                 </div>
@@ -31,7 +31,7 @@
                 </div>
                 
                 <button type="submit" class="btn btn-success">Update clue</button>
-                <button class="btn" onclick="closeDialog();">Cancel</button>
+                <button type="button" class="btn" onclick="closeDialog();">Cancel</button>
                 
             </form>
         </div>
