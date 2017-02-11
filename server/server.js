@@ -507,6 +507,7 @@ var connectSocketFunction = function connectSocket(socket) {
 
                     if (teamstep.stepid !== undefined) {
                         db.collection(STEPS_COLLECTION).findOne({ _id : teamstep.stepid }, function(err, doc) {
+                            console.log(doc);
                             if (err) {
                                 io.sockets.in(gameid+"_master").emit("currentStep", teamName, "erreur", "Failed to get step");
                             } else {
@@ -553,7 +554,7 @@ var connectSocketFunction = function connectSocket(socket) {
             if(isValid)
             {
                 recordAnswer(idgame, idstep, team);
-                getCurrentStep(idgame, team);
+                
             }
                 
         }
@@ -595,6 +596,7 @@ var connectSocketFunction = function connectSocket(socket) {
                                                 console.log('recordAnswer error: ' + err.message);
                                             } else {
                                                 //OK
+                                                getCurrentStep(gameid, teamname);
                                             }
                                         });
                                     }
