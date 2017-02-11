@@ -353,7 +353,8 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                                 "clues": [],
                                                 "other_clue_available": false,
                                                 "qcm": doc.qcm,
-                                                "has_picture": ((doc.picture === undefined || doc.picture == "") ? false : true)
+                                                "has_picture": ((doc.picture === undefined || doc.picture == "") ? false : true),
+                                                "picture": doc.picture
                                             };
 
                                             for (c = 0; c < teamstep.used_clues; c++) {
