@@ -340,7 +340,7 @@ module.exports = function(app, sess, views, connect, db, handleError, STEPS_COLL
                                         handleError(res, err.message, "Failed to get step");
                                     } else {
                                         if (doc == null) {
-                                            handleError(res, "Unknown step", "Failed to get step");
+                                            res.status(200).json({});
                                         }
                                         else {
                                             let stepgame = {
