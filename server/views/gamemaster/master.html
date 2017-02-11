@@ -338,7 +338,14 @@
     var currentStepTeam = {};
     
     function onCurrentStep(teamName, numStep, step){
-        $("#step_"+teamName).text("Step " + numStep + " : " + step.name);
+        if(typeof(step.name) != "undefined")
+        {
+            $("#step_"+teamName).text("Step " + numStep + " : " + step.name);
+        }
+        else{
+            $("#step_"+teamName).text("Jeu fini !!");
+        }
+        
 
         currentStepTeam[teamName] =  step;
         
@@ -623,6 +630,12 @@
                          icon:teams[player.team].icon
 
         });
+        if(typeof(markersList[player.name]) !== "undefined")
+        {
+            markersList[player.name].setMap(null);
+            
+        }
+        
         markersList[player.name] = marker; 
         
         if(teamShow != "all")
